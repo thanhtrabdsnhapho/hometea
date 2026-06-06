@@ -2443,31 +2443,37 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           <div class="ai-generator-panel" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.05), rgba(249, 115, 22, 0.05)); border: 2px dashed rgba(249, 115, 22, 0.4); border-radius: 12px; padding: 24px; margin-bottom: 32px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
               <span style="font-size: 22px;">🤖</span>
-              <h5 style="font-size: 15.5px; font-weight: 700; color: var(--primary); margin: 0;">Trợ lý AI Tự Động Viết Mô Tả & Cú Pháp Pháp Lý BĐS</h5>
-              <span style="background: var(--accent); color: var(--primary); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px; text-transform: uppercase;">Gemini 2.0</span>
+              <h5 style="font-size: 15.5px; font-weight: 700; color: var(--primary); margin: 0;">Trợ lý AI Tự Động Phân Tích Dữ Liệu Thô & Điền Biểu Mẫu BĐS</h5>
+              <span style="background: var(--accent); color: var(--primary); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px; text-transform: uppercase;">Gemini 2.5</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-              Bạn chỉ cần nhập một vài gợi ý hoặc từ khóa nổi bật (ví dụ: hẻm rộng 6m, thông ra Lò Lu, gần sông mát mẻ...). 
-              Hệ thống AI sẽ tích hợp với các thông số (Giá, diện tích, phường, số tầng...) ở dưới để tự soạn thảo bài viết tiếp thị lý tưởng.
+              Dán thông tin, dữ liệu thô (ví dụ: m², vị trí, kết cấu, hướng, giá chào...) của bất động sản. 
+              Hệ thống AI sẽ tự động phân tích bóc tách các trường bên dưới đồng thời soạn bài viết quảng cáo hoàn mỹ theo đúng hệ mẫu chuẩn của bạn!
             </p>
             
             <div class="admin-form-group" style="margin-bottom: 14px;">
-              <label for="aiInputPrompt" style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">
-                Ý chính / Đặc điểm căn nhà nổi trội
+              <label for="aiInputPrompt" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Dán thông tin, dữ liệu thô của Bất Động Sản *</span>
+                <span style="color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline;" onclick="document.getElementById('aiInputPrompt').value = 'Viết bài cho lô đất: 51m2, hẻm 383 Long Phước, gần Làng Đại học Luật, sổ hồng riêng, xây tự do. Giá 2.5 tỷ, bề ngang rộng 4.2m. Hướng Tây Bắc.'">👉 Thử mẫu đất Long Phước</span>
               </label>
-              <input type="text" id="aiInputPrompt" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid rgba(249,115,22,0.25); border-radius: 8px; outline: none;" placeholder="Ví dụ: Hẻm nhựa xe hơi tránh, khu dân trí cao, tặng lại toàn bộ nội thất cao cấp">
+              <textarea id="aiInputPrompt" class="admin-form-control" style="width: 100%; height: 110px; padding: 12px; border: 1px solid rgba(249,115,22,0.25); border-radius: 8px; outline: none; font-size: 13.5px; line-height: 1.5; resize: vertical;" placeholder="Nhập hoặc dán nội dung thô của bạn tại đây, ví dụ: Nhà phố 1 trệt 2 lầu Phường Trường Thạnh, diện tích 72m2 (ngang 4.5m), hẻm xe hơi nhựa 6m, 3 phòng ngủ, 3WC, hướng Đông Nam, có sổ hồng cầm tay, giá bán 5.5 tỷ gia lộc tốt..."></textarea>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
               <span style="font-size: 11px; font-weight: 600; color: var(--accent);">
-                ⚡ AI sẽ tự động đọc các trường giá, diện tích, phường phía dưới!
+                ⚡ AI tự động định dạng tiêu đề, giá bán số, diện tích, phường xã và viết mô tả súc tích liền dòng!
               </span>
-              <button type="button" onclick="generateAIDescription(event)" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; box-shadow: var(--shadow);">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Tự động soạn thảo mô tả (AI Write)
-              </button>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" onclick="analyzeRawDataAI(event)" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: linear-gradient(135deg, var(--accent), #f97316); color: #fff; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; box-shadow: var(--shadow);">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  🪄 Phân tích AI & Tự động Điền Form
+                </button>
+                <button type="button" onclick="generateAIDescription(event)" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: #ea580c; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; box-shadow: var(--shadow);">
+                  ✍️ Chỉ viết mô tả từ các ô ở dưới
+                </button>
+              </div>
             </div>
           </div>
 
@@ -4330,6 +4336,210 @@ Nguyên tắc trả lời:
         applyFilters(); 
       }
 
+      async function analyzeRawDataAI(e) {
+        if (e) e.preventDefault();
+        
+        const localApiKey = localStorage.getItem('gemini_api_key');
+        if (!localApiKey && !serverHasKey) {
+          alert("Vui lòng kích hoạt & thiết lập Gemini API Key tại bong bóng Chatbox AI góc dưới phải màn hình trước!");
+          const aiChatWindow = document.getElementById('aiChatWindow');
+          if (aiChatWindow && !aiChatWindow.classList.contains('open')) {
+            aiChatWindow.classList.add('open');
+            initChatboxState();
+          }
+          return;
+        }
+
+        const rawInputText = document.getElementById('aiInputPrompt').value.trim();
+        if (!rawInputText) {
+          alert("Vui lòng nhập hoặc dán thông tin thô của bất động sản trước khi thực hiện phân tích!");
+          return;
+        }
+
+        const btn = e.currentTarget || e.target;
+        let originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = "⚡ Đang xử lý bóc tách...";
+
+        const formTitle = document.getElementById('formTitle');
+        const formHouseNumber = document.getElementById('formHouseNumber');
+        const formStreet = document.getElementById('formStreet');
+        const formWard = document.getElementById('formWard');
+        const formArea = document.getElementById('formArea');
+        const formWidth = document.getElementById('formWidth');
+        const formPrice = document.getElementById('formPrice');
+        const formBedrooms = document.getElementById('formBedrooms');
+        const formBathrooms = document.getElementById('formBathrooms');
+        const formFloors = document.getElementById('formFloors');
+        const formDirection = document.getElementById('formDirection');
+        const formLegal = document.getElementById('formLegal');
+        const formBadge = document.getElementById('formBadge');
+        const formDesc = document.getElementById('formDesc');
+
+        // Hiện thông báo trạng thái tạm thời
+        formDesc.value = "🤖 Trợ lý AI đang áp dụng quy tắc phân tích chi tiết dữ liệu thô và cấu trúc bài viết... Vui lòng đợi trong giây lát...";
+
+        const systemPayloadPrompt = `Bạn là một trợ lý thông minh cao cấp cho trang web BĐS TP. Thủ Đức.
+Nhiệm vụ của bạn là nhận thông tin thô (thông số, vị trí, giá, đặc điểm) do người dùng cung cấp và:
+1. Phân tích chi tiết để bóc tách các thông số cấu trúc của bất động sản.
+2. Biên soạn một bài viết quảng cáo đăng bán chuẩn mực theo đúng quy tắc bên dưới.
+
+Yêu cầu bóc tách các thông số cụ thể:
+- Tiêu đề (title): Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn mạnh nhất của bất động sản (VD: LOẠI HÌNH – VỊ TRÍ – DIỆN TÍCH – GIÁ).
+- Số nhà (houseNumber): Số nhà/số căn (nếu có nhắc tới trong dữ liệu thô, nếu không có thì để trống "").
+- Tên đường (street): Tên đường phố, hẻm chính (nếu có nhắc tới trong dữ liệu thô, nếu không thì ghi tên đường chính gần nhất hoặc bỏ trống).
+- Phường/xã (ward): Tên phường tại TP. Thủ Đức (VD: Trường Thạnh, Long Phước, Hiệp Phú, Thạnh Mỹ Lợi, Cát Lái...). Nếu không nhắc tới phường nhưng có tên đường, hãy suy đoán phường tương ứng hoặc ghi "Thủ Đức".
+- Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên (VD: 51).
+- Ngang (width): Chiều ngang (m), số thực (VD: 4.2). Nếu không có ghi nhận trong dữ liệu thô, hãy để mặc định là 4.
+- Giá bán (price): Giá chào bán quy đổi thành số thực đơn vị TỶ ĐỒNG (VD: 2.5 hoặc 3.6). Nếu không có, gán mặc định là 0.
+- Số phòng ngủ (bedrooms): Số phòng ngủ, là số nguyên (nếu đất trống ghi 0, nếu là nhà phố nhưng dữ liệu thô không nhắc tới thì ghi 3 làm mặc định).
+- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên (nếu đất trống ghi 0, nếu là nhà phố không nhắc thì ghi 3 làm mặc định).
+- Số tầng (floors): Số tầng kết cấu, nguyên (đất trống ghi 1, nhà cấp 4 ghi 1, nhà lầu ghi số tầng thực tế, hoặc mặc định 3 nếu không nêu rõ).
+- Hướng nhà (direction): Một trong các hướng chuẩn có sẵn: "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu không nhắc tới thì chọn mặc định "Đông".
+- Pháp lý (legal): Ghi nhận tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
+- Nhãn nổi bật (badge): Một nhãn ngắn như "Sổ Hồng Riêng", "Hẻm Xe Hơi", "Mặt Tiền Kinh Doanh", "Sát Đại Học", "Giá Đầu Tư".
+
+Yêu cầu biên soạn bài viết quảng cáo (desc):
+Bạn phải tuân thủ nghiêm ngặt các quy tắc sau:
+* Cấu trúc bài viết:
+- Tiêu đề: Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn mạnh nhất của bất động sản (VD: LOẠI HÌNH – VỊ TRÍ – DIỆN TÍCH – GIÁ).
+- Mục 1: THÔNG SỐ & GIÁ BÁN: Liệt kê các thông tin: Vị trí (phường/quận), Diện tích, Kết cấu (nếu là nhà), Hướng (nếu có), Giá bán (ghi rõ mức giá hoặc 'Liên hệ' nếu cần).
+- Mục 2: HIỆN TRẠNG & TIỀN NĂNG BỨT PHÁ: Sử dụng gạch đầu dòng để làm nổi bật các điểm mạnh: Thiết kế, nội thất, tiện ích xung quanh, tiềm năng tăng giá, giao thông, pháp lý.
+- Kết bài: Một câu kêu gọi hành động (Call-to-action) lịch sự, ngắn gọn: 'Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.'
+
+* Nguyên tắc trình bày:
+- Trình bày liền mạch, hoàn toàn KHÔNG CÓ KHOẢNG CÁCH DÒNG TRỐNG (tất cả các dòng phải nằm cạnh nhau liền dải văn bản, không dùng ký tự xuống dòng kép \\n\\n, hãy dùng \\n đơn lẻ và không để trống dòng).
+- Tuyệt đối KHÔNG SỬ DỤNG tiêu đề 'Ưu điểm' trong bất kỳ trường hợp nào.
+- KHÔNG LIỆT KÊ số nhà cụ thể hoặc tên hẻm cụ thể trong bài đăng quảng cáo (VD: hẻm 383 Long Phước hay số nhà 45 -> hãy ghi ẩn đi thành hẻm ô tô Long Phước hoặc khu vực Long Phước).
+- Tuyệt đối KHÔNG ĐỀ CẬP đến các yếu tố tiêu cực như 'ngập lụt', 'ngập nước' kể cả khi thông tin thô có nhắc tới. Thay vào đó tập trung vào hạ tầng hoàn thiện, vị trí đẹp, tiện ích xung quanh.
+- Sử dụng ngôn ngữ trung thực, chuyên nghiệp, không gây phiền.
+
+* Phong cách viết:
+- Ngắn gọn, súc tích, đánh mạnh vào giá trị đầu tư và công năng sử dụng.
+- Tập trung vào sự uy tín và minh bạch về pháp lý (sổ hồng, hoàn công).
+- Nếu thông tin thiếu (như giá hoặc diện tích), hãy viết bài dựa trên thông tin hiện có và giữ nguyên phần kêu gọi liên hệ để biết chi tiết.
+- Luôn ưu tiên trình bày đẹp mắt, dễ đọc trên thiết bị di động.
+
+Hãy trả về kết quả hoàn chỉnh dưới định dạng JSON duy nhất. KHÔNG bao quanh bằng bất cứ văn bản dẫn dắt hay markdown nhãn ngoại trừ cấu trúc JSON hợp lệ sau:
+{
+  "title": "...",
+  "houseNumber": "...",
+  "street": "...",
+  "ward": "...",
+  "area": 0,
+  "width": 0,
+  "price": 0,
+  "bedrooms": 0,
+  "bathrooms": 0,
+  "floors": 0,
+  "direction": "...",
+  "legal": "...",
+  "badge": "...",
+  "desc": "Bài viết chuẩn liền dòng theo yêu cầu..."
+}
+
+DỮ LIỆU THÔ CẦN PHÂN TÍCH:
+"${rawInputText}"`;
+
+        function fillFormWithResult(data) {
+          if (!data) return;
+          if (data.title && formTitle) formTitle.value = data.title;
+          if (data.houseNumber !== undefined && formHouseNumber) formHouseNumber.value = data.houseNumber;
+          if (data.street && formStreet) formStreet.value = data.street;
+          if (data.ward && formWard) formWard.value = data.ward;
+          if (data.area && formArea) formArea.value = data.area;
+          if (data.width && formWidth) formWidth.value = data.width;
+          if (data.price !== undefined && formPrice) formPrice.value = data.price;
+          if (data.bedrooms !== undefined && formBedrooms) formBedrooms.value = data.bedrooms;
+          if (data.bathrooms !== undefined && formBathrooms) formBathrooms.value = data.bathrooms;
+          if (data.floors !== undefined && formFloors) formFloors.value = data.floors;
+          if (data.legal && formLegal) formLegal.value = data.legal;
+          if (data.badge && formBadge) formBadge.value = data.badge;
+          if (data.desc && formDesc) formDesc.value = data.desc;
+
+          // Hướng nhà
+          if (data.direction && formDirection) {
+            const normalizedDir = data.direction.trim();
+            const optionExists = Array.from(formDirection.options).some(opt => opt.value === normalizedDir);
+            if (optionExists) {
+              formDirection.value = normalizedDir;
+            } else {
+              if (normalizedDir.includes("Đông Nam")) formDirection.value = "Đông Nam";
+              else if (normalizedDir.includes("Đông Bắc")) formDirection.value = "Đông Bắc";
+              else if (normalizedDir.includes("Tây Nam")) formDirection.value = "Tây Nam";
+              else if (normalizedDir.includes("Tây Bắc")) formDirection.value = "Tây Bắc";
+              else if (normalizedDir.includes("Đông")) formDirection.value = "Đông";
+              else if (normalizedDir.includes("Tây")) formDirection.value = "Tây";
+              else if (normalizedDir.includes("Nam")) formDirection.value = "Nam";
+              else if (normalizedDir.includes("Bắc")) formDirection.value = "Bắc";
+            }
+          }
+        }
+
+        try {
+          const response = await fetch('/api/analyze-raw', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              rawInput: rawInputText,
+              localKey: localApiKey
+            })
+          });
+
+          if (response.ok) {
+            const resData = await response.json();
+            fillFormWithResult(resData);
+            showToast("Đã phân tích bách khoa toàn thư và tự động điền biểu mẫu BĐS thành công!", true);
+            return;
+          }
+          throw new Error("Local server return error or offline");
+        } catch (error) {
+          console.warn("Proxy local offline. Đang kết nối trực tiếp đến Google Gemini Client-side...", error);
+          
+          if (localApiKey) {
+            try {
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${localApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      role: 'user',
+                      parts: [
+                        { text: systemPayloadPrompt }
+                      ]
+                    }
+                  ],
+                  config: {
+                    temperature: 0.1,
+                    responseMimeType: 'application/json'
+                  }
+                })
+              });
+
+              if (directResponse.ok) {
+                const directData = await directResponse.json();
+                if (directData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  const dataObj = JSON.parse(directData.candidates[0].content.parts[0].text);
+                  fillFormWithResult(dataObj);
+                  showToast("Đã bóc tách dữ liệu tuyệt đối thành công trực tiếp qua Client-side!", true);
+                  return;
+                }
+              }
+              const errInfo = await directResponse.json().catch(() => ({}));
+              console.error("Direct api analysis failed:", errInfo);
+            } catch (innerError) {
+              console.error("Lỗi phân tích trực tiếp client hoàn toàn:", innerError);
+            }
+          }
+          alert("Không thể kết nối đến máy chủ AI để phân tích dữ liệu bán hàng. Hãy kiểm tra khóa API!");
+          formDesc.value = "";
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalContent;
+        }
+      }
+
       async function generateAIDescription(e) {
         if (e) e.preventDefault();
         
@@ -4723,6 +4933,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       window.hideAdminForm = hideAdminForm;
       window.selectQuickImg = selectQuickImg;
       window.generateAIDescription = generateAIDescription;
+      window.analyzeRawDataAI = analyzeRawDataAI;
       window.saveAdminProperty = saveAdminProperty;
       window.deleteAdminProperty = deleteAdminProperty;
       window.openProductModal = openProductModal;
