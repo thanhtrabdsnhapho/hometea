@@ -2865,7 +2865,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       </div>
 
       <!-- TRẠNG THÁI CHƯA LƯU API KEY (YÊU CẦU ĐĂNG NHẬP KEY) -->
-      <div class="chat-key-setup" id="chatAiKeySetup">
+      <div class="chat-key-setup" id="chatAiKeySetup" style="display: none;">
         <div class="setup-icon">
           <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
@@ -2886,7 +2886,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       </div>
 
       <!-- TRẠNG THÁI KHU VỰC CHAT HOẠT ĐỘNG THỰC TẾ -->
-      <div class="chat-playground" id="chatAiPlayground" style="display: none;">
+      <div class="chat-playground" id="chatAiPlayground">
         <div class="chat-messages" id="chatAiMessages">
           <div class="chat-bubble bubble-bot">
             Xin chào! Tôi là Trợ lý ảo của Thanh Trà BĐS. Tôi chuyên cung cấp thông tin nhà phố chính xác và hỗ trợ pháp lý nhanh chóng tại khu vực TP. Thủ Đức. Tôi có thể giải đáp gì cho quý anh chị hôm nay?
@@ -3533,7 +3533,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const chatSuggestions = document.getElementById('chatSuggestions');
 
       let localApiKey = localStorage.getItem('gemini_api_key') || "";
-      let serverHasKey = false;
+      let serverHasKey = true; // Mặc định tin tưởng Server-key có sẵn để vận hành trò chuyện tức thì
 
       // Check if server-side has the API key
       async function checkServerKey() {
@@ -3543,6 +3543,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           serverHasKey = !!data.hasKey;
         } catch (e) {
           console.warn("Could not check server API key status:", e);
+          serverHasKey = true; // Fallback giữ giá trị mặc định hoạt động mượt mà
         }
         initChatboxState();
       }
@@ -4698,9 +4699,33 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       let supabaseTable = 'properties_hometea';
 
       // Khởi tạo trạng thái Supabase và cập nhật giao diện
-      function initSupabaseState() {
+      async function initSupabaseState() {
         const urlInput = document.getElementById('supabaseUrlInput');
         const keyInput = document.getElementById('supabaseKeyInput');
+        
+        // Tự động kết nối Cloud 1 thẳng từ biến môi trường Server nếu chưa được đặt local
+        try {
+          const res = await fetch('/api/supabase-config');
+          if (res.ok) {
+            const serverConfig = await res.json();
+            if (serverConfig.supabaseUrl && serverConfig.supabaseAnonKey) {
+              supabaseUrl = serverConfig.supabaseUrl;
+              supabaseAnonKey = serverConfig.supabaseAnonKey;
+              localStorage.setItem('supabase_url', supabaseUrl);
+              localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+            }
+          }
+        } catch (e) {
+          console.warn("Could not load server-side Supabase configuration:", e);
+        }
+
+        if (!supabaseUrl) {
+          supabaseUrl = localStorage.getItem('supabase_url') || "";
+        }
+        if (!supabaseAnonKey) {
+          supabaseAnonKey = localStorage.getItem('supabase_anon_key') || "";
+        }
+
         if (urlInput) urlInput.value = supabaseUrl;
         if (keyInput) keyInput.value = supabaseAnonKey;
         

@@ -17,6 +17,14 @@ async function startServer() {
     res.json({ hasKey: !!process.env.GEMINI_API_KEY });
   });
 
+  // API router to deliver Supabase Cloud connection configuration if defined on Server environment
+  app.get("/api/supabase-config", (req, res) => {
+    res.json({
+      supabaseUrl: process.env.SUPABASE_URL || "",
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || ""
+    });
+  });
+
   // API router to proxy Gemini Chat calls
   app.post("/api/chat", async (req, res) => {
     try {
