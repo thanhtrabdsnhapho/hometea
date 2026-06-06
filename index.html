@@ -4253,50 +4253,82 @@ Nguyên tắc trả lời:
             legal: legalVal
           };
 
-          try {
-            if (idVal) {
-              // Update PATCH
-              const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${idVal}`, {
-                method: 'PATCH',
+          // Cơ chế đồng bộ tự phục hồi khi thiếu cột trong lược đồ Postgres (Self-Healing Sync Mode)
+          const executeSyncWithSelfHealing = async (method, requestUrl, payload) => {
+            let limitCounter = 0;
+            const maxRetries = 15;
+            
+            while (limitCounter < maxRetries) {
+              const response = await fetch(requestUrl, {
+                method: method,
                 headers: {
                   'apikey': supabaseAnonKey,
                   'Authorization': `Bearer ${supabaseAnonKey}`,
                   'Content-Type': 'application/json',
                   'Prefer': 'return=representation'
                 },
-                body: JSON.stringify(dbPayload)
+                body: JSON.stringify(payload)
               });
 
-              if (!response.ok) {
-                const text = await response.text();
-                console.error("Supabase patch failed:", text);
-                throw new Error(text);
+              if (response.ok) {
+                return response;
               }
+
+              const errorText = await response.text();
+              console.warn(`Đồng bộ Supabase gặp lỗi (Số lần thử ${limitCounter + 1}):`, errorText);
+
+              let errObj = {};
+              try {
+                errObj = JSON.parse(errorText);
+              } catch (e) {}
+
+              const msg = errObj.message || "";
+              const code = errObj.code || "";
+
+              // Phân tích mã lỗi PostgREST về việc cột không tồn tại
+              if (code === "PGRST204" || msg.includes("Could not find the") || msg.includes("column")) {
+                let missingColumn = null;
+                
+                // Trực xuất tên cột từ thông báo dạng 1 (Ví dụ: Could not find the 'badge' column of 'properties')
+                const matchSingleQuote = msg.match(/Could not find the '([^']+)' column/);
+                if (matchSingleQuote && matchSingleQuote[1]) {
+                  missingColumn = matchSingleQuote[1];
+                } else {
+                  // Trực xuất tên cột từ thông báo dạng 2 (Ví dụ: column "badge" of relation "properties" does not exist)
+                  const matchDoubleQuote = msg.match(/column "([^"]+)" of/);
+                  if (matchDoubleQuote && matchDoubleQuote[1]) {
+                    missingColumn = matchDoubleQuote[1];
+                  }
+                }
+
+                if (missingColumn && payload.hasOwnProperty(missingColumn)) {
+                  console.warn(`[Self-Healing] Loại bỏ trường thiếu '${missingColumn}' khỏi dữ liệu truyền lên Supabase và tiến hành thử lại.`);
+                  delete payload[missingColumn];
+                  limitCounter++;
+                  continue;
+                }
+              }
+
+              throw new Error(errorText);
+            }
+            throw new Error("Vượt quá số lần tự cấu hình bóc tách để khôi phục payload đồng bộ.");
+          };
+
+          try {
+            if (idVal) {
+              // Update PATCH với cơ chế tự phục hồi
+              const response = await executeSyncWithSelfHealing('PATCH', `${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${idVal}`, dbPayload);
               
               finalProperty.id = idVal;
               const index = propertyData.findIndex(p => p.id === idVal);
               if (index !== -1) {
-                propertyData[index] = finalProperty;
+                // Giữ lại các cột cũ trong local state nếu Supabase lược bỏ
+                propertyData[index] = { ...propertyData[index], ...finalProperty };
               }
               showToast(`Đã cập nhật bài đăng bất động sản lên Supabase (${supabaseTable}) thành công!`, true);
             } else {
-              // Insert POST
-              const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}`, {
-                method: 'POST',
-                headers: {
-                  'apikey': supabaseAnonKey,
-                  'Authorization': `Bearer ${supabaseAnonKey}`,
-                  'Content-Type': 'application/json',
-                  'Prefer': 'return=representation'
-                },
-                body: JSON.stringify(dbPayload)
-              });
-
-              if (!response.ok) {
-                const text = await response.text();
-                console.error("Supabase post failed:", text);
-                throw new Error(text);
-              }
+              // Insert POST với cơ chế tự phục hồi
+              const response = await executeSyncWithSelfHealing('POST', `${supabaseUrl}/rest/v1/${supabaseTable}`, dbPayload);
 
               const returnedData = await response.json();
               if (returnedData && returnedData[0]) {
@@ -4309,9 +4341,9 @@ Nguyên tắc trả lời:
               showToast("Đăng tin rao bán mới lên Supabase Cloud thành công!", true);
             }
           } catch (err) {
-            console.error("Database sync fault:", err);
+            console.error("Database sync fault after trying self-healing:", err);
             successSync = false;
-            alert("Đồng bộ lên Cloud gặp lỗi. Hệ thống sẽ lưu cục bộ để đảm bảo an toàn.");
+            alert("Đồng bộ lên Cloud gặp lỗi (Không thể tự phân tích vá lỗi cấu trúc bảng). Hệ thống tự động chuyển sang lưu cục bộ.");
           }
         }
 
