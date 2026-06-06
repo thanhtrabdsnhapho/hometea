@@ -1,0 +1,6 @@
+{
+  "name": "Thanh Trà BĐS",
+  "description": "Nền tảng tư vấn, môi giới bất động sản nhà phố chuyên nghiệp, uy tín hàng đầu tại TP. Thủ Đức.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

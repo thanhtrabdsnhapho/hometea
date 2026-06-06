@@ -1,0 +1,4346 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh Trà BĐS | Bất Động Sản Nhà Phố Uy Tín</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Playfair Display cho phong cách sang trọng và hỗ trợ Tiếng Việt cực tốt -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      /* --- THIẾT LẬP BIẾN MÀU SẮC & GIAO DIỆN --- */
+      :root {
+        --primary: #1e3a8a;      /* Xanh Navy chủ đạo chuẩn Sleek Interface */
+        --primary-light: #2563eb; /* Xanh dương đậm sáng hơn */
+        --accent: #f97316;       /* Màu Cam rực rỡ nổi bật của bộ lọc và nút nhấn */
+        --accent-hover: #ea580c; /* Màu Cam sẫm hơn khi hover */
+        --secondary: #3b82f6;    /* Xanh dương nhạt nổi bật */
+        --bg-light: #f8fafc;     /* Nền sáng mượt của slate-50 */
+        --text-dark: #0f172a;    /* Màu chữ sẫm của slate-900 */
+        --text-muted: #64748b;   /* Chữ ghi nhạt của slate-500 */
+        --border: #e2e8f0;       /* Viền thanh lịch border-slate-200 */
+        --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        --font-serif: 'Playfair Display', serif;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+        --shadow-lg: 0 10px 25px -5px rgba(30, 58, 138, 0.1), 0 8px 10px -6px rgba(30, 58, 138, 0.1);
+      }
+
+      /* RESET CSS */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-light);
+        color: var(--text-dark);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+        transition: var(--transition);
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        outline: none;
+        background: none;
+        font-family: var(--font-sans);
+        transition: var(--transition);
+      }
+
+      /* --- NAVBAR CỐ ĐỊNH (STICKY GLASSMORPHISM) --- */
+      .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: rgba(10, 31, 61, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(249, 115, 22, 0.2);
+        height: 80px;
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
+      }
+
+      .navbar.scrolled {
+        height: 70px;
+        background-color: rgba(10, 31, 61, 0.99);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .nav-container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4);
+      }
+
+      .logo-text h1 {
+        font-family: var(--font-serif);
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.5px;
+      }
+
+      .logo-text p {
+        font-size: 11px;
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+      }
+
+      .nav-menu {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        list-style: none;
+      }
+
+      .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 8px 0;
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: var(--accent);
+        transition: var(--transition);
+      }
+
+      .nav-link:hover, .nav-link.active {
+        color: #fff;
+      }
+
+      .nav-link:hover::after, .nav-link.active::after {
+        width: 100%;
+      }
+
+      .nav-cta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .btn-phone {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        color: var(--primary);
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+      }
+
+      .btn-phone:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+      }
+
+      /* MOBILE MENU HAMBURGER */
+      .menu-toggle {
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        width: 30px;
+        background: none;
+        border: none;
+        z-index: 1001;
+      }
+
+      .menu-toggle span {
+        display: block;
+        width: 100%;
+        height: 3px;
+        background-color: #fff;
+        border-radius: 2px;
+        transition: var(--transition);
+      }
+
+      .menu-toggle.active span:nth-child(1) {
+        transform: translateY(9px) rotate(45deg);
+      }
+
+      .menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+
+      .menu-toggle.active span:nth-child(3) {
+        transform: translateY(-9px) rotate(-45deg);
+      }
+
+      /* --- HERO SECTION --- */
+      .hero {
+        position: relative;
+        height: 600px;
+        background: linear-gradient(rgba(10, 31, 61, 0.8), rgba(10, 31, 61, 0.9)), url('https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 100px 24px 0 24px;
+        color: #fff;
+      }
+
+      .hero-content {
+        max-width: 800px;
+        animation: fadeInUp 1s ease;
+      }
+
+      .hero-content h2 {
+        font-family: var(--font-serif);
+        font-size: 54px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+        line-height: 1.2;
+        color: #fff;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .hero-content p {
+        font-size: 18px;
+        color: var(--accent);
+        font-weight: 600;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-bottom: 32px;
+      }
+
+      .hero-ctas {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .btn-hero-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        color: var(--primary);
+        font-weight: 700;
+        padding: 14px 28px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+      }
+
+      .btn-hero-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
+      }
+
+      .btn-hero-secondary {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 2px solid #fff;
+        color: #fff;
+        font-weight: 700;
+        padding: 12px 28px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        backdrop-filter: blur(5px);
+      }
+
+      .btn-hero-secondary:hover {
+        background-color: #fff;
+        color: var(--primary);
+        transform: translateY(-3px);
+      }
+
+      /* --- FILTER SECTION (DÁN ĐÈ HERO) --- */
+      .filter-section {
+        max-width: 1100px;
+        margin: -60px auto 48px auto;
+        position: relative;
+        z-index: 10;
+        padding: 0 24px;
+      }
+
+      .filter-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+      }
+
+      /* --- THIẾT LẬP THÊM CHO COLLAPSIBLE FILTER --- */
+      .filter-main-bar-wrapper {
+        position: relative;
+        width: 100%;
+        margin-bottom: 8px;
+      }
+      .main-search-input {
+        width: 100% !important;
+        height: 52px;
+        padding: 12px 50px 12px 20px !important;
+        font-size: 16px !important;
+        border-radius: 30px !important;
+        background-color: var(--bg-light) !important;
+        border: 2px solid var(--border) !important;
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+      }
+      .main-search-input:focus {
+        border-color: var(--accent) !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15) !important;
+      }
+      .main-search-icon {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+      }
+      .filter-collapsible-content {
+        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 0;
+        overflow: hidden;
+      }
+      .filter-collapsible-content.expanded {
+        max-height: 1000px;
+      }
+
+      .filter-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .filter-group label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .filter-control {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--bg-light);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--text-dark);
+        outline: none;
+        transition: var(--transition);
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+      }
+
+      .filter-control:focus {
+        border-color: var(--accent);
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+      }
+
+      .filter-input-text {
+        background-image: none !important;
+        padding-right: 12px;
+      }
+
+      .filter-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+
+      .btn-reset-filters {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent-hover);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background-color: rgba(249, 115, 22, 0.1);
+      }
+
+      .btn-reset-filters:hover {
+        background-color: rgba(249, 115, 22, 0.2);
+        color: var(--primary-light);
+      }
+
+      /* --- PRODUCT SECTION --- */
+      .products-section {
+        max-width: 1200px;
+        margin: 0 auto 80px auto;
+        padding: 0 24px;
+      }
+
+      .section-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .section-header h3 {
+        font-family: var(--font-serif);
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+        position: relative;
+        display: inline-block;
+        padding-bottom: 12px;
+      }
+
+      .section-header h3::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background-color: var(--accent);
+      }
+
+      /* Mạng lưới sản phẩm */
+      .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 28px;
+      }
+
+      /* Card sản phẩm */
+      .product-card {
+        background:#fff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        position: relative;
+      }
+
+      .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(249, 115, 22, 0.4);
+      }
+
+      .product-img-wrapper {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+      }
+
+      .product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+      }
+
+      .product-card:hover .product-img {
+        transform: scale(1.08);
+      }
+
+      .product-badge {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background-color: rgba(10, 31, 61, 0.95);
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+        z-index: 2;
+      }
+
+      .product-body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+
+      .product-price {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--accent-hover); /* Màu Cam đậm thu hút chuẩn Sleek UI */
+        margin-bottom: 8px;
+      }
+
+      .product-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1.4;
+        margin-bottom: 8px;
+        height: 44px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .product-address {
+        font-size: 13px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 16px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .product-specs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        margin-top: auto;
+      }
+
+      .spec-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        background-color: var(--bg-light);
+        padding: 8px;
+        border-radius: 8px;
+      }
+
+      .spec-label {
+        font-size: 10px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .spec-val {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .product-ctas {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .btn-detail {
+        background-color: var(--primary);
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .btn-detail:hover {
+        background-color: var(--primary-light);
+      }
+
+      .btn-quick-zalo {
+        background-color: #f0f7ff;
+        color: #0068ff;
+        border: 1px solid #cce3ff;
+        padding: 10px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+      }
+
+      .btn-quick-zalo:hover {
+        background-color: #0068ff;
+        color: #fff;
+      }
+
+      /* EMPTY STATE */
+      .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 24px;
+        background: #fff;
+        border-radius: 16px;
+        border: 1px dashed var(--border);
+      }
+
+      .empty-state p {
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        font-size: 16px;
+      }
+
+      /* --- CONTACT SECTION --- */
+      .contact-section {
+        background-color: var(--primary);
+        color: #fff;
+        padding: 80px 24px;
+        position: relative;
+        background-image: radial-gradient(circle at 10% 20%, rgba(22, 47, 85, 0.4) 0%, transparent 50%);
+      }
+
+      .contact-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 48px;
+      }
+
+      .contact-info-block h3 {
+        font-family: var(--font-serif);
+        font-size: 32px;
+        color: #fff;
+        margin-bottom: 12px;
+      }
+
+      .contact-info-block p {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 32px;
+        font-size: 16px;
+      }
+
+      .contact-details {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 32px;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .contact-item-icon {
+        width: 48px;
+        height: 48px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(249, 115, 22, 0.3);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        flex-shrink: 0;
+      }
+
+      .contact-item-text p {
+        margin: 0;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      .contact-item-text a, .contact-item-text span {
+        font-size: 16px;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .contact-item-text a:hover {
+        color: var(--accent);
+      }
+
+      .contact-ctas-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      /* BIỂU MẪU ĐĂNG KÝ */
+      .contact-form-block {
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 32px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .contact-form-block h4 {
+        font-family: var(--font-serif);
+        font-size: 20px;
+        color: #fff;
+        margin-bottom: 24px;
+        border-left: 3px solid var(--accent);
+        padding-left: 12px;
+      }
+
+      .contact-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .form-group-custom {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .form-group-custom label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+      }
+
+      .form-input {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 12px;
+        color: #fff;
+        font-size: 14px;
+        border-radius: 8px;
+        outline: none;
+        transition: var(--transition);
+      }
+
+      .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .form-input:focus {
+        border-color: var(--accent);
+        background-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+      }
+
+      .form-textarea {
+        height: 100px;
+        resize: none;
+      }
+
+      .btn-submit-form {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        color: var(--primary);
+        font-weight: 700;
+        padding: 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
+        margin-top: 8px;
+      }
+
+      .btn-submit-form:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+      }
+
+      /* THÔNG BÁO ALERT ĐẸP */
+      .toast-notification {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 1100;
+        background-color: #065f46;
+        color: #fff;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        transform: translateX(120%);
+        transition: var(--transition);
+        border-left: 5px solid #34d399;
+      }
+
+      .toast-notification.show {
+        transform: translateX(0);
+      }
+
+      /* --- FOOTER --- */
+      .footer {
+        background-color: var(--primary-dark);
+        color: rgba(255, 255, 255, 0.7);
+        border-top: 1px solid rgba(249, 115, 22, 0.2);
+        padding: 60px 24px 24px 24px;
+      }
+
+      .footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+      }
+
+      .footer-brand h5 {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        color: #fff;
+        margin-bottom: 12px;
+      }
+
+      .footer-brand p {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+
+      .footer-group h6 {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--accent);
+        display: inline-block;
+        padding-bottom: 4px;
+      }
+
+      .footer-links {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .footer-links a {
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .footer-links a:hover {
+        color: var(--accent);
+        padding-left: 4px;
+      }
+
+      .footer-contact-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        font-size: 14px;
+      }
+
+      .footer-bottom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 13px;
+      }
+
+      /* --- MODAL XEM CHI TIẾT SẢN PHẨM --- */
+      .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(10, 31, 61, 0.75);
+        backdrop-filter: blur(8px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: var(--transition);
+      }
+
+      .modal-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal-card {
+        background-color: #fff;
+        max-width: 800px;
+        width: 100%;
+        max-height: 90vh;
+        border-radius: 20px;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        transform: translateY(30px);
+        transition: var(--transition);
+      }
+
+      .modal-backdrop.open .modal-card {
+        transform: translateY(0);
+      }
+
+      .modal-img-container {
+        position: relative;
+        height: 350px;
+      }
+
+      .modal-main-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .modal-close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(10, 31, 61, 0.6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 10;
+      }
+
+      .modal-close-btn:hover {
+        background-color: rgba(10, 31, 61, 0.9);
+        transform: scale(1.1);
+      }
+
+      .modal-content {
+        padding: 32px;
+      }
+
+      .modal-header-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 20px;
+        margin-bottom: 24px;
+      }
+
+      .modal-title h4 {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1.3;
+        margin-bottom: 6px;
+      }
+
+      .modal-price-tag {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--accent-hover);
+      }
+
+      .modal-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .md-spec-box {
+        background-color: var(--bg-light);
+        border: 1px solid var(--border);
+        padding: 12px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .md-spec-icon {
+        color: var(--accent);
+        flex-shrink: 0;
+      }
+
+      .md-spec-text p {
+        margin: 0;
+        font-size: 11px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+
+      .md-spec-text span {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .modal-description {
+        margin-bottom: 32px;
+      }
+
+      .modal-description h5 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .property-desc-text {
+        font-size: 15px;
+        color: var(--text-dark);
+        line-height: 1.7;
+        white-space: pre-line;
+      }
+
+      .modal-footer-ctas {
+        border-top: 1px solid var(--border);
+        padding-top: 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .btn-modal-zalo {
+        background-color: #0068ff;
+        color: #fff;
+        font-weight: 700;
+        padding: 12px 24px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-modal-zalo:hover {
+        background-color: #0054d1;
+        transform: translateY(-2px);
+      }
+
+      /* --- CHATBOX AI CONSULTANT (CỐ ĐỊNH GÓC DƯỚI PHẢI) --- */
+      .ai-chat-trigger {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 30px rgba(10, 31, 61, 0.4);
+        z-index: 1000;
+        border: 2px solid var(--accent);
+      }
+
+      .ai-chat-trigger:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 12px 35px rgba(10, 31, 61, 0.5);
+      }
+
+      .pulse-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid var(--accent);
+        animation: pulseAnimation 2s infinite;
+      }
+
+      .ai-chat-window {
+        position: fixed;
+        bottom: 96px;
+        right: 24px;
+        width: 380px;
+        height: 520px;
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 1040;
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+        pointer-events: none;
+        transition: var(--transition);
+      }
+
+      .ai-chat-window.open {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      .chat-header {
+        background-color: var(--primary);
+        color: #fff;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid var(--accent);
+      }
+
+      .chat-header-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .chat-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        border: 1px solid rgba(249, 115, 22, 0.4);
+      }
+
+      .chat-header-title h5 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .chat-header-status {
+        font-size: 11px;
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 600;
+      }
+
+      .chat-status-dot {
+        width: 6px;
+        height: 6px;
+        background-color: #22c55e;
+        border-radius: 50%;
+      }
+
+      .chat-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .chat-actions button:hover {
+        color: var(--accent);
+      }
+
+      /* CẤU HÌNH API KEY */
+      .chat-key-setup {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        text-align: center;
+        background-color: var(--bg-light);
+      }
+
+      .setup-icon {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(249, 115, 22, 0.1);
+        color: var(--accent-hover);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+      }
+
+      .chat-key-setup h6 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+
+      .chat-key-setup p {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+
+      .key-input-container {
+        width: 100%;
+        margin-bottom: 16px;
+        text-align: left;
+      }
+
+      .key-input-container label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .api-key-field {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        font-size: 13px;
+        background-color: #fff;
+        text-align: center;
+        font-family: monospace;
+      }
+
+      .api-key-field:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+      }
+
+      .btn-activate-ai {
+        width: 100%;
+        background-color: var(--primary);
+        color: #fff;
+        font-weight: 700;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      .btn-activate-ai:hover {
+        background-color: var(--primary-light);
+      }
+
+      .key-guide-link {
+        font-size: 12px;
+        color: var(--accent-dark);
+        text-decoration: underline;
+        margin-top: 12px;
+        font-weight: 500;
+      }
+
+      /* KHU VỰC CHAT HOẠT ĐỘNG */
+      .chat-playground {
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 70px);
+        background-color: #fff;
+      }
+
+      .chat-messages {
+        flex-grow: 1;
+        padding: 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .chat-bubble {
+        max-width: 80%;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 13.5px;
+        line-height: 1.5;
+        position: relative;
+        word-break: break-word;
+      }
+
+      .bubble-bot {
+        background-color: var(--bg-light);
+        color: var(--text-dark);
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+        border: 1px solid var(--border);
+      }
+
+      .bubble-user {
+        background-color: var(--primary);
+        color: #fff;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+      }
+
+      /* HỘP GỢI Ý CÂU HỎI THÔNG MINH */
+      .chat-suggestions {
+        display: flex;
+        gap: 8px;
+        padding: 8px 16px;
+        border-top: 1px solid var(--border);
+        overflow-x: auto;
+        background-color: var(--bg-light);
+        scrollbar-width: none; /* Hide scrollbar for Firefox */
+      }
+
+      .chat-suggestions::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for Chrome/Safari */
+      }
+
+      .suggestion-pill {
+        white-space: nowrap;
+        background-color: #fff;
+        border: 1px solid var(--border);
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 30px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .suggestion-pill:hover {
+        border-color: var(--accent);
+        background-color: rgba(249, 115, 22, 0.05);
+      }
+
+      /* HỘP NHẬP TIN NHẮN CHAT */
+      .chat-input-bar {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #fff;
+      }
+
+      .chat-input-field {
+        flex-grow: 1;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        outline: none;
+        font-size: 13.5px;
+        transition: var(--transition);
+      }
+
+      .chat-input-field:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+      }
+
+      .btn-send-message {
+        width: 38px;
+        height: 38px;
+        background-color: var(--primary);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .btn-send-message:hover {
+        background-color: var(--primary-light);
+        transform: scale(1.05);
+      }
+
+      /* TYPING EFFECT LOADING */
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 4px 8px;
+        align-items: center;
+      }
+
+      .typing-dot {
+        width: 6px;
+        height: 6px;
+        background-color: var(--text-muted);
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out both;
+      }
+
+      .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+      .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+      /* --- ANIMATION KEYFRAMES --- */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(35px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulseAnimation {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.4);
+          opacity: 0;
+        }
+      }
+
+      @keyframes typingBounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+      }
+
+      /* --- PHẢN HỒI RESPONSIVE --- */
+      @media (max-width: 992px) {
+        .hero {
+          height: 520px;
+        }
+        .hero-content h2 {
+          font-size: 40px;
+        }
+        .filter-section {
+          margin-top: -40px;
+        }
+        .footer-container {
+          grid-template-columns: 1fr;
+          gap: 32px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .navbar {
+          height: 70px;
+        }
+        .menu-toggle {
+          display: flex;
+        }
+        .nav-menu {
+          position: fixed;
+          top: 70px;
+          left: 0;
+          right: 0;
+          background-color: var(--primary);
+          flex-direction: column;
+          gap: 0;
+          padding: 20px 0;
+          border-bottom: 1px solid rgba(249, 115, 22, 0.3);
+          transform: translateY(-120%);
+          opacity: 0;
+          pointer-events: none;
+          transition: var(--transition);
+          box-shadow: var(--shadow-lg);
+        }
+        .nav-menu.open {
+          transform: translateY(0);
+          opacity: 1;
+          pointer-events: auto;
+        }
+        .nav-menu li {
+          width: 100%;
+          text-align: center;
+        }
+        .nav-link {
+          display: block;
+          padding: 16px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-link::after {
+          display: none;
+        }
+        .nav-cta {
+          display: none; /* Ẩn hotline phụ trên navbar, đã có nút gọi đặc biệt trên Hero và liên hệ */
+        }
+        .hero-content h2 {
+          font-size: 32px;
+        }
+        .hero-content p {
+          font-size: 15px;
+          letter-spacing: 2px;
+        }
+        .products-grid {
+          grid-template-columns: 1fr;
+        }
+        .contact-container {
+          grid-template-columns: 1fr;
+        }
+        .ai-chat-window {
+          width: calc(100% - 48px);
+          bottom: 90px;
+          right: 24px;
+        }
+      }
+
+      /* ==========================================
+         7. THIẾT LẬP GIAO DIỆN ADMIN CHUYÊN NGHIỆP
+         ========================================== */
+      .admin-section {
+        max-width: 1200px;
+        margin: 60px auto 80px auto;
+        padding: 0 24px;
+        scroll-margin-top: 100px;
+      }
+
+      .admin-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+      }
+
+      .admin-title {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .admin-subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+      }
+
+      .admin-login-wrapper {
+        max-width: 440px;
+        margin: 40px auto;
+        text-align: center;
+      }
+
+      .admin-login-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 40px 32px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+      }
+
+      .admin-login-icon {
+        width: 64px;
+        height: 64px;
+        background-color: rgba(30, 58, 138, 0.05);
+        color: var(--primary);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        border: 2px solid var(--accent);
+      }
+
+      .admin-login-title {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+
+      .admin-login-desc {
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+        line-height: 1.5;
+      }
+
+      .admin-login-input-group {
+        text-align: left;
+        margin-bottom: 20px;
+      }
+
+      .admin-login-input-group label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .admin-login-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background-color: var(--bg-light);
+        outline: none;
+        font-size: 14px;
+        transition: var(--transition);
+      }
+
+      .admin-login-control:focus {
+        border-color: var(--accent);
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+      }
+
+      .btn-admin-login {
+        width: 100%;
+        background-color: var(--primary);
+        color: #fff;
+        font-weight: 700;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .btn-admin-login:hover {
+        background-color: var(--primary-light);
+        transform: translateY(-1px);
+      }
+
+      .admin-dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        border-bottom: 1.5px solid var(--border);
+        padding-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .btn-admin-logout {
+        font-size: 13px;
+        font-weight: 600;
+        color: #dc2626;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border: 1px solid #fca5a5;
+        border-radius: 6px;
+        background-color: rgba(239, 68, 68, 0.05);
+      }
+
+      .btn-admin-logout:hover {
+        background-color: #dc2626;
+        color: #fff;
+        border-color: #dc2626;
+      }
+
+      .admin-table-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .btn-admin-add {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        color: #fff;
+        font-weight: 700;
+        padding: 10px 20px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+      }
+
+      .btn-admin-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(249, 115, 22, 0.4);
+      }
+
+      .admin-table-container {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        text-align: left;
+      }
+
+      .admin-table th {
+        background-color: var(--bg-light);
+        padding: 14px 16px;
+        color: var(--primary);
+        font-weight: 700;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .admin-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+
+      .admin-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .admin-table tr:hover {
+        background-color: rgba(249, 115, 22, 0.01);
+      }
+
+      .admin-prop-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+      }
+
+      .admin-prop-title {
+        font-weight: 600;
+        color: var(--primary);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-width: 320px;
+      }
+
+      .admin-prop-price {
+        font-weight: 700;
+        color: var(--accent-hover);
+        font-family: var(--font-serif);
+      }
+
+      .admin-actions-cell {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .btn-action-edit {
+        padding: 6px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        background-color: rgba(59, 130, 246, 0.08);
+        color: #2563eb;
+        border-radius: 6px;
+        border: 1px solid #bfdbfe;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .btn-action-edit:hover {
+        background-color: #2563eb;
+        color: #fff;
+        border-color: #2563eb;
+      }
+
+      .btn-action-delete {
+        padding: 6px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        background-color: rgba(239, 68, 68, 0.08);
+        color: #dc2626;
+        border-radius: 6px;
+        border: 1px solid #fca5a5;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .btn-action-delete:hover {
+        background-color: #dc2626;
+        color: #fff;
+        border-color: #dc2626;
+      }
+
+      /* FORM MODAL QUẢN LÝ TIN ĐĂNG */
+      .admin-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+
+      .admin-form-group label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .admin-form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background-color: var(--bg-light);
+        outline: none;
+        font-size: 14px;
+        transition: var(--transition);
+      }
+
+      .admin-form-control:focus {
+        border-color: var(--accent);
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+      }
+
+      .admin-form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+
+      @media (max-width: 768px) {
+        .admin-form-row {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+      }
+
+      /* CHỌN ẢNH NHANH CHO ADMIN */
+      .quick-image-picker {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .quick-img-option {
+        position: relative;
+        height: 50px;
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: var(--transition);
+      }
+
+      .quick-img-option img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .quick-img-option.active {
+        border-color: var(--accent);
+        box-shadow: var(--shadow);
+      }
+
+      .quick-img-option-text {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        font-size: 8px;
+        text-align: center;
+        padding: 2px 0;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- THÔNG BÁO THÀNH CÔNG (TOAST) -->
+    <div id="toastNotification" class="toast-notification">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+      <span id="toastMessage">Yêu cầu liên hệ được gửi thành công!</span>
+    </div>
+
+    <!-- NAVBAR CHỦ ĐẠO -->
+    <nav class="navbar" id="navbar">
+      <div class="nav-container">
+        <a href="#hero" class="logo-group">
+          <div class="logo-icon">
+            <!-- Biểu tượng Ngôi nhà tinh xảo -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h1>THANH TRÀ BĐS</h1>
+            <p>Nhà Phố Thủ Đức</p>
+          </div>
+        </a>
+
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="#hero" class="nav-link active">Trang chủ</a></li>
+          <li><a href="#products" class="nav-link">Sản phẩm</a></li>
+          <li><a href="#contact" class="nav-link">Liên hệ</a></li>
+          <li><a href="#" onclick="showAdminSection(event)" id="navAdminLink" class="nav-link"><span style="margin-right: 4px;">🔐</span>Admin</a></li>
+        </ul>
+
+        <div class="nav-cta">
+          <a href="tel:0854100036" class="btn-phone">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            0854.100.036
+          </a>
+        </div>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- MÀN TRANG CHỦ (TẤT CẢ PHẦN TỬ KHÁCH HÀNG THƯỜNG) -->
+    <div id="homePageWrapper">
+      <!-- HERO SECTION -->
+      <div class="hero-content">
+        <h2>BẤT ĐỘNG SẢN NHÀ PHỐ</h2>
+        <p>UY TÍN - TẬT TÂM - CHUYÊN NGHIỆP</p>
+        <div class="hero-ctas">
+          <a href="tel:0854100036" class="btn-hero-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            Hotline: 0854.100.036
+          </a>
+          <a href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="btn-hero-secondary">
+            <!-- Icon Chat cực đẹp -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Chat Zalo Ngay
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION BỘ LỌC TÌM KIẾM SẢN PHẨM REALTIME -->
+    <section class="filter-section">
+      <div class="filter-card">
+        <!-- Input tìm kiếm chính luôn hiển thị -->
+        <div class="filter-main-bar-wrapper">
+          <div style="position: relative; width: 100%;">
+            <input type="text" id="filterKeyword" class="main-search-input" placeholder="Tìm kiếm thông tin...">
+            <div class="main-search-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thanh bấm để mở rộng/thu gọn bộ lọc nâng cao -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--primary);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            <span>Bộ lọc thông minh & tìm kiếm thời gian thực</span>
+          </div>
+          <button type="button" class="btn-toggle-advanced" id="btnToggleAdvanced" style="font-size: 13px; font-weight: 700; color: var(--accent); display: inline-flex; align-items: center; gap: 4px;">
+            <span id="toggleText">Mở rộng bộ lọc nâng cao</span>
+            <svg id="toggleChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.25s;">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Khối bộ lọc nâng cao có thể co giãn -->
+        <div id="filterCollapsibleContent" class="filter-collapsible-content">
+          <div class="filter-grid" style="margin-top: 14px;">
+            <!-- Tỉnh thành -->
+            <div class="filter-group">
+              <label for="filterCity">Tỉnh / Thành phố</label>
+              <select id="filterCity" class="filter-control" disabled>
+                <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+              </select>
+            </div>
+
+            <!-- Quận huyện -->
+            <div class="filter-group">
+              <label for="filterDistrict">Quận / Huyện</label>
+              <select id="filterDistrict" class="filter-control" disabled>
+                <option value="TP. Thủ Đức">TP. Thủ Đức</option>
+              </select>
+            </div>
+
+            <!-- Phường xã -->
+            <div class="filter-group">
+              <label for="filterWard">Phường / Xã</label>
+              <select id="filterWard" class="filter-control">
+                <option value="all">-- Tất cả Phường --</option>
+                <option value="Trường Thạnh">Trường Thạnh</option>
+                <option value="Thảo Điền">Thảo Điền</option>
+                <option value="Linh Đông">Linh Đông</option>
+                <option value="Phú Hữu">Phú Hữu</option>
+                <option value="Hiệp Bình Chánh">Hiệp Bình Chánh</option>
+                <option value="Phước Long B">Phước Long B</option>
+                <option value="Cát Lái">Cát Lái</option>
+                <option value="Tăng Nhơn Phú A">Tăng Nhơn Phú A</option>
+                <option value="An Phú">An Phú</option>
+                <option value="Bình Chiểu">Bình Chiểu</option>
+                <option value="Hiệp Bình Phước">Hiệp Bình Phước</option>
+              </select>
+            </div>
+
+            <!-- Hướng nhà -->
+            <div class="filter-group">
+              <label for="filterDirection">Hướng nhà</label>
+              <select id="filterDirection" class="filter-control">
+                <option value="all">-- Tất cả Hướng --</option>
+                <option value="Đông">Đông</option>
+                <option value="Tây">Tây</option>
+                <option value="Nam">Nam</option>
+                <option value="Bắc">Bắc</option>
+                <option value="Đông Nam">Đông Nam</option>
+                <option value="Đông Bắc">Đông Bắc</option>
+                <option value="Tây Nam">Tây Nam</option>
+                <option value="Tây Bắc">Tây Bắc</option>
+              </select>
+            </div>
+
+            <!-- Diện tích -->
+            <div class="filter-group">
+              <label for="filterArea">Diện tích</label>
+              <select id="filterArea" class="filter-control">
+                <option value="all">-- Tất cả diện tích --</option>
+                <option value="sub50">Dưới 50 m²</option>
+                <option value="50to80">50 - 80 m²</option>
+                <option value="80to120">80 - 120 m²</option>
+                <option value="above120">Trên 120 m²</option>
+              </select>
+            </div>
+
+            <!-- Số tầng -->
+            <div class="filter-group">
+              <label for="filterFloors">Số tầng</label>
+              <select id="filterFloors" class="filter-control">
+                <option value="all">-- Tất cả số tầng --</option>
+                <option value="1">1 Tầng (Cấp 4/Trệt)</option>
+                <option value="2">2 Tầng</option>
+                <option value="3">3 Tầng</option>
+                <option value="4">4 Tầng trở lên</option>
+              </select>
+            </div>
+
+            <!-- Giá bán -->
+            <div class="filter-group">
+              <label for="filterPrice">Khoảng giá bán</label>
+              <select id="filterPrice" class="filter-control">
+                <option value="all">-- Tất cả mức giá --</option>
+                <option value="sub3">Dưới 3 Tỷ</option>
+                <option value="3to5">3 - 5 Tỷ</option>
+                <option value="5to8">5 - 8 Tỷ</option>
+                <option value="8to15">8 - 15 Tỷ</option>
+                <option value="above15">Trên 15 Tỷ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-stats" style="margin-top: 14px; padding-top: 14px;">
+            <div id="statCountText">Đang tìm thấy 0 sản phẩm phù hợp...</div>
+            <button type="button" class="btn-reset-filters" id="btnResetFilters">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              Xóa bộ lọc
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION DANH SÁCH BẤT ĐỘNG SẢN -->
+    <main class="products-section" id="products">
+      <div class="section-header">
+        <h3>SẢN PHẨM MỚI NHẤT</h3>
+      </div>
+
+      <div class="products-grid" id="productsGrid">
+        <!-- Các card sản phẩm được render tự động qua JavaScript -->
+      </div>
+    </main>
+
+    <!-- SECTION LIÊN HỆ -->
+    <section class="contact-section" id="contact">
+      <div class="contact-container">
+        <!-- Thông tin liên hệ -->
+        <div class="contact-info-block">
+          <h3>LIÊN HỆ VỚI CHÚNG TÔI</h3>
+          <p>Hãy kết nối trực tiếp để nhận thông tin tư vấn nhà phố chính xác và nhanh chóng nhất!</p>
+
+          <div class="contact-details">
+            <!-- Địa chỉ văn phòng -->
+            <div class="contact-item">
+              <div class="contact-item-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div class="contact-item-text">
+                <p>Địa chỉ văn phòng</p>
+                <span>Lò Lu, Trường Thạnh, TP. Thủ Đức</span>
+              </div>
+            </div>
+
+            <!-- Hotline tư vấn -->
+            <div class="contact-item">
+              <div class="contact-item-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+              </div>
+              <div class="contact-item-text">
+                <p>Hotline / Zalo hỗ trợ 24/7</p>
+                <a href="tel:0854100036">0854.100.036</a>
+              </div>
+            </div>
+
+            <!-- Hộp thư Email -->
+            <div class="contact-item">
+              <div class="contact-item-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <div class="contact-item-text">
+                <p>Gửi thư thông tin</p>
+                <a href="mailto:thanhtra1996st@gmail.com">thanhtra1996st@gmail.com</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-ctas-row">
+            <a href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="btn-phone" style="background: #0068ff; color: white; box-shadow: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Kết nối Zalo (Thanh Trà BĐS)
+            </a>
+          </div>
+        </div>
+
+        <!-- Biểu mẫu đăng ký tư vấn trực quan -->
+        <div class="contact-form-block">
+          <h4>ĐĂNG KÝ NHẬN TƯ VẤN MIỄN PHÍ</h4>
+          <form class="contact-form" id="contactForm">
+            <div class="form-group-custom">
+              <label for="clientName">Họ & Tên của bạn *</label>
+              <input type="text" id="clientName" class="form-input" placeholder="Ví dụ: Nguyễn Văn A..." required>
+            </div>
+            <div class="form-group-custom">
+              <label for="clientPhone">Số điện thoại *</label>
+              <input type="tel" id="clientPhone" class="form-input" placeholder="Ví dụ: 090xxxxxxx..." required>
+            </div>
+            <div class="form-group-custom">
+              <label for="clientNote">Lời nhắn / Yêu cầu chi tiết</label>
+              <textarea id="clientNote" class="form-input form-textarea" placeholder="Tôi mong muốn tìm hiểu nhà phố ở khu vực Trường Thạnh hướng Đông Nam..."></textarea>
+            </div>
+            <button type="submit" class="btn-submit-form">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+              Gửi yêu cầu liên hệ ngay
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    </div> <!-- /#homePageWrapper -->
+
+    <!-- MODAL ĐĂNG NHẬP ADMIN (XUẤT HIỆN KHI NHẤN VÀO ADMIN TRÊN NAVBAR) -->
+    <div id="adminLoginModal" class="modal-backdrop">
+      <div class="modal-card" style="max-width: 440px; margin: 100px auto;">
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 700; color: var(--primary); font-size: 14px; letter-spacing: 1px;">XÁC THỰC QUẢN TRỊ VIÊN</span>
+          <button style="color: var(--text-muted); font-size: 24px; font-weight: 500;" onclick="closeAdminLoginModal()">&times;</button>
+        </div>
+        <div style="padding: 32px 24px;">
+          <div class="admin-login-icon" style="margin: 0 auto 16px auto; width: 56px; height: 56px; background: rgba(30,58,138,0.06); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <h3 style="text-align: center; font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">Đăng Nhập Quản Trị Viên</h3>
+          <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">Vui lòng cung cấp mật khẩu quản trị để thực hiện các chức năng đăng tin, sửa tin và xóa tin (Mật khẩu mặc định: <strong>123456</strong>)</p>
+          
+          <form id="adminLoginFormModal" onsubmit="handleAdminLoginModal(event)">
+            <div class="admin-login-input-group" style="margin-bottom: 18px;">
+              <label for="adminPasswordModal" style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Mật khẩu quản trị</label>
+              <input type="password" id="adminPasswordModal" class="admin-login-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: var(--transition);" placeholder="••••••" required>
+            </div>
+            <button type="submit" class="btn-admin-login" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+              </svg>
+              Xác thực & Chuyển trang
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- KHU VỰC TRANG QUẢN TRỊ (ADMIN PAGE WRAPPER) -->
+    <div id="adminPageWrapper" style="display: none; padding-top: 110px; min-height: 80vh; max-width: 1200px; margin: 0 auto; padding-left: 24px; padding-right: 24px; padding-bottom: 80px;">
+      
+      <!-- SUB-VIEW 1: BẢNG LUỒNG QUẢN LÝ QUẢN TRỊ VIÊN -->
+      <div id="adminDashboardSection">
+        <div class="admin-dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h3 class="admin-title" style="font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--primary);">
+              <span style="font-size: 24px;">🔧</span> Quản Lý Tin Đăng BĐS
+            </h3>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px;">Chào mừng Thanh Trà, bạn có quyền đăng tin, sửa tin và xóa tin bất động sản trực tuyến.</p>
+          </div>
+          <button class="btn-admin-logout" onclick="handleAdminLogout()" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border: 1px solid var(--border); border-radius: 8px; color: var(--text-dark); background: #fff; font-weight: 600; cursor: pointer;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Đăng xuất Admin
+          </button>
+        </div>
+
+        <div class="admin-table-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div style="font-weight: 700; font-size: 16px; color: var(--primary);">Danh sách tin sản phẩm hiện thời</div>
+          <button class="btn-admin-add" onclick="showAdminForm(null)" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(249,115,22,0.25); cursor: pointer; border: none;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Đăng tin mới ngay
+          </button>
+        </div>
+
+        <div class="admin-table-container" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; box-shadow: var(--shadow);">
+          <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="background-color: var(--bg-light); border-bottom: 1px solid var(--border);">
+                <th style="padding: 16px; width: 100px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Ảnh</th>
+                <th style="padding: 16px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Thông tin sản phẩm</th>
+                <th style="padding: 16px; width: 120px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Giá</th>
+                <th style="padding: 16px; width: 150px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Khu vực</th>
+                <th style="padding: 16px; width: 180px; text-align: center; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody">
+              <!-- JS dynamic render -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 2: TRANG ĐĂNG TIN / CHỈNH SỬA TIN (FORM THEO MẪU DANG TIN CẢI TIẾN) -->
+      <div id="adminFormSection" style="display: none; max-width: 800px; margin: 0 auto;">
+        <div style="margin-bottom: 24px;">
+          <a href="#" onclick="hideAdminForm(event)" style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 14px; font-weight: 700;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Quay lại bảng điều khiển
+          </a>
+        </div>
+
+        <div class="admin-card" style="background: #fff; padding: 40px; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+          <div style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
+            <h4 id="adminFormTitle" style="font-family: var(--font-serif); font-size: 26px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+               📋 Đăng tin rao bán nhà phố
+            </h4>
+            <p style="font-size: 14px; color: var(--text-muted); margin-top: 6px;">Điền đầy đủ thông tin để tin đăng hiệu quả hơn</p>
+          </div>
+
+          <!-- PHẦN AI TỰ VIẾT BÀI ĐƯỢC ĐẶT Ở TRÊN ĐẦU FORM NHƯ ĐƯỢC CHỈ ĐỊNH --->
+          <div class="ai-generator-panel" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.05), rgba(249, 115, 22, 0.05)); border: 2px dashed rgba(249, 115, 22, 0.4); border-radius: 12px; padding: 24px; margin-bottom: 32px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <span style="font-size: 22px;">🤖</span>
+              <h5 style="font-size: 15.5px; font-weight: 700; color: var(--primary); margin: 0;">Trợ lý AI Tự Động Viết Mô Tả & Cú Pháp Pháp Lý BĐS</h5>
+              <span style="background: var(--accent); color: var(--primary); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px; text-transform: uppercase;">Gemini 2.0</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+              Bạn chỉ cần nhập một vài gợi ý hoặc từ khóa nổi bật (ví dụ: hẻm rộng 6m, thông ra Lò Lu, gần sông mát mẻ...). 
+              Hệ thống AI sẽ tích hợp với các thông số (Giá, diện tích, phường, số tầng...) ở dưới để tự soạn thảo bài viết tiếp thị lý tưởng.
+            </p>
+            
+            <div class="admin-form-group" style="margin-bottom: 14px;">
+              <label for="aiInputPrompt" style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">
+                Ý chính / Đặc điểm căn nhà nổi trội
+              </label>
+              <input type="text" id="aiInputPrompt" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid rgba(249,115,22,0.25); border-radius: 8px; outline: none;" placeholder="Ví dụ: Hẻm nhựa xe hơi tránh, khu dân trí cao, tặng lại toàn bộ nội thất cao cấp">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <span style="font-size: 11px; font-weight: 600; color: var(--accent);">
+                ⚡ AI sẽ tự động đọc các trường giá, diện tích, phường phía dưới!
+              </span>
+              <button type="button" onclick="generateAIDescription(event)" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; box-shadow: var(--shadow);">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Tự động soạn thảo mô tả (AI Write)
+              </button>
+            </div>
+          </div>
+
+          <!-- BIỂU MẪU ĐĂNG BÀI CHÍNH -->
+          <form id="adminPropForm" onsubmit="saveAdminProperty(event)">
+            <!-- Hidden field for ID -->
+            <input type="hidden" id="formPropId">
+
+            <!-- PHẦN 1: VỊ TRÍ -->
+            <div style="font-size: 14.5px; font-weight: 700; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid rgba(249,115,22,0.1); padding-bottom: 8px; text-transform: uppercase;">
+              <span>📍</span> 1. Vị trí bất động sản (Thành phố Thủ Đức)
+            </div>
+
+            <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+              <div class="admin-form-group">
+                <label for="formHouseNumber" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số nhà</label>
+                <input type="text" id="formHouseNumber" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 45A (nếu có)">
+              </div>
+              <div class="admin-form-group">
+                <label for="formStreet" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Tên đường phố *</label>
+                <input type="text" id="formStreet" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: Lò Lu..." required>
+              </div>
+            </div>
+
+            <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+              <div class="admin-form-group">
+                <label for="formWard" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Phường / Xã trực thuộc *</label>
+                <input type="text" id="formWard" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: Trường Thạnh..." required>
+              </div>
+              <div class="admin-form-group">
+                <label for="formDistrict" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Quận / Tỉnh thành</label>
+                <input type="text" id="formDistrict" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #f3f4f6; color: #6b7280; cursor: not-allowed;" value="TP. THỦ ĐỨC, TP.HCM" readonly>
+              </div>
+            </div>
+
+            <!-- PHẦN 2: THÔNG SỐ CHI TIẾT CẤU TRÚC -->
+            <div style="font-size: 14.5px; font-weight: 700; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid rgba(249,115,22,0.1); padding-bottom: 8px; text-transform: uppercase;">
+              <span>🚧</span> 2. Thông số chi tiết cấu trúc
+            </div>
+
+            <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+              <div class="admin-form-group">
+                <label for="formArea" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Diện tích sử dụng (m²) *</label>
+                <input type="number" id="formArea" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 72" required>
+              </div>
+              <div class="admin-form-group">
+                <label for="formWidth" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Chiều ngang (m) *</label>
+                <input type="number" id="formWidth" step="0.1" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 4.5" required>
+              </div>
+              <div class="admin-form-group">
+                <label for="formPrice" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Giá bán (Tỷ đồng) *</label>
+                <input type="number" id="formPrice" step="0.1" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 5.5" required>
+              </div>
+            </div>
+
+            <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+              <div class="admin-form-group">
+                <label for="formBedrooms" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số phòng ngủ *</label>
+                <input type="number" id="formBedrooms" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" value="3" required>
+              </div>
+              <div class="admin-form-group">
+                <label for="formBathrooms" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số phòng vệ sinh (WC) *</label>
+                <input type="number" id="formBathrooms" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" value="3" required>
+              </div>
+              <div class="admin-form-group">
+                <label for="formFloors" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số tầng lầu/trệt *</label>
+                <input type="number" id="formFloors" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" value="3" required>
+              </div>
+            </div>
+
+            <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+              <div class="admin-form-group">
+                <label for="formDirection" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Hướng tài sản *</label>
+                <select id="formDirection" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
+                  <option value="Đông">Đông</option>
+                  <option value="Tây">Tây</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Bắc">Bắc</option>
+                  <option value="Đông Nam">Đông Nam</option>
+                  <option value="Đông Bắc">Đông Bắc</option>
+                  <option value="Tây Nam">Tây Nam</option>
+                  <option value="Tây Bắc">Tây Bắc</option>
+                </select>
+              </div>
+              <div class="admin-form-group">
+                <label for="formLegal" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Pháp lý *</label>
+                <input type="text" id="formLegal" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" value="Sổ hồng riêng" placeholder="Sổ hồng riêng" required>
+              </div>
+            </div>
+
+            <!-- PHẦN 3: TIÊU ĐỀ VÀ MÔ TẢ COPYWRITING -->
+            <div style="font-size: 14.5px; font-weight: 700; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid rgba(249,115,22,0.1); padding-bottom: 8px; text-transform: uppercase;">
+              <span>📝</span> 3. Tiêu đề và mô tả Copywriting
+            </div>
+
+            <div class="admin-form-group" style="margin-bottom: 20px;">
+              <label for="formTitle" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Tiêu đề bài viết rực rỡ *</label>
+              <input type="text" id="formTitle" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none;" placeholder="Ví dụ: BÁN SẬP GIÁ CĂN NHÀ GÓC 3 TẦNG ĐƯỜNG LÒ LU..." required>
+            </div>
+
+            <div class="admin-form-group" style="margin-bottom: 20px;">
+              <label for="formBadge" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Nhãn nổi bật *</label>
+              <input type="text" id="formBadge" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: Mới đăng, Hẻm Xe Hơi, Mặt Tiền sầm uất..." required>
+            </div>
+
+            <div class="admin-form-group" style="margin-bottom: 24px;">
+              <label for="formDesc" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Nội dung mô tả đầy đủ hấp dẫn *</label>
+              <textarea id="formDesc" class="admin-form-control" style="width:100%; height: 200px; resize: vertical; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline:none;" placeholder="Dùng icon đầu dòng để tăng tỷ lệ chuyển đổi khi chia sẻ..." required></textarea>
+            </div>
+
+            <!-- PHẦN 4: ĐÍNH KÈM HÌNH Ảnh THỰC TẾ -->
+            <div style="font-size: 14.5px; font-weight: 700; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid rgba(249,115,22,0.1); padding-bottom: 8px; text-transform: uppercase;">
+              <span>📸</span> 4. Đính kèm hình ảnh thực tế *
+            </div>
+
+            <div class="admin-form-group" style="margin-bottom: 24px;">
+              <div id="imageUploadDropzone" style="border: 2px dashed rgba(249,115,22,0.3); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: var(--transition); background: rgba(249,115,22,0.02);" onclick="document.getElementById('formRealImages').click()">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--accent); margin: 0 auto 8px auto; display: block;">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Chọn tập tin ảnh từ máy của bạn</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">Tải tối đa 10 ảnh. Nếu ảnh quá lớn (>5MB), hệ thống sẽ giảm chất lượng tự động</div>
+              </div>
+              
+              <input type="file" id="formRealImages" accept="image/*" multiple style="display: none;">
+              
+              <!-- Preview vùng chứa các ảnh thực tế đã tải -->
+              <div id="realImagesPreviews" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 14px;"></div>
+              
+              <!-- Link ảnh gốc fallback hoặc ảnh URL nhanh nếu cần -->
+              <input type="hidden" id="formImg">
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" class="btn-admin-logout" style="border: 1px solid var(--border); background: transparent; color: var(--text-dark); padding: 10px 20px; border-radius: 8px; font-weight:600; cursor: pointer;" onclick="hideAdminForm(event)">Hủy bỏ</button>
+              <button type="submit" class="btn-admin-add" style="border: none; padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); font-weight:700; border-radius: 8px; cursor: pointer;">Lưu thông tin đăng</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER CHUNG -->
+    <footer class="footer">
+      <div class="footer-container">
+        <!-- Nhãn hàng hiệu -->
+        <div class="footer-brand">
+          <h5>THANH TRÀ BĐS</h5>
+          <p>Nền tảng tư vấn, môi giới bất động sản nhà phố chuyên nghiệp, uy tín hàng đầu tại TP. Thủ Đức - TP. Hồ Chí Minh. Chúng tôi luôn đồng hành bảo vệ pháp lý vững vàng cho gia đình bạn.</p>
+        </div>
+
+        <!-- Liên kết nhanh -->
+        <div class="footer-group">
+          <h6>LIÊN KẾT NHANH</h6>
+          <ul class="footer-links">
+            <li><a href="#hero">Trang chủ</a></li>
+            <li><a href="#products">Sản phẩm nhà nổi bật</a></li>
+            <li><a href="#contact">Đăng ký xem nhà</a></li>
+          </ul>
+        </div>
+
+        <!-- Thông tin văn phòng -->
+        <div class="footer-group">
+          <h6>THÔNG TIN LIÊN HỆ</h6>
+          <div class="footer-contact-list">
+            <p><strong>Văn phòng:</strong> Lò Lu, Trường Thạnh, TP. Thủ Đức</p>
+            <p><strong>Hotline:</strong> 0854.100.036</p>
+            <p><strong>Zalo:</strong> 0854100036</p>
+            <p><strong>Email:</strong> thanhtra1996st@gmail.com</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Bản quyền thuộc về Thanh Trà BĐS Nhà Phố. Bảo lưu mọi quyền.</p>
+        <p>Phát triển dựa trên bảo chứng chất lượng và uy tín.</p>
+      </div>
+    </footer>
+
+    <!-- MODAL XEM CHI TIẾT SẢN PHẨM RỘNG LỚN -->
+    <div id="propertyModal" class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-img-container" style="position: relative; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; height: 350px;">
+          <button class="modal-close-btn" id="modalCloseBtn" aria-label="Đóng popup">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          
+          <img id="mMainImg" class="modal-main-img" src="" alt="Hình ảnh nhà phố" style="width: 100%; height: 100%; object-fit: cover;">
+          
+          <!-- Các nút trượt ảnh nếu có nhiều ảnh -->
+          <button id="modalPrevBtn" onclick="slideModalImg(-1)" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: none; width: 36px; height: 36px; border-radius: 50%; color: white; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 16px; transition: var(--transition); z-index: 5;" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">&#10094;</button>
+          <button id="modalNextBtn" onclick="slideModalImg(1)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: none; width: 36px; height: 36px; border-radius: 50%; color: white; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 16px; transition: var(--transition); z-index: 5;" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">&#10095;</button>
+          
+          <!-- Dưới chân ảnh dạng dots -->
+          <div id="modalDotsContainer" style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 5;"></div>
+        </div>
+
+        <!-- Khay ảnh mini thực tế -->
+        <div id="modalThumbnailsRow" style="display: flex; gap: 8px; padding: 12px 20px; background: #f9fafb; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none;"></div>
+
+        <div class="modal-content">
+          <div class="modal-header-info">
+            <div class="modal-title">
+              <h4 id="mTitle">Tiêu đề đất nhà phố</h4>
+              <p id="mAddress" style="color: var(--text-muted); font-size: 14px; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Địa chỉ cụ thể
+              </p>
+            </div>
+            <div class="modal-price-tag" id="mPrice">0 Tỷ</div>
+          </div>
+
+          <!-- Thông số chi tiết box -->
+          <div class="modal-detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px;">
+            <!-- Diện tích -->
+            <div class="md-spec-box">
+              <div class="md-spec-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l-7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+              </div>
+              <div class="md-spec-text">
+                <p>Diện tích</p>
+                <span id="mArea">0 m2</span>
+              </div>
+            </div>
+
+            <!-- Chiều ngang -->
+            <div class="md-spec-box">
+              <div class="md-spec-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7M12 19L5 12l7-7" />
+                </svg>
+              </div>
+              <div class="md-spec-text">
+                <p>Chiều ngang</p>
+                <span id="mWidth">0 m</span>
+              </div>
+            </div>
+
+            <!-- Kết cấu -->
+            <div class="md-spec-box">
+              <div class="md-spec-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="9" y1="3" x2="9" y2="21"/>
+                  <line x1="15" y1="3" x2="15" y2="21"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <line x1="3" y1="15" x2="21" y2="15"/>
+                </svg>
+              </div>
+              <div class="md-spec-text">
+                <p>Kết cấu</p>
+                <span id="mFloors">0 tầng</span>
+              </div>
+            </div>
+
+            <!-- Phòng ngủ -->
+            <div class="md-spec-box">
+              <div class="md-spec-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12h18M6 12V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4M2 16h20v4H2z" />
+                </svg>
+              </div>
+              <div class="md-spec-text">
+                <p>Phòng ngủ</p>
+                <span id="mBedrooms">3 PN</span>
+              </div>
+            </div>
+
+            <!-- Phòng WC -->
+            <div class="md-spec-box">
+              <div class="md-spec-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <path d="M17 18h2M17 14h2" />
+                </svg>
+              </div>
+              <div class="md-spec-text">
+                <p>Phòng vệ sinh</p>
+                <span id="mBathrooms">3 WC</span>
+              </div>
+            </div>
+
+            <!-- Hướng -->
+            <div class="md-spec-box">
+              <div class="md-spec-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                </svg>
+              </div>
+              <div class="md-spec-text">
+                <p>Hướng nhà</p>
+                <span id="mDirection">Đông</span>
+              </div>
+            </div>
+
+            <!-- Pháp lý -->
+            <div class="md-spec-box">
+              <div class="md-spec-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <div class="md-spec-text">
+                <p>Pháp lý</p>
+                <span id="mLegal" style="color:#15803d; font-weight: 700;">Sổ hồng riêng</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bài mô tả nhà -->
+          <div class="modal-description">
+            <h5>Mô tả chi tiết tài sản</h5>
+            <div class="property-desc-text" id="mDescText">
+              Thông tin chi tiết đang được đồng bộ và cập nhật...
+            </div>
+          </div>
+
+          <!-- Các nút gọi trực tiếp ở Popup -->
+          <div class="modal-footer-ctas">
+            <a href="tel:0854100036" class="btn-phone">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              Gọi hotline: 0854.100.036
+            </a>
+            <a id="mZaloLink" href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="btn-modal-zalo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Zalo trao đổi trực tiếp
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHATBOX AI CONSULTANT (BẤT ĐỘNG SẢN) -->
+    <!-- Nút kích hoạt nổi bật -->
+    <button class="ai-chat-trigger" id="aiChatTrigger" aria-label="Hỏi Trợ lý AI">
+      <div class="pulse-ring"></div>
+      <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l5.428-3.159c.531.14 1.09.213 1.662.213 5.022 0 9.09-3.729 9.09-8.324S21.1 1.406 16.07 1.406c-5.022 0-9.09 3.73-9.09 8.325 0 2.228.949 4.25 2.477 5.753z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M16 9h.01m-8.01 4h12c-.5 1-2.5 2-6 2s-5.5-1-6-2z" />
+      </svg>
+    </button>
+
+    <!-- Khung cửa sổ chat tư vấn -->
+    <div class="ai-chat-window" id="aiChatWindow">
+      <div class="chat-header">
+        <div class="chat-header-profile">
+          <div class="chat-avatar">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+            </svg>
+          </div>
+          <div class="chat-header-title">
+            <h5>AI Thanh Trà BĐS</h5>
+            <div class="chat-header-status">
+              <span class="chat-status-dot"></span>
+              Đang trực tuyến
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-actions">
+          <!-- Reset Key -->
+          <button id="btnAiConfigure" title="Thay đổi API Key" aria-label="Cấu hình API Key">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          <!-- Nút đóng -->
+          <button id="btnAiClose" aria-label="Ẩn chat">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TRẠNG THÁI CHƯA LƯU API KEY (YÊU CẦU ĐĂNG NHẬP KEY) -->
+      <div class="chat-key-setup" id="chatAiKeySetup">
+        <div class="setup-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+          </svg>
+        </div>
+        <h6>Mở khóa Trợ Lý Thanh Trà BĐS</h6>
+        <p>Để trò chuyện với chuyên viên tư vấn AI thời gian thực, vui lòng cung cấp khóa bảo mật Google Gemini API của bạn (Sử dụng hoàn toàn miễn phí).</p>
+        
+        <div class="key-input-container">
+          <label for="geminiApiKey">Dán Gemini API Key của bạn</label>
+          <input type="password" id="geminiApiKey" class="api-key-field" placeholder="AIzaSy...">
+        </div>
+
+        <button type="button" class="btn-activate-ai" id="btnActivateAi">Mở khóa trí tuệ nhân tạo AI</button>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="key-guide-link">
+          Hướng dẫn lấy API Key miễn phí trong 1 phút ↗
+        </a>
+      </div>
+
+      <!-- TRẠNG THÁI KHU VỰC CHAT HOẠT ĐỘNG THỰC TẾ -->
+      <div class="chat-playground" id="chatAiPlayground" style="display: none;">
+        <div class="chat-messages" id="chatAiMessages">
+          <div class="chat-bubble bubble-bot">
+            Xin chào! Tôi là Trợ lý ảo của Thanh Trà BĐS. Tôi chuyên cung cấp thông tin nhà phố chính xác và hỗ trợ pháp lý nhanh chóng tại khu vực TP. Thủ Đức. Tôi có thể giải đáp gì cho quý anh chị hôm nay?
+          </div>
+        </div>
+
+        <!-- Các gợi ý tương tác nhanh -->
+        <div class="chat-suggestions" id="chatSuggestions">
+          <button class="suggestion-pill" data-question="Có những căn nào ở Trường Thạnh tầm giá 3 - 7 tỷ?">Tầm giá 3-7 tỷ Trường Thạnh</button>
+          <button class="suggestion-pill" data-question="Tìm nhà hướng Đông Nam diện tích trên 70m2?">Hướng Đông Nam &gt; 70m2</button>
+          <button class="suggestion-pill" data-question="Tư vấn thủ tục pháp lý mua nhà phố tại Thủ Đức?">Tư vấn pháp lý mua nhà</button>
+          <button class="suggestion-pill" data-question="Làm sao để gặp trực tiếp Thanh Trà BĐS?">Liên hệ Thanh Trà</button>
+        </div>
+
+        <div class="chat-input-bar">
+          <input type="text" id="chatInputField" class="chat-input-field" placeholder="Nhập câu hỏi tư vấn của bạn...">
+          <button class="btn-send-message" id="btnSendMessage" aria-label="Gửi tin">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG --- -->
+    <script>
+      /* ==========================================
+         1. DỮ LIỆU SẢN PHẨM MẪU CHẤT LƯỢNG CAO (MẢNG CƠ SỞ)
+         ========================================== */
+      const initialDefaultData = [
+        {
+          id: 1,
+          title: "Nhà phố 3 tầng mặt tiền Lò Lu, P. Trường Thạnh sầm uất",
+          price: 6.8, // Tỷ đồng (để lọc)
+          priceText: "6.8 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Trường Thạnh",
+          address: "Mặt tiền Lò Lu, Phường Trường Thạnh, TP. Thủ Đức",
+          area: 85, // m2 (để lọc)
+          floors: 3, // số tầng
+          direction: "Đông Nam",
+          badge: "Mặt Tiền Kinh Doanh",
+          img: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
+          desc: "Nhà phố tọa lạc ngay vị trí vàng mặt tiền đường Lò Lu, P. Trường Thạnh. Nằm trong khu dân cư hiện hữu đông đúc, thích hợp kinh doanh buôn bán, làm văn phòng hoặc cho thuê dòng tiền ổn định.\n\n- Kết cấu: 1 trệt, 2 lầu đúc BTCT kiên cố. Gồm phòng khách rộng rãi, bếp, 4 phòng ngủ thoáng mát, sân thượng thông thoáng.\n- Tiện ích xung quanh: Sát bên chợ Trường Thạnh, trung tâm hành chính mới, trường học các cấp, cách khu công nghệ cao chỉ 4 phút đi xe.\n- Pháp lý: Sổ hồng riêng hoàn công đầy đủ, hỗ trợ vay ngân hàng lãi suất tốt nhất."
+        },
+        {
+          id: 2,
+          title: "Căn hộ biệt thự Thảo Điền cao cấp sân vườn rộng ngập ánh sáng",
+          price: 24.5,
+          priceText: "24.5 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Thảo Điền",
+          address: "Nguyễn Văn Hưởng, Phường Thảo Điền, TP. Thủ Đức",
+          area: 150,
+          floors: 2,
+          direction: "Tây Nam",
+          badge: "Biệt Thự Cao Cấp",
+          img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+          desc: "Đẳng cấp sống nghỉ dưỡng giữa lòng phố thượng lưu Thảo Điền. Biệt thự thiết kế theo kiến trúc hiện đại Châu Âu, chú trọng không gian mở ngập tràn ánh sáng tự nhiên với sân vườn rộng bao quanh.\n\n- Kết cấu: 1 trệt 1 lầu, 3 phòng ngủ master diện tích lớn có bồn tắm nằm riêng biệt, phòng kho rộng, bếp Âu hiện đại.\n- Vị trí: Khu dân trí cực cao, an ninh nghiêm ngặt 24/7, không bao giờ ngập nước, dân cư văn minh xung quanh là các chuyên gia nước ngoài sinh sống.\n- Sổ hồng riêng chính chủ, giao dịch nhanh chóng."
+        },
+        {
+          id: 3,
+          title: "Nhà phố 4 tầng Linh Đông thiết kế tinh xảo gần Phạm Văn Đồng",
+          price: 4.9,
+          priceText: "4.9 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Linh Đông",
+          address: "Hẻm xe hơi Kha Vạn Cân, Phường Linh Đông, TP. Thủ Đức",
+          area: 64,
+          floors: 4,
+          direction: "Đông Bắc",
+          badge: "Nhà Xây Mới 100%",
+          img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+          desc: "Cơ hội sở hữu nhà mới tinh xảo kiến trúc hiện đại, tọa lạc tại phường Linh Đông, cực kỳ đắc địa ngay cạnh trục Phạm Văn Đồng huyết mạch.\n\n- Kết cấu: Thiết kế chuẩn phong cách Singapore hiện đại với 1 trệt, 2 lầu, 1 phòng thờ độc lập, sân thượng trước sau đón gió tự nhiên tốt dồi dào tài lộc. Thừa hưởng 4 phòng ngủ sang trọng kèm thiết bị vệ sinh nhập khẩu cao cấp.\n- Giao thông: Đường trước nhà rộng 6m xe hơi ra vào đỗ cửa ngày đêm.\n- Sổ riêng cầm tay, dọn ngay vào ở trước Tết."
+        },
+        {
+          id: 4,
+          title: "Nhà phố đúc BTCT Tăng Nhơn Phú A giá tốt, gần ngã tư Thủ Đức",
+          price: 3.8,
+          priceText: "3.8 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Tăng Nhơn Phú A",
+          address: "Lã Xuân Oai, Phường Tăng Nhơn Phú A, TP. Thủ Đức",
+          area: 52,
+          floors: 2,
+          direction: "Nam",
+          badge: "Giá Cực Rẻ",
+          img: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
+          desc: "Tọa lạc tại khu phố văn minh yên tĩnh tại Tăng Nhơn Phú A. Phù hợp tuyệt vời cho gia đình trẻ muốn tìm nơi an cư vững vàng, giá siêu tốt so với thị trường hiện tại.\n\n- Kết cấu: 1 trệt, 1 lầu kiên cố đòn tay sắt đúc hoàn chỉnh. Gồm khu sinh hoạt lớn, phòng bếp mở tinh tế, 2 phòng ngủ ấm cúng, 2 WC.\n- Tiện ích: Ngay sát Trường Đại học Sư Phạm Kỹ Thuật, bệnh viện, chợ dân sinh Lê Văn Việt nhộn nhịp kế bên.\n- Sổ hồng riêng tuyệt đối an toàn."
+        },
+        {
+          id: 5,
+          title: "Mặt tiền Đỗ Xuân Hợp sầm uất kinh doanh vô địch, Phú Hữu",
+          price: 11.5,
+          priceText: "11.5 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Phú Hữu",
+          address: "Mặt tiền Đỗ Xuân Hợp, Phường Phú Hữu, TP. Thủ Đức",
+          area: 100,
+          floors: 3,
+          direction: "Tây Bắc",
+          badge: "Vị Trí Vàng",
+          img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
+          desc: "Tài sản mặt tiền Đỗ Xuân Hợp đẳng cấp nhất khu vực Phú Hữu Thủ Đức. Trục đường có lưu lượng giao thông liên quận khổng lồ, phù hợp tuyệt hảo cho việc thu hút khách hàng kinh doanh các loại chuỗi thương hiệu, phòng khám quy mô lớn hoặc đầu tư sinh lời vĩnh viễn.\n\n- Kết cấu: 1 trệt 2 lầu cực rộng, thiết kế tối ưu mặt đứng trưng bày lớn.\n- Vị trí: Đầu nối nút giao Cao tốc Long Thành - Dầu Giây chỉ 1 phút, kết nối trung tâm Quận 1 chỉ 15 phút.\n- Sổ hồng pháp lý rõ rệt, hỗ trợ thủ tục công chứng nhanh gọn."
+        },
+        {
+          id: 6,
+          title: "Nhà phố căn góc 2 mặt tiền thoáng mát P. Hiệp Bình Chánh",
+          price: 8.2,
+          priceText: "8.2 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Hiệp Bình Chánh",
+          address: "Đường số 23, Phường Hiệp Bình Chánh, TP. Thủ Đức",
+          area: 75,
+          floors: 4,
+          direction: "Đông",
+          badge: "Căn Góc Thoáng Mát",
+          img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+          desc: "Cực kỳ quý hiếm! Nhà căn góc hai mặt hẻm ô tô 8m rộng thông thoáng tại phường Hiệp Bình Chánh. Vừa tận hưởng sự trong lành thoáng đạt ven sông Sài Gòn, vừa kết nối sầm uất Phạm Văn Đồng giao thương.\n\n- Kết cấu: Trệt, lầu đúc, gồm phòng khách sang trọng, bếp hiện đại, 4 phòng ngủ khép kín an toàn.\n- Phù hợp: Cho thuê văn phòng dịch vụ, showroom hoặc gia hộ ở thanh nhàn.\n- Tiện ích: Kế bên Gigamall Thủ Đức sầm uất thuận tiện vui chơi mua sắm.\n- Sổ hồng riêng sẵn sàng sang tên ngay."
+        },
+        {
+          id: 7,
+          title: "Nhà phố nội thất gỗ tự nhiên đỉnh cao, Phước Long B",
+          price: 5.4,
+          priceText: "5.4 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Phước Long B",
+          address: "Đường số 6, Phường Phước Long B, TP. Thủ Đức",
+          area: 70,
+          floors: 3,
+          direction: "Bắc",
+          badge: "Tặng Toàn Bộ Nội Thất",
+          img: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?auto=format&fit=crop&w=800&q=80",
+          desc: "Chủ nhà chuyển định cư nước ngoài cần nhượng gấp nhà phố đẳng cấp Phước Long B. Thiết kế tỉ mỉ, tặng lại toàn bộ tủ giường nội thất gỗ tự nhiên cao cấp sạng mịn vô cùng có giá trị.\n\n- Kết cấu: 1 trệt 2 lầu đúc BTCT, 4 phòng ngủ có giếng trời mát rượi đón không khí trong sạch.\n- Giao thông: Đường bàn cờ quy hoạch cực đẹp xe hơi tránh nhau dễ dàng.\n- Sổ riêng đã hoàn công đầy đủ, công chứng trong ngày."
+        },
+        {
+          id: 8,
+          title: "Nhà riêng nhỏ gọn Trường Thạnh, kế bên tòa án Quận 9 cũ",
+          price: 3.1,
+          priceText: "3.1 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Trường Thạnh",
+          address: "Đường Lò Lu, Phường Trường Thạnh, TP. Thủ Đức",
+          area: 48,
+          floors: 2,
+          direction: "Tây Bắc",
+          badge: "Sổ Hồng Cầm Tay",
+          img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+          desc: "Ngôi nhà xinh xắn vuông vức lý tưởng để bắt đầu một tổ ấm hạnh phúc vững vàng, giá siêu hấp dẫn tại Trường Thạnh.\n\n- Kết cấu: 1 trệt 1 lầu bê tông nhẹ chịu lực, 2 phòng ngủ, ban công rộng phơi đồ đón ánh nắng mặt trời cực tốt.\n- Vị trí: Sát vách Tòa án Quận 9, an ninh trực chiến tuyệt đối tốt. Không ngập, không tranh chấp lộ giới.\n- Sổ chính chủ, hỗ trợ sang tên nhanh không rườm rà."
+        },
+        {
+          id: 9,
+          title: "Nhà phố quy hoạch KĐT đẳng cấp kiểu mẫu Khang Điền, Phú Hữu",
+          price: 9.8,
+          priceText: "9.8 Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: "Phú Hữu",
+          address: "KĐT Khang Điền, Phường Phú Hữu, TP. Thủ Đức",
+          area: 90,
+          floors: 3,
+          direction: "Đông Nam",
+          badge: "An Ninh 24/7",
+          img: "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=800&q=80",
+          desc: "Nằm trong phân khu Compound nhà phố an ninh bậc nhất TP. Thủ Đức. Không gian sống đẳng cấp với công viên nội khu rợp bóng cây xanh, hồ bơi mát lạnh, khu vui chơi trẻ em an toàn.\n\n- Kết cấu: 1 trệt 2 lầu thiết kế đồng bộ sang trọng tinh tế từng cen-ti-mét.\n- Thích hợp cho giới thượng lưu hưởng thụ không khí biệt lập tĩnh tại nâng niu cảm xúc.\n- Sổ riêng đã hoàn công, thủ tục sang tên bảo mật an tâm."
+        }
+      ];
+
+      let propertyData = JSON.parse(localStorage.getItem('property_data')) || [...initialDefaultData];
+
+      function savePropertyDataToStorage() {
+        localStorage.setItem('property_data', JSON.stringify(propertyData));
+      }
+
+      /* ==========================================
+         2. BỘ LỌC TÌM KIẾM SẢN PHẨM REALTIME (KHÔNG LOAD LẠI TRANG)
+         ========================================== */
+      const btnToggleAdvanced = document.getElementById('btnToggleAdvanced');
+      const filterCollapsibleContent = document.getElementById('filterCollapsibleContent');
+      const toggleText = document.getElementById('toggleText');
+      const toggleChevron = document.getElementById('toggleChevron');
+
+      function toggleFilters(forceOpen = null) {
+        if (!filterCollapsibleContent) return;
+        const isOpen = filterCollapsibleContent.classList.contains('expanded');
+        const nextState = forceOpen !== null ? forceOpen : !isOpen;
+
+        if (nextState) {
+          filterCollapsibleContent.style.maxHeight = "1000px"; // high enough value
+          filterCollapsibleContent.classList.add('expanded');
+          toggleText.textContent = "Thu gọn khung tìm kiếm...";
+          toggleChevron.style.transform = "rotate(180deg)";
+        } else {
+          filterCollapsibleContent.style.maxHeight = "0px";
+          filterCollapsibleContent.classList.remove('expanded');
+          toggleText.textContent = "Mở rộng bộ lọc nâng cao";
+          toggleChevron.style.transform = "rotate(0deg)";
+        }
+      }
+
+      if (btnToggleAdvanced) {
+        btnToggleAdvanced.addEventListener('click', () => toggleFilters());
+      }
+
+      const filterKeyword = document.getElementById('filterKeyword');
+      const filterWard = document.getElementById('filterWard');
+      const filterDirection = document.getElementById('filterDirection');
+      const filterArea = document.getElementById('filterArea');
+      const filterFloors = document.getElementById('filterFloors');
+      const filterPrice = document.getElementById('filterPrice');
+      const productsGrid = document.getElementById('productsGrid');
+      const statCountText = document.getElementById('statCountText');
+      const btnResetFilters = document.getElementById('btnResetFilters');
+
+      // Hàm hiển thị sản phẩm lên trang
+      function renderProducts(products) {
+        productsGrid.innerHTML = '';
+        
+        if (products.length === 0) {
+          productsGrid.innerHTML = `
+            <div class="empty-state">
+              <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--text-muted); margin-bottom: 12px; display: inline-block;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p>Rất tiếc! Không có sản phẩm nào phù hợp với bộ lọc tìm kiếm hiện tại.</p>
+              <button onclick="resetAllFilters()" class="btn-reset-filters">Đặt lại bộ lọc tìm kiếm</button>
+            </div>
+          `;
+          statCountText.textContent = 'Tìm thấy 0 sản phẩm phù hợp';
+          return;
+        }
+
+        statCountText.textContent = `Tìm thấy ${products.length} sản phẩm phù hợp`;
+
+        products.forEach(p => {
+          const cardHtml = `
+            <article class="product-card" id="prop-${p.id}">
+              <div class="product-img-wrapper">
+                <span class="product-badge">${p.badge}</span>
+                <img class="product-img" src="${p.img}" alt="${p.title}" loading="lazy">
+              </div>
+              <div class="product-body">
+                <div class="product-price">${p.priceText}</div>
+                <h4 class="product-title">${p.title}</h4>
+                <div class="product-address">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5 7.5 0 1115 0z" />
+                  </svg>
+                  ${p.address}
+                </div>
+                
+                <div class="product-specs">
+                  <div class="spec-item">
+                    <span class="spec-label">Diện tích</span>
+                    <span class="spec-val">${p.area} m²</span>
+                  </div>
+                  <div class="spec-item">
+                    <span class="spec-label">Số tầng</span>
+                    <span class="spec-val">${p.floors} Tầng</span>
+                  </div>
+                  <div class="spec-item">
+                    <span class="spec-label">Hướng</span>
+                    <span class="spec-val">${p.direction}</span>
+                  </div>
+                </div>
+
+                <div class="product-ctas">
+                  <button type="button" class="btn-detail" onclick="openProductModal(${p.id})">Xem chi tiết</button>
+                  <a href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="btn-quick-zalo" title="Liên hệ Zalo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </article>
+          `;
+          productsGrid.insertAdjacentHTML('beforeend', cardHtml);
+        });
+      }
+
+      // Hàm lọc sản phẩm realtime
+      function applyFilters() {
+        const keyword = filterKeyword.value.toLowerCase().trim();
+        const ward = filterWard.value;
+        const direction = filterDirection.value;
+        const areaRange = filterArea.value;
+        const floorsRange = filterFloors.value;
+        const priceRange = filterPrice.value;
+
+        const filtered = propertyData.filter(p => {
+          // Lọc theo từ khóa
+          if (keyword && !p.title.toLowerCase().includes(keyword) && !p.address.toLowerCase().includes(keyword)) {
+            return false;
+          }
+
+          // Lọc theo Phường
+          if (ward !== 'all' && p.ward !== ward) {
+            return false;
+          }
+
+          // Lọc theo hướng nhà
+          if (direction !== 'all' && p.direction !== direction) {
+            return false;
+          }
+
+          // Lọc theo kết cấu số tầng
+          if (floorsRange !== 'all') {
+            if (floorsRange === '4' && p.floors < 4) return false;
+            if (floorsRange !== '4' && p.floors !== parseInt(floorsRange)) return false;
+          }
+
+          // Lọc theo khoảng diện tích
+          if (areaRange !== 'all') {
+            if (areaRange === 'sub50' && p.area >= 50) return false;
+            if (areaRange === '50to80' && (p.area < 50 || p.area > 80)) return false;
+            if (areaRange === '80to120' && (p.area < 80 || p.area > 120)) return false;
+            if (areaRange === 'above120' && p.area <= 120) return false;
+          }
+
+          // Lọc theo khoảng giá tiền
+          if (priceRange !== 'all') {
+            if (priceRange === 'sub3' && p.price >= 3) return false;
+            if (priceRange === '3to5' && (p.price < 3 || p.price > 5)) return false;
+            if (priceRange === '5to8' && (p.price < 5 || p.price > 8)) return false;
+            if (priceRange === '8to15' && (p.price < 8 || p.price > 15)) return false;
+            if (priceRange === 'above15' && p.price <= 15) return false;
+          }
+
+          return true;
+        });
+
+        renderProducts(filtered);
+      }
+
+      // Đặt lại toàn bộ bộ lọc
+      function resetAllFilters() {
+        filterKeyword.value = '';
+        filterWard.value = 'all';
+        filterDirection.value = 'all';
+        filterArea.value = 'all';
+        filterFloors.value = 'all';
+        filterPrice.value = 'all';
+        applyFilters();
+      }
+
+      // Gắn sự kiện lắng nghe để lọc realtime
+      [filterKeyword, filterWard, filterDirection, filterArea, filterFloors, filterPrice].forEach(ctrl => {
+        ctrl.addEventListener('input', applyFilters);
+        ctrl.addEventListener('change', applyFilters);
+      });
+      btnResetFilters.addEventListener('click', resetAllFilters);
+
+      // Tự động mở rộng khi nhấp vào ô tìm kiếm chính
+      if (filterKeyword) {
+        filterKeyword.addEventListener('focus', () => {
+          if (!filterCollapsibleContent.classList.contains('expanded')) {
+            toggleFilters(true);
+          }
+        });
+      }
+
+      // Khởi chạy render lần đầu
+      renderProducts(propertyData);
+
+
+      /* ==========================================
+         3. ĐIỀU HƯỚNG NAVBAR CỐ ĐỊNH & MOBILE MENU HAMBURGER
+         ========================================== */
+      const navbar = document.getElementById('navbar');
+      const menuToggle = document.getElementById('menuToggle');
+      const navMenu = document.getElementById('navMenu');
+
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
+      });
+
+      menuToggle.addEventListener('click', () => {
+        menuToggle.classList.toggle('active');
+        navMenu.classList.toggle('open');
+      });
+
+      // Tự động đóng menu khi nhấp vào link chuyển hướng
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          if (link.id === 'navAdminLink' && !isAdminLoggedIn) {
+            // Đừng thay đổi class active nếu chưa xác thực admin thành công
+            menuToggle.classList.remove('active');
+            navMenu.classList.remove('open');
+            return;
+          }
+          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+          link.classList.add('active');
+          menuToggle.classList.remove('active');
+          navMenu.classList.remove('open');
+        });
+      });
+
+
+      /* ==========================================
+         4. ĐIỀU KHIỂN CHI TIẾT POPUP (MODAL DIALOG)
+         ========================================== */
+      const propertyModal = document.getElementById('propertyModal');
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
+      const mMainImg = document.getElementById('mMainImg');
+      const mTitle = document.getElementById('mTitle');
+      const mAddress = document.getElementById('mAddress');
+      const mPrice = document.getElementById('mPrice');
+      const mArea = document.getElementById('mArea');
+      const mFloors = document.getElementById('mFloors');
+      const mDirection = document.getElementById('mDirection');
+      const mDescText = document.getElementById('mDescText');
+      const mZaloLink = document.getElementById('mZaloLink');
+
+      let modalImagesList = [];
+      let currentModalImgIndex = 0;
+
+      function slideModalImg(direction) {
+        if (modalImagesList.length <= 1) return;
+        currentModalImgIndex = (currentModalImgIndex + direction + modalImagesList.length) % modalImagesList.length;
+        updateModalImageDisplay();
+      }
+
+      function setModalImgIndex(index) {
+        currentModalImgIndex = index;
+        updateModalImageDisplay();
+      }
+
+      function updateModalImageDisplay() {
+        const mMainImg = document.getElementById('mMainImg');
+        if (modalImagesList.length > 0 && mMainImg) {
+          mMainImg.src = modalImagesList[currentModalImgIndex];
+        }
+        
+        // Cập nhật các dots tuyển chọn
+        const dots = document.querySelectorAll('.modal-dot');
+        dots.forEach((dot, idx) => {
+          if (idx === currentModalImgIndex) {
+            dot.style.background = 'var(--accent)';
+            dot.style.transform = 'scale(1.2)';
+          } else {
+            dot.style.background = 'rgba(255,255,255,0.6)';
+            dot.style.transform = 'scale(1)';
+          }
+        });
+
+        // Cập nhật đường border đỏ cho thumbnail active
+        const thumbs = document.querySelectorAll('.modal-thumb-item');
+        thumbs.forEach((thumb, idx) => {
+          if (idx === currentModalImgIndex) {
+            thumb.style.borderColor = 'var(--accent)';
+            thumb.style.boxShadow = '0 0 6px var(--accent)';
+            // Tự động cuộn thumbnail active vào vùng nhìn thấy nếu bị khuất
+            thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          } else {
+            thumb.style.borderColor = 'var(--border)';
+            thumb.style.boxShadow = 'none';
+          }
+        });
+      }
+
+      function openProductModal(id) {
+        const item = propertyData.find(p => p.id === id);
+        if (!item) return;
+
+        // Lưu danh sách hình ảnh thực tế
+        modalImagesList = item.imgList && item.imgList.length > 0 ? [...item.imgList] : [item.img];
+        currentModalImgIndex = 0;
+
+        mTitle.textContent = item.title;
+        mAddress.innerHTML = `
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${item.address}
+        `;
+        mPrice.textContent = item.priceText;
+        mArea.textContent = `${item.area} m²`;
+        mFloors.textContent = `${item.floors} Tầng`;
+        mDirection.textContent = item.direction;
+        mDescText.textContent = item.desc;
+
+        // Điền các thông số chi tiết cấu trúc bổ sung
+        const mWidth = document.getElementById('mWidth');
+        const mBedrooms = document.getElementById('mBedrooms');
+        const mBathrooms = document.getElementById('mBathrooms');
+        const mLegal = document.getElementById('mLegal');
+
+        if (mWidth) {
+          mWidth.textContent = (item.width && item.width > 0) ? `${item.width} m` : "Thương lượng";
+        }
+        if (mBedrooms) {
+          mBedrooms.textContent = item.bedrooms ? `${item.bedrooms} PN` : "3 PN";
+        }
+        if (mBathrooms) {
+          mBathrooms.textContent = item.bathrooms ? `${item.bathrooms} WC` : "3 WC";
+        }
+        if (mLegal) {
+          mLegal.textContent = item.legal || "Sổ hồng riêng";
+        }
+
+        // Hiện nút trượt nếu có từ 2 ảnh trở lên
+        const prevBtn = document.getElementById('modalPrevBtn');
+        const nextBtn = document.getElementById('modalNextBtn');
+        const dotsCont = document.getElementById('modalDotsContainer');
+        const thumbsCont = document.getElementById('modalThumbnailsRow');
+
+        if (prevBtn && nextBtn) {
+          if (modalImagesList.length > 1) {
+            prevBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex';
+          } else {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+          }
+        }
+
+        // Tạo danh sách dots
+        if (dotsCont) {
+          dotsCont.innerHTML = '';
+          if (modalImagesList.length > 1) {
+            modalImagesList.forEach((_, idx) => {
+              const dot = document.createElement('span');
+              dot.className = 'modal-dot';
+              dot.style.width = '8px';
+              dot.style.height = '8px';
+              dot.style.borderRadius = '50%';
+              dot.style.background = 'rgba(255,255,255,0.6)';
+              dot.style.cursor = 'pointer';
+              dot.style.transition = 'all 0.2s ease';
+              dot.onclick = () => setModalImgIndex(idx);
+              dotsCont.appendChild(dot);
+            });
+          }
+        }
+
+        // Tạo danh sách thumbnails
+        if (thumbsCont) {
+          thumbsCont.innerHTML = '';
+          if (modalImagesList.length > 1) {
+            thumbsCont.style.display = 'flex';
+            modalImagesList.forEach((src, idx) => {
+              const img = document.createElement('img');
+              img.src = src;
+              img.className = 'modal-thumb-item';
+              img.style.width = '64px';
+              img.style.height = '48px';
+              img.style.objectFit = 'cover';
+              img.style.borderRadius = '4px';
+              img.style.border = '2px solid var(--border)';
+              img.style.cursor = 'pointer';
+              img.style.flexShrink = '0';
+              img.style.transition = 'all 0.2s ease';
+              img.onclick = () => setModalImgIndex(idx);
+              thumbsCont.appendChild(img);
+            });
+          } else {
+            thumbsCont.style.display = 'none';
+          }
+        }
+
+        updateModalImageDisplay();
+        
+        // Link Zalo cá nhân hóa chứa lời chào riêng cho căn này
+        const textMessage = `Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin chi tiết căn: "${item.title}" có mã số căn #${item.id}`;
+        mZaloLink.href = `https://zalo.me/0854100036?text=${encodeURIComponent(textMessage)}`;
+
+        propertyModal.classList.add('open');
+        document.body.style.overflow = 'hidden'; // Ngăn chặn scroll nền
+      }
+
+      function closeProductModal() {
+        propertyModal.classList.remove('open');
+        document.body.style.overflow = 'auto';
+      }
+
+      modalCloseBtn.addEventListener('click', closeProductModal);
+      propertyModal.addEventListener('click', (e) => {
+        if (e.target === propertyModal) closeProductModal();
+      });
+
+
+      /* ==========================================
+         5. FORM BIỂU MẪU ĐĂNG KÝ LIÊN HỆ & TOAST ALERT
+         ========================================== */
+      const contactForm = document.getElementById('contactForm');
+      const toastNotification = document.getElementById('toastNotification');
+      const toastMessage = document.getElementById('toastMessage');
+
+      function showToast(message, isSuccess = true) {
+        toastMessage.textContent = message;
+        toastNotification.style.backgroundColor = isSuccess ? '#065f46' : '#991b1b';
+        toastNotification.style.borderLeftColor = isSuccess ? '#34d399' : '#f87171';
+        toastNotification.classList.add('show');
+        
+        setTimeout(() => {
+          toastNotification.classList.remove('show');
+        }, 4000);
+      }
+
+      contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('clientName').value.trim();
+        const phone = document.getElementById('clientPhone').value.trim();
+        const note = document.getElementById('clientNote').value.trim();
+
+        // Ghi nhận trực tiếp dữ liệu đăng ký (Sau này dễ dàng thay thế bằng API)
+        console.log("=== ĐĂNG KÝ ĐÃ GỬI ===", { name, phone, note, time: new Date().toISOString() });
+
+        contactForm.reset();
+        showToast(`Cảm ơn anh/chị ${name}! Yêu cầu tư vấn đã được gửi thành công. Thanh Trà BĐS sẽ gọi lại ngay qua số ${phone}.`);
+      });
+
+
+      /* ==========================================
+         6. CHATBOX AI CONSULTANT (GOOGLE GEMINI API)
+         ========================================== */
+      const aiChatTrigger = document.getElementById('aiChatTrigger');
+      const aiChatWindow = document.getElementById('aiChatWindow');
+      const btnAiClose = document.getElementById('btnAiClose');
+      const btnAiConfigure = document.getElementById('btnAiConfigure');
+      const chatAiKeySetup = document.getElementById('chatAiKeySetup');
+      const chatAiPlayground = document.getElementById('chatAiPlayground');
+      const geminiApiKey = document.getElementById('geminiApiKey');
+      const btnActivateAi = document.getElementById('btnActivateAi');
+      const chatAiMessages = document.getElementById('chatAiMessages');
+      const chatInputField = document.getElementById('chatInputField');
+      const btnSendMessage = document.getElementById('btnSendMessage');
+      const chatSuggestions = document.getElementById('chatSuggestions');
+
+      let localApiKey = localStorage.getItem('gemini_api_key') || "";
+      let serverHasKey = false;
+
+      // Check if server-side has the API key
+      async function checkServerKey() {
+        try {
+          const res = await fetch('/api/has-key');
+          const data = await res.json();
+          serverHasKey = !!data.hasKey;
+        } catch (e) {
+          console.warn("Could not check server API key status:", e);
+        }
+        initChatboxState();
+      }
+
+      // Mở/Đóng chatbox
+      aiChatTrigger.addEventListener('click', () => {
+        aiChatWindow.classList.toggle('open');
+        if (aiChatWindow.classList.contains('open')) {
+          checkServerKey();
+          scrollChatToBottom();
+        }
+      });
+
+      btnAiClose.addEventListener('click', () => {
+        aiChatWindow.classList.remove('open');
+      });
+
+      // Kiểm tra trạng thái Key ban đầu
+      function initChatboxState() {
+        localApiKey = localStorage.getItem('gemini_api_key') || "";
+        if (localApiKey || serverHasKey) {
+          chatAiKeySetup.style.display = 'none';
+          chatAiPlayground.style.display = 'flex';
+        } else {
+          chatAiKeySetup.style.display = 'flex';
+          chatAiPlayground.style.display = 'none';
+        }
+      }
+
+      // Kích hoạt khóa bảo mật API
+      btnActivateAi.addEventListener('click', () => {
+        const keyVal = geminiApiKey.value.trim();
+        if (!keyVal || keyVal.length < 20) {
+          alert("Vui lòng nhập mã khóa API Gemini hợp lệ (thường bắt đầu bằng AIzaSy...)");
+          return;
+        }
+
+        localStorage.setItem('gemini_api_key', keyVal);
+        geminiApiKey.value = '';
+        initChatboxState();
+        showToast("Mở khóa Trợ Lý AI Nhà Phố thành công!", true);
+      });
+
+      // Nhấn nút cấu hình lại bánh răng
+      btnAiConfigure.addEventListener('click', () => {
+        if (confirm("Anh/Chị muốn thay đổi hoặc xóa mã API Key hiện tại chứ?")) {
+          localStorage.removeItem('gemini_api_key');
+          serverHasKey = false; // Reset to force recheck
+          checkServerKey();
+        }
+      });
+
+      // Run on page load as well to greet accurately
+      checkServerKey();
+
+      // Cuộn xuống tin nhắn mới nhất
+      function scrollChatToBottom() {
+        chatAiMessages.scrollTop = chatAiMessages.scrollHeight;
+      }
+
+      // Tạo cấu trúc tin nhắn cục bộ
+      function appendMessage(text, isUser = false) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${isUser ? 'bubble-user' : 'bubble-bot'}`;
+        
+        // Thêm định dạng đơn giản (bold, dòng mới)
+        if (!isUser) {
+          // Bảo vệ HTML và format cơ bản
+          let formattedText = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/- (.*?)\n/g, '• $1<br>')
+            .replace(/\n/g, '<br>');
+          
+          bubble.innerHTML = formattedText;
+        } else {
+          bubble.textContent = text;
+        }
+
+        chatAiMessages.appendChild(bubble);
+        scrollChatToBottom();
+        return bubble;
+      }
+
+      // Thêm loading động
+      function appendLoader() {
+        const loader = document.createElement('div');
+        loader.className = 'chat-bubble bubble-bot';
+        loader.id = 'aiTypingLoader';
+        loader.innerHTML = `
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        `;
+        chatAiMessages.appendChild(loader);
+        scrollChatToBottom();
+      }
+
+      function removeLoader() {
+        const loader = document.getElementById('aiTypingLoader');
+        if (loader) {
+          loader.remove();
+        }
+      }
+
+      // Hệ thống hóa kho nhà phố để gửi chung làm tư liệu mồi cho trí tuệ nhân tạo (Grounding dữ liệu thật)
+      function getWarehouseContext() {
+        let text = "Dưới đây là danh sách giỏ hàng sản phẩm nhà đất phố đang có sẵn tại Thanh Trà BĐS TP. Thủ Đức để bạn tham khảo giới thiệu đúng chuẩn cho khách:\n";
+        propertyData.forEach(p => {
+          text += `- [Căn #${p.id}]: ${p.title}. Giá bán: ${p.priceText}, Phường: ${p.ward}, Diện tích: ${p.area}m², Số tầng: ${p.floors} tầng, Hướng: ${p.direction}. Địa chỉ: ${p.address}. Mô tả ngắn: ${p.badge}.\n`;
+        });
+        return text;
+      }
+
+      // Gửi yêu cầu tư vấn đến Google Gemini API
+      async function askGeminiAPI(userQuestion) {
+        if (!localApiKey && !serverHasKey) {
+          initChatboxState();
+          return;
+        }
+
+        appendLoader();
+
+        // Tạo câu lệnh cấu trúc (System Prompt) ràng buộc AI
+        const systemInstruction = `Bạn là Trợ lý AI chuyên nghiệp và thân thiện của thương hiệu "Thanh Trà BĐS" (đại diện cho nhà môi giới Thanh Trà).
+Nhiệm vụ chính: Tư vấn môi giới, định hướng, giải đáp pháp lý về bất động sản nhà phố CHỈ tại khu vực TP. Thủ Đức, TP. Hồ Chí Minh.
+Thông tin liên hệ chính thống bắt buộc để cung cấp cho người dùng:
+- Hotline/Zalo: 0854.100.036
+- Địa chỉ văn phòng: Lò Lu, Trường Thạnh, TP. Thủ Đức
+- Email: thanhtra1996st@gmail.com
+- Link chat Zalo: https://zalo.me/0854100036
+
+Nguyên tắc trả lời:
+1. Thân thiện, tận tâm, trung thực và cực kỳ ngắn gọn, súc tích (mỗi câu trả lời không quá 3-4 câu ngắn).
+2. Khi khách hỏi tìm nơi ở hoặc tầm giá, hãy đối chiếu và đề xuất KHỚP chính xác căn nhà nào đang có sẵn trong Giỏ Hàng do Thanh Trà đang bán (Mã số căn). Nếu không có căn trùng khít hoàn hảo, hãy giới thiệu căn gần giống nhất và mời họ kết nối Hotline để Thanh Trà đi tìm thêm sản phẩm ở giỏ hàng kín khác.
+3. Luôn luôn lồng ghép khéo léo lời mời khách gọi điện/Zalo số 0854.100.036 để xem nhà trực tiếp hoặc tư vấn cụ thể.
+4. Tránh luyên thuyên lý thuyết suông.`;
+
+        const warehouseData = getWarehouseContext();
+
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userQuestion,
+              warehouseData,
+              systemInstruction,
+              localKey: localApiKey
+            })
+          });
+
+          const resData = await response.json();
+          removeLoader();
+
+          if (response.ok && resData.reply) {
+            appendMessage(resData.reply, false);
+          } else {
+            console.error("Gemini Proxy Error:", resData);
+            appendMessage(resData.error || "Rất tiếc, đã có lỗi khi xử lý thông tin từ AI. Vui lòng kiểm tra lại cấu hình API Key.", false);
+          }
+        } catch (error) {
+          console.error("Network Error Calling Gemini Proxy:", error);
+          removeLoader();
+          appendMessage("Không thể kết nối với máy chủ AI. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau ít phút.", false);
+        }
+      }
+
+      // Xử lý gửi tin nhắn
+      function triggerUserMessage() {
+        const text = chatInputField.value.trim();
+        if (!text) return;
+
+        appendMessage(text, true);
+        chatInputField.value = '';
+        
+        // Gọi API Gemini
+        askGeminiAPI(text);
+      }
+
+      btnSendMessage.addEventListener('click', triggerUserMessage);
+      chatInputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          triggerUserMessage();
+        }
+      });
+
+      // Click gợi ý câu hỏi nhanh
+      chatSuggestions.addEventListener('click', (e) => {
+        const btn = e.target.closest('.suggestion-pill');
+        if (!btn) return;
+        
+        const question = btn.getAttribute('data-question');
+        appendMessage(question, true);
+        askGeminiAPI(question);
+      });
+
+
+      /* ==========================================
+         7. CHỨC NĂNG DÀNH CHO QUẢN TRỊ VIÊN (ADMIN CONTROL)
+         ========================================== */
+      const adminTableBody = document.getElementById('adminTableBody');
+      const adminPropForm = document.getElementById('adminPropForm');
+      
+      const formPropId = document.getElementById('formPropId');
+      const formTitle = document.getElementById('formTitle');
+      const formPrice = document.getElementById('formPrice');
+      const formArea = document.getElementById('formArea');
+      const formWard = document.getElementById('formWard');
+      const formDirection = document.getElementById('formDirection');
+      const formFloors = document.getElementById('formFloors');
+      const formBadge = document.getElementById('formBadge');
+      const formAddress = document.getElementById('formAddress');
+      const formImg = document.getElementById('formImg');
+      const formDesc = document.getElementById('formDesc');
+
+      let isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
+
+      // Chuyển trang/màn hình mượt mà giữa Chợ BĐS và Trang Admin
+      function switchToPage(pageName) {
+        const homePageWrapper = document.getElementById('homePageWrapper');
+        const adminPageWrapper = document.getElementById('adminPageWrapper');
+        const navAdminLink = document.getElementById('navAdminLink');
+        const aiChatWindow = document.getElementById('aiChatWindow');
+        const aiChatTrigger = document.getElementById('aiChatTrigger');
+        
+        if (pageName === 'admin') {
+          if (homePageWrapper) homePageWrapper.style.display = 'none';
+          if (adminPageWrapper) adminPageWrapper.style.display = 'block';
+          if (aiChatWindow) aiChatWindow.classList.remove('open');
+          if (aiChatTrigger) aiChatTrigger.style.display = 'none'; // Ẩn nút bong bóng AI để nhường không gian hoạt động admin
+          
+          document.querySelectorAll('#navMenu .nav-link').forEach(link => link.classList.remove('active'));
+          if (navAdminLink) navAdminLink.classList.add('active');
+          
+          renderAdminTable();
+          hideAdminForm(); // Trả lại danh sách bảng tin đăng trước
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          if (homePageWrapper) homePageWrapper.style.display = 'block';
+          if (adminPageWrapper) adminPageWrapper.style.display = 'none';
+          if (aiChatTrigger) aiChatTrigger.style.display = 'flex'; // Hiện lại bong bóng AI
+          
+          document.querySelectorAll('#navMenu .nav-link').forEach(link => link.classList.remove('active'));
+          const homeLink = document.querySelector("#navMenu a[href='#hero']");
+          if (homeLink) homeLink.classList.add('active');
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      function showAdminSection(e) {
+        if (e) e.preventDefault();
+        if (isAdminLoggedIn) {
+          switchToPage('admin');
+        } else {
+          openAdminLoginModal();
+        }
+      }
+
+      function openAdminLoginModal() {
+        const modal = document.getElementById('adminLoginModal');
+        if (modal) {
+          modal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+          const pwdField = document.getElementById('adminPasswordModal');
+          if (pwdField) {
+            pwdField.value = '';
+            pwdField.focus();
+          }
+        }
+      }
+
+      function closeAdminLoginModal() {
+        const modal = document.getElementById('adminLoginModal');
+        if (modal) {
+          modal.classList.remove('open');
+          document.body.style.overflow = 'auto';
+        }
+      }
+
+      function handleAdminLoginModal(e) {
+        if (e) e.preventDefault();
+        const pwdField = document.getElementById('adminPasswordModal');
+        if (!pwdField) return;
+        const pwd = pwdField.value.trim();
+        if (pwd === "123456") {
+          isAdminLoggedIn = true;
+          sessionStorage.setItem('admin_logged_in', 'true');
+          closeAdminLoginModal();
+          switchToPage('admin');
+          showToast("Xác thực quản trị viên thành công!", true);
+        } else {
+          alert("Sai mật khẩu hệ thống! Vui lòng sử dụng mật khẩu mặc định: 123456");
+        }
+      }
+
+      function handleAdminLogout() {
+        isAdminLoggedIn = false;
+        sessionStorage.removeItem('admin_logged_in');
+        switchToPage('home');
+        showToast("Đăng xuất quyền quản trị thành công.", true);
+      }
+
+      function checkAdminSession() {
+        // Tự động điều hướng nếu tải lại trang mà admin còn giữ phiên hoạt động
+        if (isAdminLoggedIn) {
+          switchToPage('admin');
+        } else {
+          switchToPage('home');
+        }
+      }
+
+      function renderAdminTable() {
+        if (!adminTableBody) return;
+        adminTableBody.innerHTML = '';
+        
+        propertyData.forEach(p => {
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid var(--border)';
+          tr.innerHTML = `
+            <td style="padding: 16px;">
+              <img src="${p.img}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
+            </td>
+            <td style="padding: 16px;">
+              <div class="admin-prop-title" style="font-weight: 700; color: var(--primary); font-size: 15px;">${p.title}</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ID: #${p.id} • ${p.area}m² • Đường/Hẻm: ${p.address}</div>
+            </td>
+            <td style="padding: 16px;">
+              <span class="admin-prop-price" style="font-weight: 800; color: var(--accent); font-size: 15px;">${p.priceText}</span>
+            </td>
+            <td style="padding: 16px;">
+              <span style="font-weight: 600; color: var(--primary); font-size: 13.5px;">Phường ${p.ward}</span>
+            </td>
+            <td style="padding: 16px; text-align: center;">
+              <div class="admin-actions-cell" style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <button class="btn-action-edit" onclick="showAdminForm(${p.id})" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(30,58,138,0.06); border: 1px solid rgba(30,58,138,0.1); color: var(--primary); font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-8.5a2.625 2.625 0 113.75 3.75L12 18.5H8.5V15L19.5 4z" />
+                  </svg>
+                  Sửa
+                </button>
+                <button class="btn-action-delete" onclick="deleteAdminProperty(${p.id})" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.1); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Xóa
+                </button>
+              </div>
+            </td>
+          `;
+          adminTableBody.appendChild(tr);
+        });
+      }
+
+      let uploadedImagesList = []; // Mảng danh sách chuỗi Base64 ảnh thực tế
+
+      // Hàm hiển thị list ảnh đã chọn
+      function renderUploadedImagesPreviews() {
+        const container = document.getElementById('realImagesPreviews');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        if (uploadedImagesList.length === 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0;">
+              Chưa quy tập hình ảnh thực tế nào. Vui lòng bấm "Chọn & Tải Ảnh" (Tối đa 10 ảnh).
+            </div>
+          `;
+          return;
+        }
+
+        uploadedImagesList.forEach((base64, index) => {
+          const div = document.createElement('div');
+          div.className = 'real-img-preview-card';
+          div.style.position = 'relative';
+          div.style.borderRadius = '8px';
+          div.style.overflow = 'hidden';
+          div.style.aspectRatio = '1/1';
+          div.style.border = '1px solid var(--border)';
+          
+          div.innerHTML = `
+            <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover;">
+            <button type="button" onclick="removeUploadedImage(${index})" style="position: absolute; top: 4px; right: 4px; background: rgba(220, 38, 38, 0.85); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.25);" title="Xóa ảnh này">
+              ✕
+            </button>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 10px; text-align: center; padding: 2px 0;">
+              Ảnh ${index + 1}
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      function removeUploadedImage(index) {
+        uploadedImagesList.splice(index, 1);
+        renderUploadedImagesPreviews();
+      }
+
+      function handleRealImagesUpload(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+        
+        // Hỗ trợ cộng dồn tối đa 10 ảnh
+        const remainingSpace = 10 - uploadedImagesList.length;
+        if (remainingSpace <= 0) {
+          alert("Bạn đã thêm tối đa 10 ảnh bất động sản rồi!");
+          return;
+        }
+        
+        const filesToProcess = files.slice(0, remainingSpace);
+        if (files.length > remainingSpace) {
+          alert(`Chỉ có thể tải thêm ${remainingSpace} ảnh (giới hạn tối đa 10 ảnh).`);
+        }
+        
+        let processedCount = 0;
+        filesToProcess.forEach(file => {
+          const isLarge = file.size > 5 * 1024 * 1024; // > 5MB
+          
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            const base64Data = event.target.result;
+            
+            if (isLarge) {
+              // Giảm chất lượng ảnh qua Canvas xuống dưới chất lượng tiêu chuẩn để bảo toàn tài nguyên dung lượng
+              const img = new Image();
+              img.src = base64Data;
+              img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                const maxDim = 1600;
+                if (width > maxDim || height > maxDim) {
+                  if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                  } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                  }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                uploadedImagesList.push(compressedBase64);
+                processedCount++;
+                if (processedCount === filesToProcess.length) {
+                  renderUploadedImagesPreviews();
+                  showToast("Đã tối ưu hóa và giảm dung lượng ảnh lớn (>5M) thành công!", true);
+                }
+              };
+            } else {
+              uploadedImagesList.push(base64Data);
+              processedCount++;
+              if (processedCount === filesToProcess.length) {
+                renderUploadedImagesPreviews();
+                showToast("Đã tải lên ảnh thực tế thành công!", true);
+              }
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function showAdminForm(id = null) {
+        const dbSection = document.getElementById('adminDashboardSection');
+        const formSection = document.getElementById('adminFormSection');
+        const formTitle = document.getElementById('formTitle');
+        const formPropId = document.getElementById('formPropId');
+        const adminFormTitle = document.getElementById('adminFormTitle');
+        const aiInputPrompt = document.getElementById('aiInputPrompt');
+        
+        const fHouseNumber = document.getElementById('formHouseNumber');
+        const fStreet = document.getElementById('formStreet');
+        const fWidth = document.getElementById('formWidth');
+        const fBedrooms = document.getElementById('formBedrooms');
+        const fBathrooms = document.getElementById('formBathrooms');
+        const fFloors = document.getElementById('formFloors');
+        const fLegal = document.getElementById('formLegal');
+
+        if (dbSection && formSection) {
+          dbSection.style.display = 'none';
+          formSection.style.display = 'block';
+          
+          adminPropForm.reset();
+          formPropId.value = '';
+          if (aiInputPrompt) aiInputPrompt.value = '';
+          
+          document.querySelectorAll('.quick-img-option').forEach(el => el.classList.remove('active'));
+          
+          if (id) {
+            const item = propertyData.find(p => p.id === id);
+            if (item) {
+              adminFormTitle.innerHTML = "📝 Cấu hình & Chỉnh sửa tin đăng ID: #" + item.id;
+              formPropId.value = item.id;
+              formTitle.value = item.title;
+              formPrice.value = item.price;
+              formArea.value = item.area;
+              formWard.value = item.ward;
+              formDirection.value = item.direction;
+              formFloors.value = item.floors;
+              formBadge.value = item.badge;
+              formAddress.value = item.address;
+              formImg.value = item.img;
+              formDesc.value = item.desc;
+
+              // Thiết lập các thông số chi tiết
+              if (fHouseNumber) fHouseNumber.value = item.houseNumber || "";
+              if (fStreet) fStreet.value = item.street || "";
+              if (fWidth) fWidth.value = item.width || "";
+              if (fBedrooms) fBedrooms.value = item.bedrooms || 3;
+              if (fBathrooms) fBathrooms.value = item.bathrooms || 3;
+              if (fFloors) fFloors.value = item.floors || 3;
+              if (fLegal) fLegal.value = item.legal || "Sổ hồng riêng";
+
+              // Danh sách ảnh thực tế
+              uploadedImagesList = item.imgList ? [...item.imgList] : (item.img ? [item.img] : []);
+              renderUploadedImagesPreviews();
+              
+              document.querySelectorAll('.quick-img-option').forEach(el => {
+                const tempUrl = el.getAttribute('data-url') || (el.getAttribute('onclick') || "").match(/'([^']+)'/)?.[1] || "";
+                if (tempUrl && item.img === tempUrl) el.classList.add('active');
+              });
+            }
+          } else {
+            adminFormTitle.innerHTML = "📋 Đăng tin rao bán nhà phố mới";
+            formImg.value = 'https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80';
+            const activeOpt = document.querySelector('.quick-img-option');
+            if (activeOpt) activeOpt.classList.add('active');
+
+            if (fHouseNumber) fHouseNumber.value = "";
+            if (fStreet) fStreet.value = "";
+            if (fWidth) fWidth.value = "";
+            if (fBedrooms) fBedrooms.value = 3;
+            if (fBathrooms) fBathrooms.value = 3;
+            if (fFloors) fFloors.value = 3;
+            if (fLegal) fLegal.value = "Sổ hồng riêng";
+
+            uploadedImagesList = [];
+            renderUploadedImagesPreviews();
+          }
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      function hideAdminForm(e) {
+        if (e) e.preventDefault();
+        const dbSection = document.getElementById('adminDashboardSection');
+        const formSection = document.getElementById('adminFormSection');
+        if (dbSection && formSection) {
+          dbSection.style.display = 'block';
+          formSection.style.display = 'none';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      function selectQuickImg(element, url) {
+        document.querySelectorAll('.quick-img-option').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        formImg.value = url;
+      }
+
+      function saveAdminProperty(e) {
+        e.preventDefault();
+        
+        const idVal = formPropId.value ? parseInt(formPropId.value) : null;
+        const titleVal = formTitle.value.trim();
+        const priceVal = parseFloat(formPrice.value);
+        const areaVal = parseInt(formArea.value);
+        const wardVal = formWard.value;
+        const directionVal = formDirection.value;
+        const floorsVal = parseInt(formFloors.value);
+        const badgeVal = formBadge.value.trim();
+        const descVal = formDesc.value.trim();
+
+        // Lấy thông tin chi tiết cấu trúc từ form mới
+        const fHouseNumber = document.getElementById('formHouseNumber');
+        const fStreet = document.getElementById('formStreet');
+        const fWidth = document.getElementById('formWidth');
+        const fBedrooms = document.getElementById('formBedrooms');
+        const fBathrooms = document.getElementById('formBathrooms');
+        const fLegal = document.getElementById('formLegal');
+
+        const houseNumberVal = fHouseNumber ? fHouseNumber.value.trim() : "";
+        const streetVal = fStreet ? fStreet.value.trim() : "";
+        const widthVal = fWidth ? parseFloat(fWidth.value) || 0 : 0;
+        const bedroomsVal = fBedrooms ? parseInt(fBedrooms.value) || 3 : 3;
+        const bathroomsVal = fBathrooms ? parseInt(fBathrooms.value) || 3 : 3;
+        const legalVal = fLegal ? fLegal.value.trim() : "Sổ hồng riêng";
+
+        // Tự động lắp ráp cấu trúc địa chỉ đầy đủ
+        let addressVal = "";
+        if (houseNumberVal) {
+          addressVal += "Số " + houseNumberVal + " ";
+        }
+        addressVal += streetVal + ", Phường " + wardVal + ", TP. Thủ Đức, TP.HCM";
+
+        // Kiểm tra danh sách ảnh thực tế
+        if (uploadedImagesList.length === 0) {
+          alert("Vui lòng đính kèm tối thiểu 1 hình ảnh thực tế cho bất động sản này bằng cách nhấn nút 'Chọn & Tải Ảnh'!");
+          return;
+        }
+
+        // Chọn hình ảnh đầu tiên làm ảnh đại diện chính của sản phẩm
+        const mainImgVal = uploadedImagesList[0];
+
+        if (idVal) {
+          const index = propertyData.findIndex(p => p.id === idVal);
+          if (index !== -1) {
+            propertyData[index] = {
+              ...propertyData[index],
+              title: titleVal,
+              price: priceVal,
+              priceText: priceVal + " Tỷ",
+              ward: wardVal,
+              direction: directionVal,
+              floors: floorsVal,
+              badge: badgeVal,
+              address: addressVal,
+              img: mainImgVal,
+              imgList: [...uploadedImagesList],
+              desc: descVal,
+              area: areaVal,
+              houseNumber: houseNumberVal,
+              street: streetVal,
+              width: widthVal,
+              bedrooms: bedroomsVal,
+              bathrooms: bathroomsVal,
+              legal: legalVal
+            };
+            showToast("Đã cập nhật bài thông tin thành công!", true);
+          }
+        } else {
+          const nextId = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
+          const newProperty = {
+            id: nextId,
+            title: titleVal,
+            price: priceVal,
+            priceText: priceVal + " Tỷ",
+            city: "TP. Hồ Chí Minh",
+            district: "TP. Thủ Đức",
+            ward: wardVal,
+            address: addressVal,
+            area: areaVal,
+            floors: floorsVal,
+            direction: directionVal,
+            badge: badgeVal,
+            img: mainImgVal,
+            imgList: [...uploadedImagesList],
+            desc: descVal,
+            houseNumber: houseNumberVal,
+            street: streetVal,
+            width: widthVal,
+            bedrooms: bedroomsVal,
+            bathrooms: bathroomsVal,
+            legal: legalVal
+          };
+          propertyData.unshift(newProperty);
+          showToast("Đăng tin mới bất động sản thành công!", true);
+        }
+
+        savePropertyDataToStorage();
+        hideAdminForm();
+        renderAdminTable();
+        applyFilters(); 
+      }
+
+      async function generateAIDescription(e) {
+        if (e) e.preventDefault();
+        
+        const localApiKey = localStorage.getItem('gemini_api_key');
+        if (!localApiKey && !serverHasKey) {
+          alert("Vui lòng kích hoạt & thiết lập Gemini API Key tại bong bóng Chatbox AI góc dưới phải màn hình trước!");
+          const aiChatTrigger = document.getElementById('aiChatTrigger');
+          const aiChatWindow = document.getElementById('aiChatWindow');
+          if (aiChatWindow && !aiChatWindow.classList.contains('open')) {
+            aiChatWindow.classList.add('open');
+            initChatboxState();
+          }
+          return;
+        }
+
+        const pWard = document.getElementById('formWard').value;
+        const pPrice = document.getElementById('formPrice').value || "Chưa xác định";
+        const pArea = document.getElementById('formArea').value || "Chưa xác định";
+        const pDirection = document.getElementById('formDirection').value;
+        const pFloors = document.getElementById('formFloors').value;
+        const pCustom = document.getElementById('aiInputPrompt').value.trim();
+
+        const promptInput = `Bạn là chuyên gia tư vấn hàng đầu & Content Writer có tầm của Thanh Trà BĐS khu vực TP. Thủ Đức.
+Mời bạn tự viết bài mô tả quảng cáo tin đăng bán nhà phố vô cùng ấn tượng và cuốn hút khách mua.
+Các thông số kỹ thuật được lấy trực tiếp từ biểu mẫu:
+- Vị trí: Phường ${pWard}, thành phố Thủ Đức, TP. Hồ Chí Minh
+- Giá chào bán: ${pPrice} Tỷ đồng (tính thanh khoản cực tốt)
+- Chiều sâu diện tích sử dụng: ${pArea} m² rộng rãi
+- Hướng nhà: Hướng ${pDirection} đại lộc đại cát
+- Quy mô kết cấu: nhà đúc kiên cố ${pFloors} tầng
+- Đặc tính nổi bật kèm thêm: ${pCustom || "Hẻm xe hơi ra vào tự do, khu phố tri thức an ninh, dân trí cao"}
+
+Hãy soạn thảo theo cấu trúc mạch lạc:
+1. Tiêu đề quảng cáo thu hút giới đầu tư và cư dân.
+2. Thiết kế chi tiết công năng tương xứng với ${pFloors} tầng (Phòng khách, bếp ấm cúng, số phòng ngủ tối ưu, toilet, không gian đón nắng gió tự nhiên).
+3. Bản lĩnh pháp lý vững vàng: Sổ hồng riêng cầm tay thương lượng chính chủ, đã hoàn công quy hoạch chuẩn chỉnh, bảo đảm an toàn giao dịch.
+4. Tiện ích liên hoàn: kế bên chợ, siêu thị bách hoá, kết nối giao thông linh hoạt qua Lò Lu hay Võ Chí Công đi trung tâm Quận 1, Quận 2, Quận 7 siêu tốc.
+5. Chi tiết liên hệ tư vấn chuyên sâu mang danh: Thanh Trà BĐS (Hotline/Zalo: 0854.100.036, Email: thanhtra1996st@gmail.com, Văn phòng: Lò Lu, TP. Thủ Đức).`;
+
+        const descTextarea = document.getElementById('formDesc');
+        descTextarea.disabled = true;
+        descTextarea.value = "🤖 Trợ lý thông minh AI đang phân tích tham chiếu biểu mẫu và tự viết mô tả rao bán đỉnh cao... Vui lòng chờ chút...";
+
+        const btn = e.currentTarget || e.target;
+        let originalContent = "";
+        if (btn && btn.tagName === "BUTTON") {
+          originalContent = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = "⚡ Đang biên soạn...";
+        }
+
+        try {
+          const response = await fetch('/api/generate-desc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              promptInput,
+              localKey: localApiKey
+            })
+          });
+
+          const resData = await response.json();
+          if (response.ok && resData.reply) {
+            descTextarea.value = resData.reply;
+            showToast("AI viết bài tư vấn hoàn thiện thành công!", true);
+          } else {
+            console.error(resData);
+            descTextarea.value = "";
+            alert(resData.error || "Gặp lỗi phản hồi từ AI. Hãy chắc chắn API Key hợp lệ.");
+          }
+        } catch (error) {
+          console.error(error);
+          descTextarea.value = "";
+          alert("Gặp lỗi mạng khi kết nối cổng dịch vụ viết bài AI.");
+        } finally {
+          descTextarea.disabled = false;
+          if (btn && btn.tagName === "BUTTON") {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+          }
+        }
+      }
+
+      function saveAdminProperty(e) {
+        e.preventDefault();
+        
+        const idVal = formPropId.value ? parseInt(formPropId.value) : null;
+        const titleVal = formTitle.value.trim();
+        const priceVal = parseFloat(formPrice.value);
+        const areaVal = parseInt(formArea.value);
+        const wardVal = formWard.value;
+        const directionVal = formDirection.value;
+        const floorsVal = parseInt(formFloors.value);
+        const badgeVal = formBadge.value.trim();
+        const addressVal = formAddress.value.trim();
+        const imgVal = formImg.value.trim();
+        const descVal = formDesc.value.trim();
+
+        if (idVal) {
+          const index = propertyData.findIndex(p => p.id === idVal);
+          if (index !== -1) {
+            propertyData[index] = {
+              ...propertyData[index],
+              title: titleVal,
+              price: priceVal,
+              priceText: priceVal + " Tỷ",
+              ward: wardVal,
+              direction: directionVal,
+              floors: floorsVal,
+              badge: badgeVal,
+              address: addressVal,
+              img: imgVal,
+              desc: descVal,
+              area: areaVal
+            };
+            showToast("Đã cập nhật bài thông tin thành công!", true);
+          }
+        } else {
+          const nextId = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
+          const newProperty = {
+            id: nextId,
+            title: titleVal,
+            price: priceVal,
+            priceText: priceVal + " Tỷ",
+            city: "TP. Hồ Chí Minh",
+            district: "TP. Thủ Đức",
+            ward: wardVal,
+            address: addressVal,
+            area: areaVal,
+            floors: floorsVal,
+            direction: directionVal,
+            badge: badgeVal,
+            img: imgVal,
+            desc: descVal
+          };
+          propertyData.unshift(newProperty);
+          showToast("Đăng tin mới bất động sản thành công!", true);
+        }
+
+        savePropertyDataToStorage();
+        hideAdminForm();
+        renderAdminTable();
+        applyFilters(); 
+      }
+
+      function deleteAdminProperty(id) {
+        if (!confirm("Bạn có chắc chắn muốn gỡ bỏ hoàn toàn tin đăng bất động sản này khỏi hệ thống?")) return;
+        
+        propertyData = propertyData.filter(p => p.id !== id);
+        savePropertyDataToStorage();
+        renderAdminTable();
+        applyFilters();
+        showToast("Đã gỡ bỏ bài đăng bất động sản thành công.", true);
+      }
+
+      // Đăng ký cho các đường link trang chủ chuyển hoàn lại màn hình chính diện
+      document.querySelectorAll("#navMenu a").forEach(link => {
+        if (link.id !== "navAdminLink") {
+          link.addEventListener("click", () => {
+            switchToPage("home");
+          });
+        }
+      });
+
+      // Gắn tất cả các hàm gọi trực tiếp từ thẻ HTML lên đối tượng window toàn cục tránh lỗi mất tầm vực
+      window.showAdminSection = showAdminSection;
+      window.openAdminLoginModal = openAdminLoginModal;
+      window.closeAdminLoginModal = closeAdminLoginModal;
+      window.handleAdminLoginModal = handleAdminLoginModal;
+      window.handleAdminLogout = handleAdminLogout;
+      window.checkAdminSession = checkAdminSession;
+      window.renderAdminTable = renderAdminTable;
+      window.showAdminForm = showAdminForm;
+      window.hideAdminForm = hideAdminForm;
+      window.selectQuickImg = selectQuickImg;
+      window.generateAIDescription = generateAIDescription;
+      window.saveAdminProperty = saveAdminProperty;
+      window.deleteAdminProperty = deleteAdminProperty;
+      window.openProductModal = openProductModal;
+      window.closeProductModal = closeProductModal;
+      window.resetAllFilters = resetAllFilters;
+      window.applyFilters = applyFilters;
+      window.toggleFilters = toggleFilters;
+
+      // Gắn thêm các hàm slideshow và uploader ảnh mới vào window
+      window.slideModalImg = slideModalImg;
+      window.setModalImgIndex = setModalImgIndex;
+      window.handleRealImagesUpload = handleRealImagesUpload;
+      window.removeUploadedImage = removeUploadedImage;
+
+      // Khởi động kiểm tra thông số và phiên hoạt động
+      document.getElementById('formRealImages')?.addEventListener('change', handleRealImagesUpload);
+      checkServerKey();
+      checkAdminSession();
+    </script>
+  </body>
+</html>
