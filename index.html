@@ -2317,7 +2317,78 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             Đăng xuất Admin
-          </button>
+        </div>
+
+        <!-- KHU VỰC THIẾT LẬP KẾT NỐI SUPABASE CLOUD TRỰC TIẾP -->
+        <div class="supabase-config-card" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px; margin-bottom: 24px; box-shadow: var(--shadow);">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 24px;">☁️</span>
+              <div>
+                <h4 style="font-weight: 700; color: var(--primary); font-size: 15px; margin: 0; text-transform: uppercase; tracking: tight;">Đồng bộ dữ liệu Cloud - Supabase Database</h4>
+                <p style="font-size: 12.5px; color: var(--text-muted); margin: 2px 0 0 0;">Lưu trữ và đồng bộ hóa trực tiếp rổ hàng bất động sản lên đám mây bảo mật của Supabase.</p>
+              </div>
+            </div>
+            <div id="supabaseConnectionBadge" style="font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 99px; background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; text-transform: uppercase; letter-spacing: 0.5px;">Chế độ Offline</div>
+          </div>
+
+          <form id="supabaseConfigForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;" onsubmit="saveSupabaseSettings(event)">
+            <div>
+              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabase URL *</label>
+              <input type="text" id="supabaseUrlInput" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="Ví dụ: https://xyzexampleid.supabase.co" required>
+            </div>
+            <div>
+              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabase Anon public Key *</label>
+              <input type="password" id="supabaseKeyInput" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="Nhập mã Anon Key công khai..." required>
+            </div>
+            <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; align-items: center; flex-wrap: wrap;">
+              <span id="supabaseSyncStatusText" style="font-size: 12px; color: var(--text-muted); margin-right: auto; font-style: italic;">Đang dùng bộ nhớ cục bộ (LocalStorage) làm nguồn lưu trữ.</span>
+              <button id="btnTestSupabase" type="button" onclick="testSupabaseConnection()" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text-dark); hover:bg-gray-50;">⚡ Kiểm tra kết nối</button>
+              <button type="submit" style="padding: 10px 22px; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; font-size: 12.5px; font-weight: 700;">Lưu & Đồng bộ Cloud</button>
+            </div>
+          </form>
+
+          <!-- HƯỚNG DẪN SQL CHẠY LẦN ĐẦU Collapsible -->
+          <details style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; transition: all 0.2s;">
+            <summary style="font-size: 13px; font-weight: 700; color: var(--primary); list-style: inside; cursor: pointer; user-select: none;">📜 Các bước thiết lập Database SQL & Tạo bảng (Xem hướng dẫn)</summary>
+            <div style="margin-top: 12px; cursor: default; font-size: 13px; line-height: 1.65; color: var(--text-dark); border-top: 1px dashed var(--border); padding-top: 12px;">
+              <p style="margin-bottom: 6px;"><strong>Bước 1:</strong> Đăng nhập vào <a href="https://supabase.com" target="_blank" style="color: var(--accent); font-weight: 700; text-decoration: underline;">Supabase Dashboard</a> và mở Project của bạn.</p>
+              <p style="margin-bottom: 6px;"><strong>Bước 2:</strong> Mở mục <strong>SQL Editor</strong> ở thanh bên trái -> Bấm nút <strong>New Query</strong>.</p>
+              <p style="margin-bottom: 10px;"><strong>Bước 3:</strong> Sao chép đoạn mã SQL khởi tạo dưới đây và dán vào, sau đó bấm nút <strong>Run</strong> để tạo bảng và mở chính sách bảo mật cho lưu đọc dữ liệu tự do:</p>
+              <div style="position: relative; margin-top: 8px;">
+                <textarea readonly style="width:100%; height: 190px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: #1e293b; color: #f8fafc; line-height: 1.45; resize: none;" id="supabaseSqlCopyText">CREATE TABLE IF NOT EXISTS properties_hometea (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  price NUMERIC NOT NULL,
+  price_text TEXT,
+  ward TEXT,
+  direction TEXT,
+  floors INT,
+  badge TEXT,
+  address TEXT,
+  img TEXT,
+  img_list JSONB,
+  "desc" TEXT,
+  area INT,
+  house_number TEXT,
+  street TEXT,
+  width NUMERIC,
+  bedrooms INT,
+  bathrooms INT,
+  legal TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Bật phân quyền truy cập thuận tiện trực tiếp từ Client app
+ALTER TABLE properties_hometea ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Cho phép tất cả đọc" ON properties_hometea FOR SELECT USING (true);
+CREATE POLICY "Cho phép tất cả thêm" ON properties_hometea FOR INSERT WITH CHECK (true);
+CREATE POLICY "Cho phép tất cả sửa" ON properties_hometea FOR UPDATE USING (true);
+CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING (true);</textarea>
+                <button type="button" onclick="copySupabaseSql()" style="position: absolute; top: 12px; right: 12px; background: var(--accent); color: var(--primary); border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">Sao chép đoạn mã</button>
+              </div>
+            </div>
+          </details>
         </div>
 
         <div class="admin-table-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
@@ -3613,6 +3684,7 @@ Nguyên tắc trả lời:
         const warehouseData = getWarehouseContext();
 
         try {
+          // Đầu tiên, thử gọi qua proxy Node.js backend đi kèm của hệ thống
           const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
@@ -3626,19 +3698,59 @@ Nguyên tắc trả lời:
             })
           });
 
-          const resData = await response.json();
-          removeLoader();
-
-          if (response.ok && resData.reply) {
-            appendMessage(resData.reply, false);
-          } else {
-            console.error("Gemini Proxy Error:", resData);
-            appendMessage(resData.error || "Rất tiếc, đã có lỗi khi xử lý thông tin từ AI. Vui lòng kiểm tra lại cấu hình API Key.", false);
+          if (response.ok) {
+            const resData = await response.json();
+            removeLoader();
+            if (resData.reply) {
+              appendMessage(resData.reply, false);
+              return;
+            }
           }
+          throw new Error("Proxy backend response is not OK");
         } catch (error) {
-          console.error("Network Error Calling Gemini Proxy:", error);
+          console.warn("Máy chủ proxy local không phản hồi hoặc đang chạy tĩnh trên Hosting (như Vercel). Đang tự động gọi trực tiếp Google Gemini API qua Client-side...", error);
+          
+          if (localApiKey) {
+            try {
+              // Gọi trực tiếp đến máy chủ Google Gemini với mã khóa phân đoạn khách hàng đa nền tảng
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${localApiKey}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      role: 'user',
+                      parts: [
+                        { text: systemInstruction + "\n\n=== DỮ LIỆU RỔ HÀNG HIỆN TẠI ===\n" + warehouseData + "\n\n=== CÂU HỎI CỦA KHÁCH HÀNG ===\n" + userQuestion }
+                      ]
+                    }
+                  ],
+                  config: {
+                    temperature: 0.7
+                  }
+                })
+              });
+
+              if (directResponse.ok) {
+                const directData = await directResponse.json();
+                removeLoader();
+                if (directData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  const replyText = directData.candidates[0].content.parts[0].text;
+                  appendMessage(replyText, false);
+                  return;
+                }
+              }
+              const errorDetails = await directResponse.json().catch(() => ({}));
+              console.error("Direct Gemini API error:", errorDetails);
+            } catch (innerError) {
+              console.error("Lỗi gọi API trực tiếp thất bại hoàn toàn:", innerError);
+            }
+          }
+          
           removeLoader();
-          appendMessage("Không thể kết nối với máy chủ AI. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau ít phút.", false);
+          appendMessage("Không thể kết nối máy chủ AI. Vui lòng xác nhận bạn đã nhập đúng mã khóa API và hệ thống mạng ổn định.", false);
         }
       }
 
@@ -4042,7 +4154,7 @@ Nguyên tắc trả lời:
         formImg.value = url;
       }
 
-      function saveAdminProperty(e) {
+      async function saveAdminProperty(e) {
         e.preventDefault();
         
         const idVal = formPropId.value ? parseInt(formPropId.value) : null;
@@ -4086,59 +4198,130 @@ Nguyên tắc trả lời:
         // Chọn hình ảnh đầu tiên làm ảnh đại diện chính của sản phẩm
         const mainImgVal = uploadedImagesList[0];
 
-        if (idVal) {
-          const index = propertyData.findIndex(p => p.id === idVal);
-          if (index !== -1) {
-            propertyData[index] = {
-              ...propertyData[index],
-              title: titleVal,
-              price: priceVal,
-              priceText: priceVal + " Tỷ",
-              ward: wardVal,
-              direction: directionVal,
-              floors: floorsVal,
-              badge: badgeVal,
-              address: addressVal,
-              img: mainImgVal,
-              imgList: [...uploadedImagesList],
-              desc: descVal,
-              area: areaVal,
-              houseNumber: houseNumberVal,
-              street: streetVal,
-              width: widthVal,
-              bedrooms: bedroomsVal,
-              bathrooms: bathroomsVal,
-              legal: legalVal
-            };
-            showToast("Đã cập nhật bài thông tin thành công!", true);
-          }
-        } else {
-          const nextId = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
-          const newProperty = {
-            id: nextId,
+        let finalProperty = {
+          title: titleVal,
+          price: priceVal,
+          priceText: priceVal + " Tỷ",
+          city: "TP. Hồ Chí Minh",
+          district: "TP. Thủ Đức",
+          ward: wardVal,
+          address: addressVal,
+          area: areaVal,
+          floors: floorsVal,
+          direction: directionVal,
+          badge: badgeVal,
+          img: mainImgVal,
+          imgList: [...uploadedImagesList],
+          desc: descVal,
+          houseNumber: houseNumberVal,
+          street: streetVal,
+          width: widthVal,
+          bedrooms: bedroomsVal,
+          bathrooms: bathroomsVal,
+          legal: legalVal
+        };
+
+        let successSync = true;
+
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast("Đang đồng bộ lưu tin lên Supabase Cloud...", true);
+          
+          const dbPayload = {
             title: titleVal,
             price: priceVal,
-            priceText: priceVal + " Tỷ",
-            city: "TP. Hồ Chí Minh",
-            district: "TP. Thủ Đức",
+            price_text: priceVal + " Tỷ",
             ward: wardVal,
-            address: addressVal,
-            area: areaVal,
-            floors: floorsVal,
             direction: directionVal,
+            floors: floorsVal,
             badge: badgeVal,
+            address: addressVal,
             img: mainImgVal,
-            imgList: [...uploadedImagesList],
+            img_list: uploadedImagesList,
             desc: descVal,
-            houseNumber: houseNumberVal,
+            area: areaVal,
+            house_number: houseNumberVal,
             street: streetVal,
             width: widthVal,
             bedrooms: bedroomsVal,
             bathrooms: bathroomsVal,
             legal: legalVal
           };
-          propertyData.unshift(newProperty);
-          showToast("Đăng tin mới bất động sản thành công!", true);
+
+          try {
+            if (idVal) {
+              // Update PATCH
+              const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${idVal}`, {
+                method: 'PATCH',
+                headers: {
+                  'apikey': supabaseAnonKey,
+                  'Authorization': `Bearer ${supabaseAnonKey}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(dbPayload)
+              });
+
+              if (!response.ok) {
+                const text = await response.text();
+                console.error("Supabase patch failed:", text);
+                throw new Error(text);
+              }
+              
+              finalProperty.id = idVal;
+              const index = propertyData.findIndex(p => p.id === idVal);
+              if (index !== -1) {
+                propertyData[index] = finalProperty;
+              }
+              showToast(`Đã cập nhật bài đăng bất động sản lên Supabase (${supabaseTable}) thành công!`, true);
+            } else {
+              // Insert POST
+              const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}`, {
+                method: 'POST',
+                headers: {
+                  'apikey': supabaseAnonKey,
+                  'Authorization': `Bearer ${supabaseAnonKey}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(dbPayload)
+              });
+
+              if (!response.ok) {
+                const text = await response.text();
+                console.error("Supabase post failed:", text);
+                throw new Error(text);
+              }
+
+              const returnedData = await response.json();
+              if (returnedData && returnedData[0]) {
+                finalProperty.id = returnedData[0].id;
+              } else {
+                finalProperty.id = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
+              }
+              
+              propertyData.unshift(finalProperty);
+              showToast("Đăng tin rao bán mới lên Supabase Cloud thành công!", true);
+            }
+          } catch (err) {
+            console.error("Database sync fault:", err);
+            successSync = false;
+            alert("Đồng bộ lên Cloud gặp lỗi. Hệ thống sẽ lưu cục bộ để đảm bảo an toàn.");
+          }
+        }
+
+        if (!successSync || !isSupabaseConnected) {
+          if (idVal) {
+            finalProperty.id = idVal;
+            const index = propertyData.findIndex(p => p.id === idVal);
+            if (index !== -1) {
+              propertyData[index] = finalProperty;
+              showToast("Đã cập nhật thông tin thành công cục bộ!", true);
+            }
+          } else {
+            finalProperty.id = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
+            propertyData.unshift(finalProperty);
+            showToast("Đăng tin bất động sản thành công cục bộ!", true);
+          }
         }
 
         savePropertyDataToStorage();
@@ -4199,6 +4382,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
 
         try {
+          // Thử gọi qua proxy Node.js backend đi kèm của hệ thống
           const response = await fetch('/api/generate-desc', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4208,19 +4392,55 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
             })
           });
 
-          const resData = await response.json();
-          if (response.ok && resData.reply) {
-            descTextarea.value = resData.reply;
-            showToast("AI viết bài tư vấn hoàn thiện thành công!", true);
-          } else {
-            console.error(resData);
-            descTextarea.value = "";
-            alert(resData.error || "Gặp lỗi phản hồi từ AI. Hãy chắc chắn API Key hợp lệ.");
+          if (response.ok) {
+            const resData = await response.json();
+            if (resData.reply) {
+              descTextarea.value = resData.reply;
+              showToast("AI viết bài tư vấn hoàn thiện thành công!", true);
+              return;
+            }
           }
+          throw new Error("Express backend fails or returns error");
         } catch (error) {
-          console.error(error);
+          console.warn("Máy chủ viết bài proxy local không phản hồi hoặc đang chạy tĩnh trên Vercel. Đang tự động gọi trực tiếp Google Gemini API qua Client-side...", error);
+          
+          if (localApiKey) {
+            try {
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${localApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      role: 'user',
+                      parts: [
+                        { text: promptInput }
+                      ]
+                    }
+                  ],
+                  config: {
+                    temperature: 0.8
+                  }
+                })
+              });
+
+              if (directResponse.ok) {
+                const directData = await directResponse.json();
+                if (directData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  descTextarea.value = directData.candidates[0].content.parts[0].text;
+                  showToast("AI biên soạn bài mô tả thành công trực tiếp qua Client-side!", true);
+                  return;
+                }
+              }
+              const errInfo = await directResponse.json().catch(() => ({}));
+              console.error("Direct desc Gemini API error:", errInfo);
+            } catch (innerError) {
+              console.error("Lỗi biên soạn trực tiếp qua client hoàn toàn:", innerError);
+            }
+          }
+          
           descTextarea.value = "";
-          alert("Gặp lỗi mạng khi kết nối cổng dịch vụ viết bài AI.");
+          alert("Gặp lỗi mạng khi kết nối cổng dịch vụ viết bài AI. Vui lòng xác định mã khóa API chính xác và thử lại.");
         } finally {
           descTextarea.disabled = false;
           if (btn && btn.tagName === "BUTTON") {
@@ -4230,76 +4450,256 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
       }
 
-      function saveAdminProperty(e) {
-        e.preventDefault();
+      // Các biến trạng thái Supabase toàn cục
+      let supabaseUrl = localStorage.getItem('supabase_url') || "";
+      let supabaseAnonKey = localStorage.getItem('supabase_anon_key') || "";
+      let isSupabaseConnected = false;
+      let supabaseTable = 'properties_hometea';
+
+      // Khởi tạo trạng thái Supabase và cập nhật giao diện
+      function initSupabaseState() {
+        const urlInput = document.getElementById('supabaseUrlInput');
+        const keyInput = document.getElementById('supabaseKeyInput');
+        if (urlInput) urlInput.value = supabaseUrl;
+        if (keyInput) keyInput.value = supabaseAnonKey;
         
-        const idVal = formPropId.value ? parseInt(formPropId.value) : null;
-        const titleVal = formTitle.value.trim();
-        const priceVal = parseFloat(formPrice.value);
-        const areaVal = parseInt(formArea.value);
-        const wardVal = formWard.value;
-        const directionVal = formDirection.value;
-        const floorsVal = parseInt(formFloors.value);
-        const badgeVal = formBadge.value.trim();
-        const addressVal = formAddress.value.trim();
-        const imgVal = formImg.value.trim();
-        const descVal = formDesc.value.trim();
-
-        if (idVal) {
-          const index = propertyData.findIndex(p => p.id === idVal);
-          if (index !== -1) {
-            propertyData[index] = {
-              ...propertyData[index],
-              title: titleVal,
-              price: priceVal,
-              priceText: priceVal + " Tỷ",
-              ward: wardVal,
-              direction: directionVal,
-              floors: floorsVal,
-              badge: badgeVal,
-              address: addressVal,
-              img: imgVal,
-              desc: descVal,
-              area: areaVal
-            };
-            showToast("Đã cập nhật bài thông tin thành công!", true);
-          }
+        if (supabaseUrl && supabaseAnonKey) {
+          testSupabaseConnection(true, true); // Kiểm tra kết nối im lặng lúc khởi tạo và tải dữ liệu rổ hàng từ Cloud về ngay!
         } else {
-          const nextId = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
-          const newProperty = {
-            id: nextId,
-            title: titleVal,
-            price: priceVal,
-            priceText: priceVal + " Tỷ",
-            city: "TP. Hồ Chí Minh",
-            district: "TP. Thủ Đức",
-            ward: wardVal,
-            address: addressVal,
-            area: areaVal,
-            floors: floorsVal,
-            direction: directionVal,
-            badge: badgeVal,
-            img: imgVal,
-            desc: descVal
-          };
-          propertyData.unshift(newProperty);
-          showToast("Đăng tin mới bất động sản thành công!", true);
+          updateSupabaseUIState(false, "offline");
         }
-
-        savePropertyDataToStorage();
-        hideAdminForm();
-        renderAdminTable();
-        applyFilters(); 
       }
 
-      function deleteAdminProperty(id) {
+      function updateSupabaseUIState(connected, mode = "") {
+        isSupabaseConnected = connected;
+        const badge = document.getElementById('supabaseConnectionBadge');
+        const syncStatusText = document.getElementById('supabaseSyncStatusText');
+        
+        if (!badge) return;
+        
+        if (connected) {
+          badge.style.background = "#dcfce7";
+          badge.style.color = "#15803d";
+          badge.style.borderColor = "#86efac";
+          badge.textContent = "Đã kết nối Cloud";
+          if (syncStatusText) {
+            syncStatusText.textContent = "Đang đồng bộ trực diện rổ hàng với cơ sở dữ liệu Supabase Cloud.";
+            syncStatusText.style.color = "#16a34a";
+          }
+        } else {
+          if (mode === "error") {
+            badge.style.background = "#fef3c7";
+            badge.style.color = "#d97706";
+            badge.style.borderColor = "#fcd34d";
+            badge.textContent = "Lỗi kết nối";
+            if (syncStatusText) {
+              syncStatusText.textContent = "Kết nối Supabase lỗi (Sai URL/Key hoặc chưa chạy SQL khởi tạo bảng).";
+              syncStatusText.style.color = "#dc2626";
+            }
+          } else {
+            badge.style.background = "#f3f4f6";
+            badge.style.color = "#4b5563";
+            badge.style.borderColor = "#d1d5db";
+            badge.textContent = "Chế độ Offline";
+            if (syncStatusText) {
+              syncStatusText.textContent = "Đang dùng bộ lưu trữ cục bộ LocalStorage. Chưa liên kết Cloud.";
+              syncStatusText.style.color = "var(--text-muted)";
+            }
+          }
+        }
+      }
+
+      function copySupabaseSql() {
+        const copyText = document.getElementById("supabaseSqlCopyText");
+        if (copyText) {
+          copyText.select();
+          copyText.setSelectionRange(0, 99999);
+          navigator.clipboard.writeText(copyText.value);
+          showToast("Đã sao chép kịch bản SQL khởi tạo vào Clipboard!", true);
+        }
+      }
+
+      async function saveSupabaseSettings(e) {
+        if (e) e.preventDefault();
+        const urlInput = document.getElementById('supabaseUrlInput').value.trim();
+        const keyInput = document.getElementById('supabaseKeyInput').value.trim();
+        
+        supabaseUrl = urlInput;
+        supabaseAnonKey = keyInput;
+        
+        localStorage.setItem('supabase_url', urlInput);
+        localStorage.setItem('supabase_anon_key', keyInput);
+        
+        showToast("Đang lưu cấu hình và kết nối đồng bộ...", true);
+        await testSupabaseConnection(false, true); 
+      }
+
+      async function testSupabaseConnection(silent = false, fetchAndSync = false) {
+        if (!supabaseUrl || !supabaseAnonKey) {
+          if (!silent) alert("Vui lòng cấu hình đầy đủ Supabase URL & Anon Key!");
+          updateSupabaseUIState(false, "offline");
+          return false;
+        }
+
+        try {
+          // Thử kết nối với bảng properties_hometea trước
+          let response = await fetch(`${supabaseUrl}/rest/v1/properties_hometea?select=id&limit=1`, {
+            method: 'GET',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`
+            }
+          });
+
+          if (response.ok) {
+            supabaseTable = 'properties_hometea';
+            updateSupabaseUIState(true);
+            if (!silent) showToast("Kết nối đồng hành với bảng 'properties_hometea' của Supabase thành công!", true);
+            
+            if (fetchAndSync) {
+              await fetchPropertiesFromSupabase(silent);
+            }
+            return true;
+          } else {
+            const errorText = await response.text();
+            let errObj = {};
+            try {
+              errObj = JSON.parse(errorText);
+            } catch (e) {}
+
+            // Nhận biết lỗi thiếu bảng (PGRST205 hoặc 404), thử tự động chuyển hướng sang bảng 'properties'
+            if (response.status === 404 || errObj.code === 'PGRST205' || (errObj.message && errObj.message.includes('properties_hometea'))) {
+              console.warn("Không thấy bảng properties_hometea. Thử kiểm tra bảng properties dự phòng...");
+              const fallbackResponse = await fetch(`${supabaseUrl}/rest/v1/properties?select=id&limit=1`, {
+                method: 'GET',
+                headers: {
+                  'apikey': supabaseAnonKey,
+                  'Authorization': `Bearer ${supabaseAnonKey}`
+                }
+              });
+
+              if (fallbackResponse.ok) {
+                supabaseTable = 'properties';
+                updateSupabaseUIState(true);
+                if (!silent) showToast("Kết nối Supabase thành công (Đã tự động chuyển đổi sang bảng 'properties')!", true);
+                
+                if (fetchAndSync) {
+                  await fetchPropertiesFromSupabase(silent);
+                }
+                return true;
+              }
+            }
+
+            console.error("Supabase Connection Alert:", errorText);
+            updateSupabaseUIState(false, "error");
+            if (!silent) {
+              alert("Kết nối Supabase không thành công!\nHãy chắc chắn bạn đã chạy đoạn mã SQL khởi tạo bảng 'properties_hometea' hoặc sử dụng bảng 'properties' trong Supabase Editor.");
+            }
+            return false;
+          }
+        } catch (err) {
+          console.error("Supabase Connection Exception:", err);
+          updateSupabaseUIState(false, "error");
+          if (!silent) alert("Không thể kết nối đến Supabase (Kiểm tra lại đường dẫn URL/Key hoặc tường lửa).");
+          return false;
+        }
+      }
+
+      async function fetchPropertiesFromSupabase(silent = false) {
+        if (!supabaseUrl || !supabaseAnonKey) return;
+        
+        try {
+          const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?select=*&order=id.desc`, {
+            method: 'GET',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data)) {
+              if (data.length > 0) {
+                // Ánh xạ chuỗi từ snake_case của PostgreSQL về camelCase của React app
+                propertyData = data.map(item => ({
+                  id: item.id,
+                  title: item.title,
+                  price: parseFloat(item.price) || 0,
+                  priceText: item.price_text || (item.price + " Tỷ"),
+                  ward: item.ward || "",
+                  direction: item.direction || "",
+                  floors: parseInt(item.floors) || 1,
+                  badge: item.badge || "",
+                  address: item.address || "",
+                  img: item.img || "",
+                  imgList: Array.isArray(item.img_list) ? item.img_list : (typeof item.img_list === 'string' ? JSON.parse(item.img_list) : [item.img]),
+                  desc: item.desc || "",
+                  area: parseInt(item.area) || 0,
+                  houseNumber: item.house_number || "",
+                  street: item.street || "",
+                  width: parseFloat(item.width) || 0,
+                  bedrooms: parseInt(item.bedrooms) || 3,
+                  bathrooms: parseInt(item.bathrooms) || 3,
+                  legal: item.legal || "Sổ hồng riêng"
+                }));
+                
+                // Lưu dự phòng cục bộ
+                savePropertyDataToStorage();
+                
+                applyFilters();
+                renderAdminTable();
+                
+                if (!silent) {
+                  showToast(`Đã đồng bộ thành công ${data.length} bất động sản từ Supabase Cloud!`, true);
+                }
+              } else {
+                console.log("Supabase table is currently empty. Local records will take precedence upon creation.");
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Lỗi khi đồng bộ nạp tệp từ Supabase:", err);
+        }
+      }
+
+      async function deleteAdminProperty(id) {
         if (!confirm("Bạn có chắc chắn muốn gỡ bỏ hoàn toàn tin đăng bất động sản này khỏi hệ thống?")) return;
+        
+        let success = true;
+        
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast(`Đang xóa dữ liệu trên Supabase Cloud (${supabaseTable})...`, true);
+          try {
+            const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+              method: 'DELETE',
+              headers: {
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`
+              }
+            });
+            if (!response.ok) {
+              success = false;
+              const text = await response.text();
+              console.error("Supabase delete failed:", text);
+              alert("Có lỗi xảy ra khi yêu cầu gỡ bỏ phía Cloud Database: " + text);
+            }
+          } catch (e) {
+            success = false;
+            console.error("Network crash deleting from Supabase:", e);
+          }
+        }
         
         propertyData = propertyData.filter(p => p.id !== id);
         savePropertyDataToStorage();
         renderAdminTable();
         applyFilters();
-        showToast("Đã gỡ bỏ bài đăng bất động sản thành công.", true);
+        
+        if (success) {
+          showToast("Đã gỡ bỏ bài đăng bất động sản thành công.", true);
+        } else {
+          showToast("Chỉ gỡ bỏ cục bộ dự phòng (Lỗi đồng bộ Cloud).", false);
+        }
       }
 
       // Đăng ký cho các đường link trang chủ chuyển hoàn lại màn hình chính diện
@@ -4337,10 +4737,18 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       window.handleRealImagesUpload = handleRealImagesUpload;
       window.removeUploadedImage = removeUploadedImage;
 
+      // Gắn các hàm cấu hình Supabase Cloud vào window
+      window.copySupabaseSql = copySupabaseSql;
+      window.saveSupabaseSettings = saveSupabaseSettings;
+      window.testSupabaseConnection = testSupabaseConnection;
+      window.fetchPropertiesFromSupabase = fetchPropertiesFromSupabase;
+      window.initSupabaseState = initSupabaseState;
+
       // Khởi động kiểm tra thông số và phiên hoạt động
       document.getElementById('formRealImages')?.addEventListener('change', handleRealImagesUpload);
       checkServerKey();
       checkAdminSession();
+      initSupabaseState();
     </script>
   </body>
 </html>
