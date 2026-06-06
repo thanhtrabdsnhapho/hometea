@@ -3532,18 +3532,37 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const btnSendMessage = document.getElementById('btnSendMessage');
       const chatSuggestions = document.getElementById('chatSuggestions');
 
+      // Các biến môi trường được thay thế tự động khi build bằng Vite (Cung cấp giải pháp cho Vercel, Netlify, Github...)
+      const INJECTED_VITE_GEMINI_KEY = "%VITE_GEMINI_API_KEY%";
+      const INJECTED_VITE_SUPABASE_URL = "%VITE_SUPABASE_URL%";
+      const INJECTED_VITE_SUPABASE_KEY = "%VITE_SUPABASE_ANON_KEY%";
+
+      // Phân tách nếu chuỗi bắt đầu bằng %VITE thì coi như chưa thiết lập (chưa qua bước build thay thế)
+      const buildGeminiKey = (INJECTED_VITE_GEMINI_KEY && !INJECTED_VITE_GEMINI_KEY.startsWith("%VITE_")) ? INJECTED_VITE_GEMINI_KEY : "";
+      const buildSupabaseUrl = (INJECTED_VITE_SUPABASE_URL && !INJECTED_VITE_SUPABASE_URL.startsWith("%VITE_")) ? INJECTED_VITE_SUPABASE_URL : "";
+      const buildSupabaseKey = (INJECTED_VITE_SUPABASE_KEY && !INJECTED_VITE_SUPABASE_KEY.startsWith("%VITE_")) ? INJECTED_VITE_SUPABASE_KEY : "";
+
       let localApiKey = localStorage.getItem('gemini_api_key') || "";
-      let serverHasKey = true; // Mặc định tin tưởng Server-key có sẵn để vận hành trò chuyện tức thì
+      let serverHasKey = !!buildGeminiKey; // Nếu build-time có Key thì xem như Server/Local có Key
 
       // Check if server-side has the API key
       async function checkServerKey() {
+        if (buildGeminiKey) {
+          serverHasKey = true;
+          initChatboxState();
+          return;
+        }
         try {
           const res = await fetch('/api/has-key');
-          const data = await res.json();
-          serverHasKey = !!data.hasKey;
+          if (res.ok) {
+            const data = await res.json();
+            serverHasKey = !!data.hasKey;
+          } else {
+            serverHasKey = false;
+          }
         } catch (e) {
           console.warn("Could not check server API key status:", e);
-          serverHasKey = true; // Fallback giữ giá trị mặc định hoạt động mượt mà
+          serverHasKey = false; // Đặt về false nếu server ko phản hồi để có thể dùng client-side key
         }
         initChatboxState();
       }
@@ -3564,7 +3583,8 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       // Kiểm tra trạng thái Key ban đầu
       function initChatboxState() {
         localApiKey = localStorage.getItem('gemini_api_key') || "";
-        if (localApiKey || serverHasKey) {
+        const activeClientKey = localApiKey || buildGeminiKey;
+        if (activeClientKey || serverHasKey) {
           chatAiKeySetup.style.display = 'none';
           chatAiPlayground.style.display = 'flex';
         } else {
@@ -3665,7 +3685,8 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       // Gửi yêu cầu tư vấn đến Google Gemini API
       async function askGeminiAPI(userQuestion) {
-        if (!localApiKey && !serverHasKey) {
+        const activeClientKey = localApiKey || buildGeminiKey;
+        if (!activeClientKey && !serverHasKey) {
           initChatboxState();
           return;
         }
@@ -3700,7 +3721,7 @@ Nguyên tắc trả lời:
               userQuestion,
               warehouseData,
               systemInstruction,
-              localKey: localApiKey
+              localKey: activeClientKey
             })
           });
 
@@ -3716,10 +3737,10 @@ Nguyên tắc trả lời:
         } catch (error) {
           console.warn("Máy chủ proxy local không phản hồi hoặc đang chạy tĩnh trên Hosting (như Vercel). Đang tự động gọi trực tiếp Google Gemini API qua Client-side...", error);
           
-          if (localApiKey) {
+          if (activeClientKey) {
             try {
               // Gọi trực tiếp đến máy chủ Google Gemini với mã khóa phân đoạn khách hàng đa nền tảng
-              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${localApiKey}`, {
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeClientKey}`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
@@ -4371,8 +4392,8 @@ Nguyên tắc trả lời:
       async function analyzeRawDataAI(e) {
         if (e) e.preventDefault();
         
-        const localApiKey = localStorage.getItem('gemini_api_key');
-        if (!localApiKey && !serverHasKey) {
+        const activeClientKey = localStorage.getItem('gemini_api_key') || buildGeminiKey;
+        if (!activeClientKey && !serverHasKey) {
           alert("Vui lòng kích hoạt & thiết lập Gemini API Key tại bong bóng Chatbox AI góc dưới phải màn hình trước!");
           const aiChatWindow = document.getElementById('aiChatWindow');
           if (aiChatWindow && !aiChatWindow.classList.contains('open')) {
@@ -4514,7 +4535,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               rawInput: rawInputText,
-              localKey: localApiKey
+              localKey: activeClientKey
             })
           });
 
@@ -4528,9 +4549,9 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
         } catch (error) {
           console.warn("Proxy local offline. Đang kết nối trực tiếp đến Google Gemini Client-side...", error);
           
-          if (localApiKey) {
+          if (activeClientKey) {
             try {
-              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${localApiKey}`, {
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeClientKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -4575,8 +4596,8 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
       async function generateAIDescription(e) {
         if (e) e.preventDefault();
         
-        const localApiKey = localStorage.getItem('gemini_api_key');
-        if (!localApiKey && !serverHasKey) {
+        const activeClientKey = localStorage.getItem('gemini_api_key') || buildGeminiKey;
+        if (!activeClientKey && !serverHasKey) {
           alert("Vui lòng kích hoạt & thiết lập Gemini API Key tại bong bóng Chatbox AI góc dưới phải màn hình trước!");
           const aiChatTrigger = document.getElementById('aiChatTrigger');
           const aiChatWindow = document.getElementById('aiChatWindow');
@@ -4630,7 +4651,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               promptInput,
-              localKey: localApiKey
+              localKey: activeClientKey
             })
           });
 
@@ -4646,9 +4667,9 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         } catch (error) {
           console.warn("Máy chủ viết bài proxy local không phản hồi hoặc đang chạy tĩnh trên Vercel. Đang tự động gọi trực tiếp Google Gemini API qua Client-side...", error);
           
-          if (localApiKey) {
+          if (activeClientKey) {
             try {
-              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${localApiKey}`, {
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeClientKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -4703,6 +4724,24 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         const urlInput = document.getElementById('supabaseUrlInput');
         const keyInput = document.getElementById('supabaseKeyInput');
         
+        // Tải từ LocalStorage trước
+        if (!supabaseUrl) {
+          supabaseUrl = localStorage.getItem('supabase_url') || "";
+        }
+        if (!supabaseAnonKey) {
+          supabaseAnonKey = localStorage.getItem('supabase_anon_key') || "";
+        }
+
+        // Nếu chưa có local, thử lấy từ Build-time environment variables (Sự lựa chọn tuyệt vời cho Vercel/Static hosting)
+        if (!supabaseUrl && buildSupabaseUrl) {
+          supabaseUrl = buildSupabaseUrl;
+          localStorage.setItem('supabase_url', supabaseUrl);
+        }
+        if (!supabaseAnonKey && buildSupabaseKey) {
+          supabaseAnonKey = buildSupabaseKey;
+          localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+        }
+
         // Tự động kết nối Cloud 1 thẳng từ biến môi trường Server nếu chưa được đặt local
         try {
           const res = await fetch('/api/supabase-config');
@@ -4716,14 +4755,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
             }
           }
         } catch (e) {
-          console.warn("Could not load server-side Supabase configuration:", e);
-        }
-
-        if (!supabaseUrl) {
-          supabaseUrl = localStorage.getItem('supabase_url') || "";
-        }
-        if (!supabaseAnonKey) {
-          supabaseAnonKey = localStorage.getItem('supabase_anon_key') || "";
+          console.warn("Could not load server-side Supabase configuration hoặc đang chạy tĩnh trên Vercel:", e);
         }
 
         if (urlInput) urlInput.value = supabaseUrl;
