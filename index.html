@@ -1379,16 +1379,10 @@
       /* HỘP GỢI Ý CÂU HỎI THÔNG MINH */
       .chat-suggestions {
         display: flex;
+        flex-wrap: wrap;
         gap: 8px;
-        padding: 8px 16px;
-        border-top: 1px solid var(--border);
-        overflow-x: auto;
-        background-color: var(--bg-light);
-        scrollbar-width: none; /* Hide scrollbar for Firefox */
-      }
-
-      .chat-suggestions::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome/Safari */
+        padding: 8px 0;
+        background-color: transparent;
       }
 
       .suggestion-pill {
@@ -3153,14 +3147,14 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           <div class="chat-bubble bubble-bot">
             Xin chào! Tôi là Trợ lý ảo của Thanh Trà BĐS. Tôi chuyên cung cấp thông tin nhà phố chính xác và hỗ trợ pháp lý nhanh chóng tại khu vực TP. Thủ Đức. Tôi có thể giải đáp gì cho quý anh chị hôm nay?
           </div>
-        </div>
 
-        <!-- Các gợi ý tương tác nhanh -->
-        <div class="chat-suggestions" id="chatSuggestions">
-          <button class="suggestion-pill" data-question="Có những căn nào ở Trường Thạnh tầm giá 3 - 7 tỷ?">Tầm giá 3-7 tỷ Trường Thạnh</button>
-          <button class="suggestion-pill" data-question="Tìm nhà hướng Đông Nam diện tích trên 70m2?">Hướng Đông Nam &gt; 70m2</button>
-          <button class="suggestion-pill" data-question="Tư vấn thủ tục pháp lý mua nhà phố tại Thủ Đức?">Tư vấn pháp lý mua nhà</button>
-          <button class="suggestion-pill" data-question="Làm sao để gặp trực tiếp Thanh Trà BĐS?">Liên hệ Thanh Trà</button>
+          <!-- Các gợi ý tương tác nhanh -->
+          <div class="chat-suggestions" id="chatSuggestions">
+            <button class="suggestion-pill" data-question="Tìm nhà đất từ 1 đến 3 tỷ">Nhà đất 1 - 3 tỷ</button>
+            <button class="suggestion-pill" data-question="Tìm nhà đất từ 3 đến 6 tỷ">Nhà đất 3 - 6 tỷ</button>
+            <button class="suggestion-pill" data-question="Tìm nhà đất trên 6 tỷ">Nhà đất trên 6 tỷ</button>
+            <button class="suggestion-pill" data-question="Làm sao để gặp trực tiếp Thanh Trà BĐS?">Liên hệ Thanh Trà</button>
+          </div>
         </div>
 
         <div class="chat-input-bar">
@@ -4001,7 +3995,12 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           bubble.textContent = text;
         }
 
-        chatAiMessages.appendChild(bubble);
+        const suggestionsEl = document.getElementById('chatSuggestions');
+        if (suggestionsEl && suggestionsEl.parentNode === chatAiMessages) {
+          chatAiMessages.insertBefore(bubble, suggestionsEl);
+        } else {
+          chatAiMessages.appendChild(bubble);
+        }
         scrollChatToBottom();
         return bubble;
       }
@@ -4018,7 +4017,12 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             <div class="typing-dot"></div>
           </div>
         `;
-        chatAiMessages.appendChild(loader);
+        const suggestionsEl = document.getElementById('chatSuggestions');
+        if (suggestionsEl && suggestionsEl.parentNode === chatAiMessages) {
+          chatAiMessages.insertBefore(loader, suggestionsEl);
+        } else {
+          chatAiMessages.appendChild(loader);
+        }
         scrollChatToBottom();
       }
 
@@ -5364,6 +5368,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         const modal = document.getElementById('saveSuccessModal');
         if (modal) {
           modal.style.display = 'flex';
+          modal.classList.add('open');
           setTimeout(() => {
             modal.style.opacity = '1';
             const childDiv = modal.querySelector('div');
@@ -5376,6 +5381,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       function closeSaveSuccessModal() {
         const modal = document.getElementById('saveSuccessModal');
         if (modal) {
+          modal.classList.remove('open');
           modal.style.opacity = '0';
           const childDiv = modal.querySelector('div');
           if (childDiv) childDiv.style.transform = 'scale(0.9)';
