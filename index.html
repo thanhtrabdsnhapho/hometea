@@ -48,6 +48,8 @@
       "sameAs": ["https://zalo.me/0854100036"]
     }
     </script>
+    <!-- ✅ Thư viện html2canvas để hỗ trợ Chụp ảnh tin đăng chất lượng cao -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Favicon thương hiệu T. tinh tế và sang trọng -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%230c1524'/%3E%3Cpath d='M16 20c0-1.1.9-2 2-2h28c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2H36v20c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2V26H18c-1.1 0-2-.9-2-2v-4z' fill='%23f97316'/%3E%3Ccircle cx='48' cy='44' r='4' fill='%23f97316'/%3E%3C/svg%3E">
     <!-- Google Fonts: Plus Jakarta Sans & Playfair Display cho phong cách sang trọng và hỗ trợ Tiếng Việt cực tốt -->
@@ -3117,6 +3119,9 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             <button id="modalShareBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; font-size: 14.5px; font-weight: 700; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; border: 1.5px solid var(--border); background: #f8fafc; color: var(--text-dark);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
               <span style="font-size: 15px;">📘</span> Chia sẻ liên kết
             </button>
+            <button id="modalDownloadImageBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; font-size: 14.5px; font-weight: 700; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; border: 1.5px solid rgba(249, 115, 22, 0.2); background: var(--accent); color: white; box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.15);" onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='var(--accent)'">
+              <span style="font-size: 15px;">📸</span> Chụp ảnh tin đăng
+            </button>
           </div>
         </div>
       </div>
@@ -3234,155 +3239,10 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       /* ==========================================
          1. DỮ LIỆU SẢN PHẨM MẪU CHẤT LƯỢNG CAO (MẢNG CƠ SỞ)
          ========================================== */
-      const initialDefaultData = [
-        {
-          id: 1,
-          title: "Nhà phố 3 tầng mặt tiền Lò Lu, P. Trường Thạnh sầm uất",
-          price: 6.8, // Tỷ đồng (để lọc)
-          priceText: "6.8 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Trường Thạnh",
-          address: "Mặt tiền Lò Lu, Phường Trường Thạnh, TP. Thủ Đức",
-          area: 85, // m2 (để lọc)
-          floors: 3, // số tầng
-          direction: "Đông Nam",
-          badge: "Mặt Tiền Kinh Doanh",
-          img: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
-          desc: "Nhà phố tọa lạc ngay vị trí vàng mặt tiền đường Lò Lu, P. Trường Thạnh. Nằm trong khu dân cư hiện hữu đông đúc, thích hợp kinh doanh buôn bán, làm văn phòng hoặc cho thuê dòng tiền ổn định.\n\n- Kết cấu: 1 trệt, 2 lầu đúc BTCT kiên cố. Gồm phòng khách rộng rãi, bếp, 4 phòng ngủ thoáng mát, sân thượng thông thoáng.\n- Tiện ích xung quanh: Sát bên chợ Trường Thạnh, trung tâm hành chính mới, trường học các cấp, cách khu công nghệ cao chỉ 4 phút đi xe.\n- Pháp lý: Sổ hồng riêng hoàn công đầy đủ, hỗ trợ vay ngân hàng lãi suất tốt nhất."
-        },
-        {
-          id: 2,
-          title: "Căn hộ biệt thự Thảo Điền cao cấp sân vườn rộng ngập ánh sáng",
-          price: 24.5,
-          priceText: "24.5 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Thảo Điền",
-          address: "Nguyễn Văn Hưởng, Phường Thảo Điền, TP. Thủ Đức",
-          area: 150,
-          floors: 2,
-          direction: "Tây Nam",
-          badge: "Biệt Thự Cao Cấp",
-          img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
-          desc: "Đẳng cấp sống nghỉ dưỡng giữa lòng phố thượng lưu Thảo Điền. Biệt thự thiết kế theo kiến trúc hiện đại Châu Âu, chú trọng không gian mở ngập tràn ánh sáng tự nhiên với sân vườn rộng bao quanh.\n\n- Kết cấu: 1 trệt 1 lầu, 3 phòng ngủ master diện tích lớn có bồn tắm nằm riêng biệt, phòng kho rộng, bếp Âu hiện đại.\n- Vị trí: Khu dân trí cực cao, an ninh nghiêm ngặt 24/7, không bao giờ ngập nước, dân cư văn minh xung quanh là các chuyên gia nước ngoài sinh sống.\n- Sổ hồng riêng chính chủ, giao dịch nhanh chóng."
-        },
-        {
-          id: 3,
-          title: "Nhà phố 4 tầng Linh Đông thiết kế tinh xảo gần Phạm Văn Đồng",
-          price: 4.9,
-          priceText: "4.9 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Linh Đông",
-          address: "Hẻm xe hơi Kha Vạn Cân, Phường Linh Đông, TP. Thủ Đức",
-          area: 64,
-          floors: 4,
-          direction: "Đông Bắc",
-          badge: "Nhà Xây Mới 100%",
-          img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
-          desc: "Cơ hội sở hữu nhà mới tinh xảo kiến trúc hiện đại, tọa lạc tại phường Linh Đông, cực kỳ đắc địa ngay cạnh trục Phạm Văn Đồng huyết mạch.\n\n- Kết cấu: Thiết kế chuẩn phong cách Singapore hiện đại với 1 trệt, 2 lầu, 1 phòng thờ độc lập, sân thượng trước sau đón gió tự nhiên tốt dồi dào tài lộc. Thừa hưởng 4 phòng ngủ sang trọng kèm thiết bị vệ sinh nhập khẩu cao cấp.\n- Giao thông: Đường trước nhà rộng 6m xe hơi ra vào đỗ cửa ngày đêm.\n- Sổ riêng cầm tay, dọn ngay vào ở trước Tết."
-        },
-        {
-          id: 4,
-          title: "Nhà phố đúc BTCT Tăng Nhơn Phú A giá tốt, gần ngã tư Thủ Đức",
-          price: 3.8,
-          priceText: "3.8 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Tăng Nhơn Phú A",
-          address: "Lã Xuân Oai, Phường Tăng Nhơn Phú A, TP. Thủ Đức",
-          area: 52,
-          floors: 2,
-          direction: "Nam",
-          badge: "Giá Cực Rẻ",
-          img: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
-          desc: "Tọa lạc tại khu phố văn minh yên tĩnh tại Tăng Nhơn Phú A. Phù hợp tuyệt vời cho gia đình trẻ muốn tìm nơi an cư vững vàng, giá siêu tốt so với thị trường hiện tại.\n\n- Kết cấu: 1 trệt, 1 lầu kiên cố đòn tay sắt đúc hoàn chỉnh. Gồm khu sinh hoạt lớn, phòng bếp mở tinh tế, 2 phòng ngủ ấm cúng, 2 WC.\n- Tiện ích: Ngay sát Trường Đại học Sư Phạm Kỹ Thuật, bệnh viện, chợ dân sinh Lê Văn Việt nhộn nhịp kế bên.\n- Sổ hồng riêng tuyệt đối an toàn."
-        },
-        {
-          id: 5,
-          title: "Mặt tiền Đỗ Xuân Hợp sầm uất kinh doanh vô địch, Phú Hữu",
-          price: 11.5,
-          priceText: "11.5 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Phú Hữu",
-          address: "Mặt tiền Đỗ Xuân Hợp, Phường Phú Hữu, TP. Thủ Đức",
-          area: 100,
-          floors: 3,
-          direction: "Tây Bắc",
-          badge: "Vị Trí Vàng",
-          img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
-          desc: "Tài sản mặt tiền Đỗ Xuân Hợp đẳng cấp nhất khu vực Phú Hữu Thủ Đức. Trục đường có lưu lượng giao thông liên quận khổng lồ, phù hợp tuyệt hảo cho việc thu hút khách hàng kinh doanh các loại chuỗi thương hiệu, phòng khám quy mô lớn hoặc đầu tư sinh lời vĩnh viễn.\n\n- Kết cấu: 1 trệt 2 lầu cực rộng, thiết kế tối ưu mặt đứng trưng bày lớn.\n- Vị trí: Đầu nối nút giao Cao tốc Long Thành - Dầu Giây chỉ 1 phút, kết nối trung tâm Quận 1 chỉ 15 phút.\n- Sổ hồng pháp lý rõ rệt, hỗ trợ thủ tục công chứng nhanh gọn."
-        },
-        {
-          id: 6,
-          title: "Nhà phố căn góc 2 mặt tiền thoáng mát P. Hiệp Bình Chánh",
-          price: 8.2,
-          priceText: "8.2 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Hiệp Bình Chánh",
-          address: "Đường số 23, Phường Hiệp Bình Chánh, TP. Thủ Đức",
-          area: 75,
-          floors: 4,
-          direction: "Đông",
-          badge: "Căn Góc Thoáng Mát",
-          img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
-          desc: "Cực kỳ quý hiếm! Nhà căn góc hai mặt hẻm ô tô 8m rộng thông thoáng tại phường Hiệp Bình Chánh. Vừa tận hưởng sự trong lành thoáng đạt ven sông Sài Gòn, vừa kết nối sầm uất Phạm Văn Đồng giao thương.\n\n- Kết cấu: Trệt, lầu đúc, gồm phòng khách sang trọng, bếp hiện đại, 4 phòng ngủ khép kín an toàn.\n- Phù hợp: Cho thuê văn phòng dịch vụ, showroom hoặc gia hộ ở thanh nhàn.\n- Tiện ích: Kế bên Gigamall Thủ Đức sầm uất thuận tiện vui chơi mua sắm.\n- Sổ hồng riêng sẵn sàng sang tên ngay."
-        },
-        {
-          id: 7,
-          title: "Nhà phố nội thất gỗ tự nhiên đỉnh cao, Phước Long B",
-          price: 5.4,
-          priceText: "5.4 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Phước Long B",
-          address: "Đường số 6, Phường Phước Long B, TP. Thủ Đức",
-          area: 70,
-          floors: 3,
-          direction: "Bắc",
-          badge: "Tặng Toàn Bộ Nội Thất",
-          img: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?auto=format&fit=crop&w=800&q=80",
-          desc: "Chủ nhà chuyển định cư nước ngoài cần nhượng gấp nhà phố đẳng cấp Phước Long B. Thiết kế tỉ mỉ, tặng lại toàn bộ tủ giường nội thất gỗ tự nhiên cao cấp sạng mịn vô cùng có giá trị.\n\n- Kết cấu: 1 trệt 2 lầu đúc BTCT, 4 phòng ngủ có giếng trời mát rượi đón không khí trong sạch.\n- Giao thông: Đường bàn cờ quy hoạch cực đẹp xe hơi tránh nhau dễ dàng.\n- Sổ riêng đã hoàn công đầy đủ, công chứng trong ngày."
-        },
-        {
-          id: 8,
-          title: "Nhà riêng nhỏ gọn Trường Thạnh, kế bên tòa án Quận 9 cũ",
-          price: 3.1,
-          priceText: "3.1 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Trường Thạnh",
-          address: "Đường Lò Lu, Phường Trường Thạnh, TP. Thủ Đức",
-          area: 48,
-          floors: 2,
-          direction: "Tây Bắc",
-          badge: "Sổ Hồng Cầm Tay",
-          img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-          desc: "Ngôi nhà xinh xắn vuông vức lý tưởng để bắt đầu một tổ ấm hạnh phúc vững vàng, giá siêu hấp dẫn tại Trường Thạnh.\n\n- Kết cấu: 1 trệt 1 lầu bê tông nhẹ chịu lực, 2 phòng ngủ, ban công rộng phơi đồ đón ánh nắng mặt trời cực tốt.\n- Vị trí: Sát vách Tòa án Quận 9, an ninh trực chiến tuyệt đối tốt. Không ngập, không tranh chấp lộ giới.\n- Sổ chính chủ, hỗ trợ sang tên nhanh không rườm rà."
-        },
-        {
-          id: 9,
-          title: "Nhà phố quy hoạch KĐT đẳng cấp kiểu mẫu Khang Điền, Phú Hữu",
-          price: 9.8,
-          priceText: "9.8 Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: "Phú Hữu",
-          address: "KĐT Khang Điền, Phường Phú Hữu, TP. Thủ Đức",
-          area: 90,
-          floors: 3,
-          direction: "Đông Nam",
-          badge: "An Ninh 24/7",
-          img: "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=800&q=80",
-          desc: "Nằm trong phân khu Compound nhà phố an ninh bậc nhất TP. Thủ Đức. Không gian sống đẳng cấp với công viên nội khu rợp bóng cây xanh, hồ bơi mát lạnh, khu vui chơi trẻ em an toàn.\n\n- Kết cấu: 1 trệt 2 lầu thiết kế đồng bộ sang trọng tinh tế từng cen-ti-mét.\n- Thích hợp cho giới thượng lưu hưởng thụ không khí biệt lập tĩnh tại nâng niu cảm xúc.\n- Sổ riêng đã hoàn công, thủ tục sang tên bảo mật an tâm."
-        }
-      ];
+      const initialDefaultData = [];
 
       // Cơ chế tự động giải phóng cache khi hệ thống cập nhật phiên bản mới
-      const APP_CACHE_VERSION = "v2.2";
+      const APP_CACHE_VERSION = "v3.0";
       const savedVersion = localStorage.getItem("app_cache_version");
       if (savedVersion !== APP_CACHE_VERSION) {
         localStorage.removeItem("property_data"); // Xóa cache dữ liệu cũ để cập nhật mới sạch sẽ
@@ -3870,6 +3730,290 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             const shareUrl = window.location.origin + window.location.pathname + '?id=' + item.id;
             navigator.clipboard.writeText(shareUrl);
             showToast('Đã sao chép liên kết chia sẻ của căn này!', true);
+          };
+        }
+
+        // Gắn nút chụp ảnh dọc tin đăng gửi khách hàng
+        const modalDownloadImageBtn = document.getElementById('modalDownloadImageBtn');
+        if (modalDownloadImageBtn) {
+          modalDownloadImageBtn.onclick = () => {
+            const activeImgSrc = mMainImg ? mMainImg.src : item.img;
+            
+            showToast('Đã bắt đầu chụp ảnh tin đăng dọc...', true);
+            
+            const tempImage = new Image();
+            tempImage.crossOrigin = 'anonymous';
+            tempImage.src = activeImgSrc;
+            
+            const proceedWithCapture = () => {
+              // Khởi tạo thẻ flyer chứa giao diện dọc chuyên nghiệp
+              const flyer = document.createElement('div');
+              flyer.id = 'dynamicShareCard';
+              flyer.style.position = 'fixed';
+              flyer.style.left = '-9999px';
+              flyer.style.top = '-9999px';
+              flyer.style.width = '480px';
+              flyer.style.background = '#0a1220'; 
+              flyer.style.color = '#f1f5f9';
+              flyer.style.fontFamily = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+              flyer.style.padding = '30px';
+              flyer.style.borderRadius = '16px';
+              flyer.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
+              flyer.style.display = 'flex';
+              flyer.style.flexDirection = 'column';
+              flyer.style.gap = '20px';
+              flyer.style.border = '2px solid rgba(249, 115, 22, 0.35)';
+              flyer.style.zIndex = '-999';
+              
+              // 1. Header logo thương hiệu & hotline
+              const header = document.createElement('div');
+              header.style.display = 'flex';
+              header.style.justifyContent = 'space-between';
+              header.style.alignItems = 'center';
+              header.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
+              header.style.paddingBottom = '16px';
+              
+              const brandInfo = document.createElement('div');
+              brandInfo.innerHTML = `
+                <div style="font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                  <span style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 6px; font-weight: 900; font-size: 18px;">T</span>
+                  <span>THANH TRÀ BĐS</span>
+                </div>
+                <div style="font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-top: 2px; letter-spacing: 1px;">MUA BÁN NHÀ PHỐ UY TÍN</div>
+              `;
+              
+              const phoneInfo = document.createElement('div');
+              phoneInfo.style.textAlign = 'right';
+              phoneInfo.innerHTML = `
+                <div style="font-size: 14px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 4px;">
+                  📱 0854.100.036
+                </div>
+                <div style="font-size: 9px; color: #94a3b8; font-weight: 500; margin-top: 1px;">TƯ VẤN PHÁP LÝ LIÊN TỤC 24/7</div>
+              `;
+              
+              header.appendChild(brandInfo);
+              header.appendChild(phoneInfo);
+              flyer.appendChild(header);
+              
+              // 2. Ảnh lớn của bất động sản đang xem
+              const imgContainer = document.createElement('div');
+              imgContainer.style.width = '100%';
+              imgContainer.style.height = '280px';
+              imgContainer.style.borderRadius = '12px';
+              imgContainer.style.overflow = 'hidden';
+              imgContainer.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+              imgContainer.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+              
+              const flyerImg = document.createElement('img');
+              flyerImg.src = tempImage.src;
+              flyerImg.style.width = '100%';
+              flyerImg.style.height = '100%';
+              flyerImg.style.objectFit = 'cover';
+              
+              imgContainer.appendChild(flyerImg);
+              flyer.appendChild(imgContainer);
+              
+              // 3. Khối giá nổi bật & diện tích
+              const highlightRow = document.createElement('div');
+              highlightRow.style.display = 'flex';
+              highlightRow.style.justifyContent = 'space-between';
+              highlightRow.style.alignItems = 'center';
+              highlightRow.style.background = 'rgba(249, 115, 22, 0.08)';
+              highlightRow.style.padding = '12px 18px';
+              highlightRow.style.borderRadius = '10px';
+              highlightRow.style.borderLeft = '4px solid var(--accent)';
+              
+              const priceTag = document.createElement('div');
+              priceTag.innerHTML = `
+                <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Mức Giá Bán</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 2px;">${item.priceText}</div>
+              `;
+              
+              const areaTag = document.createElement('div');
+              areaTag.style.textAlign = 'right';
+              areaTag.innerHTML = `
+                <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Diện tích sổ</div>
+                <div style="font-size: 20px; font-weight: 700; color: #fff; margin-top: 2px;">${item.area} m²</div>
+              `;
+              
+              highlightRow.appendChild(priceTag);
+              highlightRow.appendChild(areaTag);
+              flyer.appendChild(highlightRow);
+              
+              // 4. Tiêu đề tài sản
+              const titleEl = document.createElement('h3');
+              titleEl.textContent = item.title;
+              titleEl.style.fontSize = '18px';
+              titleEl.style.fontWeight = '800';
+              titleEl.style.lineHeight = '1.45';
+              titleEl.style.color = '#ffffff';
+              titleEl.style.margin = '4px 0 ';
+              titleEl.style.textTransform = 'capitalize';
+              flyer.appendChild(titleEl);
+              
+              // 5. Địa chỉ cụ thể
+              const addressEl = document.createElement('p');
+              addressEl.style.fontSize = '12px';
+              addressEl.style.color = '#94a3b8';
+              addressEl.style.display = 'flex';
+              addressEl.style.alignItems = 'center';
+              addressEl.style.gap = '6px';
+              addressEl.style.marginTop = '-8px';
+              addressEl.innerHTML = `📍 <span style="font-weight: 500;">${item.address}</span>`;
+              flyer.appendChild(addressEl);
+              
+              // 6. Bảng thông số chi tiết (Grid 2 cột)
+              const specsGrid = document.createElement('div');
+              specsGrid.style.display = 'grid';
+              specsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+              specsGrid.style.gap = '10px';
+              specsGrid.style.background = 'rgba(255,255,255,0.03)';
+              specsGrid.style.padding = '14px';
+              specsGrid.style.borderRadius = '10px';
+              specsGrid.style.border = '1px solid rgba(255, 255, 255, 0.05)';
+              
+              const specBoxHTML = (icon, label, value, valColor = '#fff') => `
+                <div style="display: flex; align-items: center; gap: 8px; padding: 4px;">
+                  <span style="font-size: 16px;">${icon}</span>
+                  <div>
+                    <span style="display: block; font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">${label}</span>
+                    <span style="font-size: 12.5px; font-weight: 700; color: ${valColor};">${value}</span>
+                  </div>
+                </div>
+              `;
+              
+              const legalStatus = item.legal || "Sổ hồng riêng";
+              const parsedFloors = formatFloors(item.floors);
+              
+              specsGrid.innerHTML = `
+                ${specBoxHTML('📐', 'Diện Tích', `${item.area} m²`)}
+                ${specBoxHTML('📏', 'Chiều Ngang', (item.width && item.width > 0) ? `${item.width} m` : "Thương lượng")}
+                ${specBoxHTML('🏢', 'Kết Cấu', parsedFloors)}
+                ${specBoxHTML('🧭', 'Hướng Nhà', item.direction)}
+                ${specBoxHTML('🛏️', 'Phòng Ngủ', (item.bedrooms !== undefined && item.bedrooms !== null) ? `${item.bedrooms} PN` : "3 PN")}
+                ${specBoxHTML('🚽', 'Phòng WC', (item.bathrooms !== undefined && item.bathrooms !== null) ? `${item.bathrooms} WC` : "3 WC")}
+                <div style="grid-column: span 2; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 8px; margin-top: 4px;"></div>
+                <div style="grid-column: span 2;">
+                  ${specBoxHTML('📜', 'Pháp Lý Bản Đăng', legalStatus, '#22c55e')}
+                </div>
+              `;
+              
+              flyer.appendChild(specsGrid);
+              
+              // 7. Chi tiết mô tả bài đăng tự luận
+              const descSection = document.createElement('div');
+              descSection.style.display = 'flex';
+              descSection.style.flexDirection = 'column';
+              descSection.style.gap = '6px';
+              
+              const descHeading = document.createElement('div');
+              descHeading.style.fontSize = '11px';
+              descHeading.style.fontWeight = '800';
+              descHeading.style.color = 'var(--accent)';
+              descHeading.style.letterSpacing = '0.5px';
+              descHeading.textContent = 'MÔ TẢ CHI TIẾT TÀI SẢN';
+              descSection.appendChild(descHeading);
+              
+              const descBody = document.createElement('div');
+              descBody.style.fontSize = '12px';
+              descBody.style.lineHeight = '1.55';
+              descBody.style.color = '#cbd5e1';
+              descBody.style.maxHeight = '180px';
+              descBody.style.overflow = 'hidden';
+              descBody.style.textOverflow = 'ellipsis';
+              descBody.style.display = '-webkit-box';
+              descBody.style.webkitLineClamp = '7';
+              descBody.style.webkitBoxOrient = 'vertical';
+              descBody.style.whiteSpace = 'pre-line';
+              descBody.textContent = item.desc;
+              
+              descSection.appendChild(descBody);
+              flyer.appendChild(descSection);
+              
+              // 8. Chân trang thông tin liên hệ và mã QR Zalo độc quyền
+              const appFooter = document.createElement('div');
+              appFooter.style.display = 'flex';
+              appFooter.style.alignItems = 'center';
+              appFooter.style.justifyContent = 'space-between';
+              appFooter.style.background = 'rgba(15, 23, 42, 0.4)';
+              appFooter.style.padding = '15px 18px';
+              appFooter.style.borderRadius = '12px';
+              appFooter.style.border = '1px solid rgba(249, 115, 22, 0.15)';
+              appFooter.style.marginTop = 'auto';
+              
+              const contactTexts = document.createElement('div');
+              contactTexts.style.display = 'flex';
+              contactTexts.style.flexDirection = 'column';
+              contactTexts.style.gap = '4px';
+              contactTexts.innerHTML = `
+                <div style="font-size: 13px; font-weight: 800; color: #ffffff;">Liên Hệ: Ms. Thanh Trà</div>
+                <div style="font-size: 11px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 4px;">
+                  📞 0854.100.036 (Zalo kinh doanh)
+                </div>
+                <div style="font-size: 9px; color: #94a3b8; font-weight: 500; font-style: italic;">Quét mã QR để nhận sổ hồng và làm việc chính chủ!</div>
+              `;
+              
+              const qrContainer = document.createElement('div');
+              qrContainer.style.background = '#ffffff';
+              qrContainer.style.padding = '6px';
+              qrContainer.style.borderRadius = '10px';
+              qrContainer.style.width = '74px';
+              qrContainer.style.height = '74px';
+              qrContainer.style.display = 'flex';
+              qrContainer.style.alignItems = 'center';
+              qrContainer.style.justifyContent = 'center';
+              qrContainer.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.2)';
+              
+              const qrImage = document.createElement('img');
+              qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent('https://zalo.me/0854100036')}`;
+              qrImage.style.width = '100%';
+              qrImage.style.height = '100%';
+              qrImage.style.objectFit = 'contain';
+              
+              qrContainer.appendChild(qrImage);
+              appFooter.appendChild(contactTexts);
+              appFooter.appendChild(qrContainer);
+              flyer.appendChild(appFooter);
+              
+              document.body.appendChild(flyer);
+              
+              // Chạy html2canvas để kết xuất ảnh
+              setTimeout(() => {
+                html2canvas(flyer, {
+                  useCORS: true,
+                  allowTaint: false,
+                  scale: 2,
+                  backgroundColor: '#0a1220',
+                  logging: false
+                }).then(canvas => {
+                  const dataUrl = canvas.toDataURL('image/png');
+                  const downloadLink = document.createElement('a');
+                  const cleanTitle = item.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
+                  downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || item.id}.png`;
+                  downloadLink.href = dataUrl;
+                  downloadLink.click();
+                  
+                  document.body.removeChild(flyer);
+                  showToast('Đã chụp ảnh dọc tin đăng thành công! Hình ảnh đã được lưu về máy!', true);
+                }).catch(err => {
+                  console.error('Lỗi khi chụp ảnh:', err);
+                  if (document.body.contains(flyer)) {
+                    document.body.removeChild(flyer);
+                  }
+                  showToast('Không tự động tải hình được do chặn quyền bảo mật của trình duyệt', false);
+                });
+              }, 400);
+            };
+            
+            if (tempImage.complete) {
+              proceedWithCapture();
+            } else {
+              tempImage.onload = proceedWithCapture;
+              tempImage.onerror = () => {
+                tempImage.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="100%25" height="100%25" fill="%231a2238"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="28" fill="%23f97316"%3EThanh Trà BĐS Nhà Phố Thủ Đức%3C/text%3E%3C/svg%3E';
+                proceedWithCapture();
+              };
+            }
           };
         }
 
