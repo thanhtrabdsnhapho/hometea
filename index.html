@@ -1954,6 +1954,209 @@
         text-align: center;
         padding: 2px 0;
       }
+
+      /* --- OPTIMIZED PRODUCT CARD & SLIDER AND DIALOG --- */
+      .card-slider-container {
+        position: relative;
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+      }
+      .card-slider-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+      .product-card:hover .card-slider-img {
+        transform: scale(1.06);
+      }
+      .card-slider-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        background: rgba(15, 23, 42, 0.6);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 5;
+        border: none;
+        transition: background 0.2s ease, opacity 0.2s ease;
+        opacity: 0.8;
+      }
+      .card-slider-nav:hover {
+        background: rgba(15, 23, 42, 0.9);
+        opacity: 1;
+      }
+      .card-slider-nav.prev {
+        left: 12px;
+      }
+      .card-slider-nav.next {
+        right: 12px;
+      }
+      .card-slider-badge {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        background: rgba(15, 23, 42, 0.75);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        z-index: 5;
+        font-family: var(--font-sans);
+      }
+      .card-badges-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 6px;
+        align-items: center;
+      }
+      .card-badge-item {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-family: var(--font-sans);
+      }
+      .card-badge-new {
+        background-color: #ef4444; /* Đỏ cam */
+        color: #ffffff;
+      }
+      .card-badge-views {
+        background-color: #4b5563; /* Xám đậm */
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .card-title-upper {
+        font-family: var(--font-sans);
+        font-size: 14.5px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.35;
+        margin-bottom: 6px;
+        height: auto;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.1px;
+      }
+      .card-grid-specs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: #334155;
+      }
+      .card-grid-spec-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .card-grid-icon {
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .card-divider-line {
+        height: 1px;
+        background-color: #e2e8f0;
+        border: none;
+        margin: 6px 0;
+        width: 100%;
+      }
+      .card-price-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-sans);
+        font-size: 20px;
+        font-weight: 850;
+        color: #dc2626; /* Đỏ rực */
+        margin-bottom: 6px;
+      }
+      .card-price-symbol {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .card-ctas-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: auto;
+      }
+      .card-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 13.5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        border: none;
+      }
+      .card-btn-zalo {
+        background-color: #dc2626; /* Cam đỏ tươi */
+        color: #ffffff;
+      }
+      .card-btn-zalo:hover {
+        background-color: #b91c1c;
+      }
+      .card-btn-share {
+        background-color: #2563eb; /* Facebook blue */
+        color: #ffffff;
+      }
+      .card-btn-share:hover {
+        background-color: #1d4ed8;
+      }
+      .highlight-pulse {
+        animation: propHighlightSuccess 2.5s ease-out;
+      }
+      @keyframes propHighlightSuccess {
+        0% {
+          box-shadow: 0 0 0 6px rgba(234, 88, 12, 0.7);
+          border-color: #ea580c;
+          background-color: #fff7ed;
+          transform: scale(1.02);
+        }
+        50% {
+          box-shadow: 0 0 0 6px rgba(234, 88, 12, 0.4);
+          border-color: #ea580c;
+          background-color: #fff7ed;
+          transform: scale(1.02);
+        }
+        100% {
+          box-shadow: var(--shadow);
+          border-color: var(--border);
+          background-color: #ffffff;
+          transform: scale(1);
+        }
+      }
     </style>
   </head>
   <body>
@@ -2131,6 +2334,7 @@
                 <option value="Đông Bắc">Đông Bắc</option>
                 <option value="Tây Nam">Tây Nam</option>
                 <option value="Tây Bắc">Tây Bắc</option>
+                <option value="Không xác định">Không xác định</option>
               </select>
             </div>
 
@@ -2314,6 +2518,29 @@
               Xác thực & Chuyển trang
             </button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL KHUYÊN CHỌN BƯỚC TIẾP THEO KHI LƯU TIN THÀNH CÔNG -->
+    <div id="saveSuccessModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+      <div style="background: #ffffff; border-radius: 20px; width: 90%; max-width: 440px; padding: 32px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid rgba(0, 0, 0, 0.05); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: block;">
+        <!-- Icon chúc mừng lấp lánh nghệ thuật -->
+        <div style="width: 72px; height: 72px; background: #fff7ed; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 2px solid #ffedd5;">
+          <span style="font-size: 36px;">🎉</span>
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 12px; line-height: 1.2;">Lưu Tin Thành Công!</h3>
+        <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 28px;">Tin đăng bất động sản mới đã được cập nhật và đồng bộ hóa thành công lên hệ thống đám mây.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- 1. Xem sản phẩm ngoài trang chủ -->
+          <button onclick="handleSaveSuccessChoice('view')" style="width: 100%; padding: 12px 24px; background: #ea580c; color: #ffffff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);">
+            👁️ Xem sản phẩm vừa đăng
+          </button>
+          <!-- 2. Đăng tin tiếp -->
+          <button onclick="handleSaveSuccessChoice('continue')" style="width: 100%; padding: 12px 24px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            ➕ Tiếp tục đăng tin mới
+          </button>
         </div>
       </div>
     </div>
@@ -2542,11 +2769,11 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
               </div>
               <div class="admin-form-group">
                 <label for="formWidth" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Chiều ngang (m) *</label>
-                <input type="number" id="formWidth" step="0.1" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 4.5" required>
+                <input type="number" id="formWidth" step="any" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 4.5" required>
               </div>
               <div class="admin-form-group">
                 <label for="formPrice" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Giá bán (Tỷ đồng) *</label>
-                <input type="number" id="formPrice" step="0.1" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 5.5" required>
+                <input type="number" id="formPrice" step="any" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 5.5" required>
               </div>
             </div>
 
@@ -2561,7 +2788,19 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
               </div>
               <div class="admin-form-group">
                 <label for="formFloors" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số tầng lầu/trệt *</label>
-                <input type="number" id="formFloors" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" value="3" required>
+                <select id="formFloors" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
+                  <option value="0">Đất trống</option>
+                  <option value="1">Cấp 4</option>
+                  <option value="2">2 tầng</option>
+                  <option value="3" selected>3 tầng</option>
+                  <option value="4">4 tầng</option>
+                  <option value="5">5 tầng</option>
+                  <option value="6">6 tầng</option>
+                  <option value="7">7 tầng</option>
+                  <option value="8">8 tầng</option>
+                  <option value="9">9 tầng</option>
+                  <option value="10">10 tầng</option>
+                </select>
               </div>
             </div>
 
@@ -2577,6 +2816,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                   <option value="Đông Bắc">Đông Bắc</option>
                   <option value="Tây Nam">Tây Nam</option>
                   <option value="Tây Bắc">Tây Bắc</option>
+                  <option value="Không xác định">Không xác định</option>
                 </select>
               </div>
               <div class="admin-form-group">
@@ -2938,6 +3178,18 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
     <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG --- -->
     <script>
+      // Khai báo các biến trạng thái toàn cục trước để tránh lỗi TDZ (Temporal Dead Zone)
+      let isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
+      const cardImageIndexes = {};
+
+      function formatFloors(floors) {
+        const val = parseInt(floors);
+        if (isNaN(val)) return floors || '';
+        if (val === 0) return "Đất trống";
+        if (val === 1) return "Cấp 4";
+        return `${val} tầng`;
+      }
+
       /* ==========================================
          1. DỮ LIỆU SẢN PHẨM MẪU CHẤT LƯỢNG CAO (MẢNG CƠ SỞ)
          ========================================== */
@@ -3089,6 +3341,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       ];
 
       let propertyData = JSON.parse(localStorage.getItem('property_data')) || [...initialDefaultData];
+      let lastSavedPropertyId = null;
 
       function savePropertyDataToStorage() {
         localStorage.setItem('property_data', JSON.stringify(propertyData));
@@ -3155,45 +3408,116 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         statCountText.textContent = `Tìm thấy ${products.length} sản phẩm phù hợp`;
 
         products.forEach(p => {
+          // Tính toán danh sách hình ảnh
+          const list = p.imgList && p.imgList.length > 0 ? p.imgList : [p.img];
+          const hasMultipleImages = list.length > 1;
+          
+          // Lấy vị trí ảnh hiện tại của card (mặc định 0)
+          if (cardImageIndexes[p.id] === undefined) {
+            cardImageIndexes[p.id] = 0;
+          }
+          const currentImgIndex = cardImageIndexes[p.id];
+          const activeImgSrc = list[currentImgIndex];
+
+          // Tạo các nút điều khiển slider HTML nếu nhiều ảnh
+          const sliderNavHtml = hasMultipleImages ? `
+            <button class="card-slider-nav prev" onclick="changeCardImage(${p.id}, -1, event)">&#10094;</button>
+            <button class="card-slider-nav next" onclick="changeCardImage(${p.id}, 1, event)">&#10095;</button>
+            <span class="card-slider-badge">${currentImgIndex + 1}/${list.length}</span>
+          ` : '';
+
+          // Rút gọn địa chỉ phường đề hiển thị ngắn gọn trong cột
+          let shortAddress = p.address;
+          if (p.street && p.ward) {
+            shortAddress = `${p.street}, Phường ${p.ward}`;
+          } else {
+            // Rút gọn bớt chuỗi ", TP. Thủ Đức, TP.HCM"
+            shortAddress = p.address.replace(", Phường", "").replace(", P.", "").replace(", Phường ", "").replace(", P. ", "").replace(", TP. Thủ Đức, TP.HCM", "").replace(", TP. Thủ Đức", "").replace(", TP.HCM", "");
+          }
+          if (shortAddress.length > 25) {
+            shortAddress = shortAddress.substring(0, 24) + "...";
+          }
+
+          // Thiết lập số lượt xem (như trong ảnh hiển thị "0 lượt xem")
+          const viewsCount = p.views !== undefined ? p.views : 0;
+
           const cardHtml = `
-            <article class="product-card" id="prop-${p.id}">
-              <div class="product-img-wrapper">
-                <span class="product-badge">${p.badge}</span>
-                <img class="product-img" src="${p.img}" alt="${p.title}" loading="lazy">
+            <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal(${p.id})">
+              <!-- Slider hình ảnh -->
+              <div class="card-slider-container">
+                <img class="card-slider-img" src="${activeImgSrc}" alt="${p.title}" loading="lazy">
+                ${sliderNavHtml}
               </div>
-              <div class="product-body">
-                <div class="product-price">${p.priceText}</div>
-                <h4 class="product-title">${p.title}</h4>
-                <div class="product-address">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5 7.5 0 1115 0z" />
-                  </svg>
-                  ${p.address}
-                </div>
-                
-                <div class="product-specs">
-                  <div class="spec-item">
-                    <span class="spec-label">Diện tích</span>
-                    <span class="spec-val">${p.area} m²</span>
-                  </div>
-                  <div class="spec-item">
-                    <span class="spec-label">Số tầng</span>
-                    <span class="spec-val">${p.floors} Tầng</span>
-                  </div>
-                  <div class="spec-item">
-                    <span class="spec-label">Hướng</span>
-                    <span class="spec-val">${p.direction}</span>
-                  </div>
+              
+              <!-- Thân card -->
+              <div class="product-body" style="padding: 12px;">
+                <!-- Hàng Badge mới: Mới đăng và Lượt xem giống hệt như ảnh -->
+                <div class="card-badges-row">
+                  <span class="card-badge-item card-badge-new">🔥 Mới đăng</span>
+                  <span class="card-badge-item card-badge-views">👁️ ${viewsCount} lượt xem</span>
                 </div>
 
-                <div class="product-ctas">
-                  <button type="button" class="btn-detail" onclick="openProductModal(${p.id})">Xem chi tiết</button>
-                  <a href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="btn-quick-zalo" title="Liên hệ Zalo">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
+                <!-- Tiêu đề đóng vai trò viết hoa in đậm -->
+                <h4 class="card-title-upper" title="${p.title}" style="height: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;">${p.title.toUpperCase()}</h4>
+                
+                <!-- Địa chỉ đầy đủ hiển thị dưới tiêu đề như trong ảnh -->
+                <div class="card-address-full" style="display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px; font-size: 13px; color: #4b5563;" title="${p.address}">
+                  <span style="color: #ef4444; font-size: 14px; flex-shrink: 0; margin-top: 1px;">📍</span>
+                  <span style="font-weight: 500; font-family: var(--font-sans); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.address}</span>
+                </div>
+
+                <!-- Bố cục lưới thông số 2 cột thanh tao -->
+                <div class="card-grid-specs">
+                  <!-- Cột Trái -->
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div class="card-grid-spec-item">
+                      <span class="card-grid-icon" style="color: #2563eb;">📐</span>
+                      <span style="font-weight: 700; color: #1e293b;">${p.area} m²</span>
+                    </div>
+                    <div class="card-grid-spec-item">
+                      <span class="card-grid-icon" style="color: #6b7280;">🏢</span>
+                      <span>${formatFloors(p.floors)}</span>
+                    </div>
+                    <div class="card-grid-spec-item">
+                      <span class="card-grid-icon" style="color: #0ea5e9;">🚽</span>
+                      <span>${p.bathrooms || 3} WC</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Cột Phải -->
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div class="card-grid-spec-item">
+                      <span class="card-grid-icon" style="color: #22c55e;">🛏️</span>
+                      <span>${p.bedrooms || 3} PN</span>
+                    </div>
+                    <div class="card-grid-spec-item">
+                      <span class="card-grid-icon" style="color: #f59e0b;">🧭</span>
+                      <span>${p.direction || 'Đông Bắc'}</span>
+                    </div>
+                    <div class="card-grid-spec-item">
+                      <span class="card-grid-icon" style="color: #8b5cf6;">📜</span>
+                      <span style="max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.legal || 'Sổ hồng'}">${p.legal || 'Sổ hồng'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Đường kẻ phân cách ngang mảnh -->
+                <hr class="card-divider-line">
+                
+                <!-- Giá rực rỡ đã chỉnh sửa trùng tỷ -->
+                <div class="card-price-row">
+                  <span class="card-price-symbol">💰</span>
+                  <span>${p.price} tỷ</span>
+                </div>
+                
+                <!-- Nút Zalo & Chia sẻ song song rộng 50% -->
+                <div class="card-ctas-row">
+                  <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
+                    <span style="font-size: 14px;">💬</span> Zalo
                   </a>
+                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); navigator.clipboard.writeText(window.location.origin + '?id=' + ${p.id}); showToast('Đã sao chép liên kết chia sẻ của căn này!', true);">
+                    <span style="font-size: 14px;">📘</span> Chia sẻ
+                  </button>
                 </div>
               </div>
             </article>
@@ -3401,7 +3725,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         `;
         mPrice.textContent = item.priceText;
         mArea.textContent = `${item.area} m²`;
-        mFloors.textContent = `${item.floors} Tầng`;
+        mFloors.textContent = formatFloors(item.floors);
         mDirection.textContent = item.direction;
         mDescText.textContent = item.desc;
 
@@ -3865,7 +4189,7 @@ Nguyên tắc trả lời:
       const formImg = document.getElementById('formImg');
       const formDesc = document.getElementById('formDesc');
 
-      let isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
+      isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
 
       // Chuyển trang/màn hình mượt mà giữa Chợ BĐS và Trang Admin
       function switchToPage(pageName) {
@@ -4156,7 +4480,7 @@ Nguyên tắc trả lời:
               formDirection.value = item.direction;
               formFloors.value = item.floors;
               formBadge.value = item.badge;
-              formAddress.value = item.address;
+              if (formAddress) formAddress.value = item.address;
               formImg.value = item.img;
               formDesc.value = item.desc;
 
@@ -4420,9 +4744,14 @@ Nguyên tắc trả lời:
         }
 
         savePropertyDataToStorage();
-        hideAdminForm();
         renderAdminTable();
         applyFilters(); 
+        
+        // Lưu lại thông tin ID sản phẩm vừa thêm mới/cập nhật để phục vụ việc Xem sản phẩm
+        lastSavedPropertyId = finalProperty.id;
+        
+        // Hiển thị modal lựa chọn tiện ích: Đăng tiếp hay Xem sản phẩm
+        openSaveSuccessModal();
       }
 
       async function analyzeRawDataAI(e) {
@@ -5031,6 +5360,93 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
       }
 
+      function openSaveSuccessModal() {
+        const modal = document.getElementById('saveSuccessModal');
+        if (modal) {
+          modal.style.display = 'flex';
+          setTimeout(() => {
+            modal.style.opacity = '1';
+            const childDiv = modal.querySelector('div');
+            if (childDiv) childDiv.style.transform = 'scale(1)';
+          }, 10);
+          document.body.style.overflow = 'hidden';
+        }
+      }
+
+      function closeSaveSuccessModal() {
+        const modal = document.getElementById('saveSuccessModal');
+        if (modal) {
+          modal.style.opacity = '0';
+          const childDiv = modal.querySelector('div');
+          if (childDiv) childDiv.style.transform = 'scale(0.9)';
+          setTimeout(() => {
+            modal.style.display = 'none';
+          }, 300);
+          document.body.style.overflow = 'auto';
+        }
+      }
+
+      function handleSaveSuccessChoice(choice) {
+        closeSaveSuccessModal();
+        if (choice === 'continue') {
+          // Người dùng muốn đăng tin tiếp: reset form về ban đầu trống và giữ màn hình form mở
+          showAdminForm(null); 
+        } else if (choice === 'view') {
+          // Người dùng muốn xem sản phẩm: đóng form đăng tin, chuyển trang về Trang chủ và tiêu điểm sản phẩm vừa đăng
+          hideAdminForm();
+          switchToPage('home');
+          
+          if (lastSavedPropertyId) {
+            setTimeout(() => {
+              // Reset bộ lọc để bảo đảm sản phẩm không bị lẩn khuất
+              resetAllFilters();
+              
+              const targetCard = document.getElementById(`prop-${lastSavedPropertyId}`);
+              if (targetCard) {
+                targetCard.style.scrollMarginTop = "120px";
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Tạo hiệu ứng phát sáng lấp lánh (pulsing highlight) siêu sành điệu
+                targetCard.classList.add('highlight-pulse');
+                setTimeout(() => {
+                  targetCard.classList.remove('highlight-pulse');
+                }, 3000);
+              }
+            }, 350);
+          }
+        }
+      }
+
+      // Quản lý ảnh trượt trực tiếp trên từng card sản phẩm ngoài trang chủ
+      function changeCardImage(propId, step, event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation(); // Tránh kích hoạt sự kiện bấm xem chi tiết sản phẩm
+        }
+        
+        const item = propertyData.find(p => p.id === propId);
+        if (!item) return;
+        
+        const list = item.imgList && item.imgList.length > 0 ? item.imgList : [item.img];
+        if (list.length <= 1) return;
+        
+        if (cardImageIndexes[propId] === undefined) {
+          cardImageIndexes[propId] = 0;
+        }
+        
+        cardImageIndexes[propId] = (cardImageIndexes[propId] + step + list.length) % list.length;
+        
+        // Cập nhật thẻ IMG và thẻ Text chỉ đếm trang trong card
+        const cardImg = document.querySelector(`#prop-${propId} .card-slider-img`);
+        const cardBadge = document.querySelector(`#prop-${propId} .card-slider-badge`);
+        
+        if (cardImg) {
+          cardImg.src = list[cardImageIndexes[propId]];
+        }
+        if (cardBadge) {
+          cardBadge.textContent = `${cardImageIndexes[propId] + 1}/${list.length}`;
+        }
+      }
+
       // Đăng ký cho các đường link trang chủ chuyển hoàn lại màn hình chính diện
       document.querySelectorAll("#navMenu a").forEach(link => {
         if (link.id !== "navAdminLink") {
@@ -5066,6 +5482,10 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       window.setModalImgIndex = setModalImgIndex;
       window.handleRealImagesUpload = handleRealImagesUpload;
       window.removeUploadedImage = removeUploadedImage;
+      window.openSaveSuccessModal = openSaveSuccessModal;
+      window.closeSaveSuccessModal = closeSaveSuccessModal;
+      window.handleSaveSuccessChoice = handleSaveSuccessChoice;
+      window.changeCardImage = changeCardImage;
 
       // Gắn các hàm cấu hình Supabase Cloud vào window
       window.copySupabaseSql = copySupabaseSql;
