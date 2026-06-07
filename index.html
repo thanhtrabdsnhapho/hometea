@@ -2627,7 +2627,7 @@
             </div>
             <div>
               <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabase Anon public Key *</label>
-              <input type="password" id="supabaseKeyInput" autocomplete="off" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="Nhập mã Anon Key công khai..." required>
+              <input type="password" id="supabaseKeyInput" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="Nhập mã Anon Key công khai..." required>
             </div>
             <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; align-items: center; flex-wrap: wrap;">
               <span id="supabaseSyncStatusText" style="font-size: 12px; color: var(--text-muted); margin-right: auto; font-style: italic;">Đang dùng bộ nhớ cục bộ (LocalStorage) làm nguồn lưu trữ.</span>
@@ -3253,7 +3253,38 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       let lastSavedPropertyId = null;
 
       function savePropertyDataToStorage() {
-        localStorage.setItem('property_data', JSON.stringify(propertyData));
+        try {
+          localStorage.setItem('property_data', JSON.stringify(propertyData));
+        } catch (e) {
+          console.warn("LocalStorage quota exceeded! Trying to save light fallback version to conserve space...", e);
+          try {
+            const placeholderSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><rect width='100%' height='100%' fill='%230c1524'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='28' fill='%23f97316' font-weight='bold'>THANH TRA BDS</text></svg>";
+            const lighterData = propertyData.map(item => {
+              const copy = { ...item };
+              if (copy.img && copy.img.startsWith('data:image/')) {
+                copy.img = placeholderSvg;
+              }
+              if (Array.isArray(copy.imgList)) {
+                copy.imgList = copy.imgList.map(imgStr => {
+                  if (imgStr && imgStr.startsWith('data:image/')) {
+                    return placeholderSvg;
+                  }
+                  return imgStr;
+                });
+              } else if (typeof copy.imgList === 'string' && copy.imgList.startsWith('data:image/')) {
+                copy.imgList = placeholderSvg;
+              }
+              return copy;
+            });
+            localStorage.setItem('property_data', JSON.stringify(lighterData));
+            console.log("Successfully saved lightweight backup of properties to LocalStorage.");
+          } catch (innerError) {
+            console.error("Critical: Storage space severely constrained. Removing property cache completely to avoid application freeze.", innerError);
+            try {
+              localStorage.removeItem('property_data');
+            } catch (rErr) {}
+          }
+        }
       }
 
       /* ==========================================
