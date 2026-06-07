@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Thanh Trà BĐS | Bất Động Sản Nhà Phố Uy Tín</title>
     <!-- Favicon thương hiệu T. tinh tế và sang trọng -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%230c1524'/%3E%3Cpath d='M16 20c0-1.1.9-2 2-2h28c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2H36v20c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2V26H18c-1.1 0-2-.9-2-2v-4z' fill='%23f97316'/%3E%3Ccircle cx='48' cy='44' r='4' fill='%23f97316'/%3E%3C/svg%3E">
@@ -3336,6 +3339,14 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           desc: "Nằm trong phân khu Compound nhà phố an ninh bậc nhất TP. Thủ Đức. Không gian sống đẳng cấp với công viên nội khu rợp bóng cây xanh, hồ bơi mát lạnh, khu vui chơi trẻ em an toàn.\n\n- Kết cấu: 1 trệt 2 lầu thiết kế đồng bộ sang trọng tinh tế từng cen-ti-mét.\n- Thích hợp cho giới thượng lưu hưởng thụ không khí biệt lập tĩnh tại nâng niu cảm xúc.\n- Sổ riêng đã hoàn công, thủ tục sang tên bảo mật an tâm."
         }
       ];
+
+      // Cơ chế tự động giải phóng cache khi hệ thống cập nhật phiên bản mới
+      const APP_CACHE_VERSION = "v2.2";
+      const savedVersion = localStorage.getItem("app_cache_version");
+      if (savedVersion !== APP_CACHE_VERSION) {
+        localStorage.removeItem("property_data"); // Xóa cache dữ liệu cũ để cập nhật mới sạch sẽ
+        localStorage.setItem("app_cache_version", APP_CACHE_VERSION);
+      }
 
       let propertyData = JSON.parse(localStorage.getItem('property_data')) || [...initialDefaultData];
       let lastSavedPropertyId = null;
