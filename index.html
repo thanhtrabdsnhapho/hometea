@@ -2309,7 +2309,10 @@
             <h3 class="admin-title" style="font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--primary);">
               <span style="font-size: 24px;">🔧</span> Quản Lý Tin Đăng BĐS
             </h3>
-            <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px;">Chào mừng Thanh Trà, bạn có quyền đăng tin, sửa tin và xóa tin bất động sản trực tuyến.</p>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px;">
+              Chào mừng Thanh Trà, bạn có quyền đăng tin, sửa tin và xóa tin bất động sản trực tuyến.
+              <span id="cloudConnectionIndicator" style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 99px; background: #dcfce7; color: #15803d; border: 1px solid #86efac; text-transform: uppercase; margin-left: 10px; vertical-align: middle;">☁️ Đã liên kết đám mây</span>
+            </p>
           </div>
           <button class="btn-admin-logout" onclick="handleAdminLogout()" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border: 1px solid var(--border); border-radius: 8px; color: var(--text-dark); background: #fff; font-weight: 600; cursor: pointer;">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -2318,8 +2321,8 @@
             Đăng xuất Admin
         </div>
 
-        <!-- KHU VỰC THIẾT LẬP KẾT NỐI SUPABASE CLOUD TRỰC TIẾP -->
-        <div class="supabase-config-card" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px; margin-bottom: 24px; box-shadow: var(--shadow);">
+        <!-- KHU VỰC THIẾT LẬP KẾT NỐI SUPABASE CLOUD TRỰC TIẾP - ĐÃ ĐƯỢC TỰ ĐỘNG HÓA VÀ ẨN ĐI ĐỂ TẬP TRUNG GIAO DIỆN -->
+        <div class="supabase-config-card" style="display: none !important; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px; margin-bottom: 24px; box-shadow: var(--shadow);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 10px;">
               <span style="font-size: 24px;">☁️</span>
@@ -3532,17 +3535,33 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const btnSendMessage = document.getElementById('btnSendMessage');
       const chatSuggestions = document.getElementById('chatSuggestions');
 
+      // Các mã khóa và đường dẫn kết nối đồng bộ cơ sở dữ liệu làm giá trị mặc định (Fallback) khi chạy trên Hosting tĩnh (Vercel, Netlify, GitHub...)
+      const DEFAULT_FALLBACK_GEMINI_KEY = "AQ.Ab8RN6IOb3nLRrc28yGi_bwoKATcR8NSkXuMP2qr4vlpp3T4tA";
+      const DEFAULT_FALLBACK_SUPABASE_URL = "https://bywboejxhpvdahbfvote.supabase.co";
+      const DEFAULT_FALLBACK_SUPABASE_KEY = "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r";
+
       // Các biến môi trường được thay thế tự động khi build bằng Vite (Cung cấp giải pháp cho Vercel, Netlify, Github...)
       const INJECTED_VITE_GEMINI_KEY = "%VITE_GEMINI_API_KEY%";
       const INJECTED_VITE_SUPABASE_URL = "%VITE_SUPABASE_URL%";
       const INJECTED_VITE_SUPABASE_KEY = "%VITE_SUPABASE_ANON_KEY%";
 
-      // Phân tách nếu chuỗi bắt đầu bằng %VITE thì coi như chưa thiết lập (chưa qua bước build thay thế)
-      const buildGeminiKey = (INJECTED_VITE_GEMINI_KEY && !INJECTED_VITE_GEMINI_KEY.startsWith("%VITE_")) ? INJECTED_VITE_GEMINI_KEY : "";
-      const buildSupabaseUrl = (INJECTED_VITE_SUPABASE_URL && !INJECTED_VITE_SUPABASE_URL.startsWith("%VITE_")) ? INJECTED_VITE_SUPABASE_URL : "";
-      const buildSupabaseKey = (INJECTED_VITE_SUPABASE_KEY && !INJECTED_VITE_SUPABASE_KEY.startsWith("%VITE_")) ? INJECTED_VITE_SUPABASE_KEY : "";
+      // Hàm bóc tách giá trị hợp lệ hỗ trợ mọi loại môi trường tĩnh hoặc full-stack
+      function getValidValue(injected, fallback) {
+        if (!injected || injected === "" || injected === "undefined" || injected === "null" || injected.startsWith("%VITE_") || injected.startsWith("%")) {
+          return fallback;
+        }
+        return injected;
+      }
+
+      const buildGeminiKey = getValidValue(INJECTED_VITE_GEMINI_KEY, DEFAULT_FALLBACK_GEMINI_KEY);
+      const buildSupabaseUrl = getValidValue(INJECTED_VITE_SUPABASE_URL, DEFAULT_FALLBACK_SUPABASE_URL);
+      const buildSupabaseKey = getValidValue(INJECTED_VITE_SUPABASE_KEY, DEFAULT_FALLBACK_SUPABASE_KEY);
 
       let localApiKey = localStorage.getItem('gemini_api_key') || "";
+      if (!localApiKey || localApiKey.trim() === "" || localApiKey === "null") {
+        localApiKey = buildGeminiKey;
+        localStorage.setItem('gemini_api_key', localApiKey);
+      }
       let serverHasKey = !!buildGeminiKey; // Nếu build-time có Key thì xem như Server/Local có Key
 
       // Check if server-side has the API key
@@ -3580,17 +3599,10 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         aiChatWindow.classList.remove('open');
       });
 
-      // Kiểm tra trạng thái Key ban đầu
+      // Kiểm tra trạng thái Key ban đầu - tự động ẩn setup và bật thẳng cửa sổ hội thoại (ẩn giao diện yêu cầu key cho cả khách hàng)
       function initChatboxState() {
-        localApiKey = localStorage.getItem('gemini_api_key') || "";
-        const activeClientKey = localApiKey || buildGeminiKey;
-        if (activeClientKey || serverHasKey) {
-          chatAiKeySetup.style.display = 'none';
-          chatAiPlayground.style.display = 'flex';
-        } else {
-          chatAiKeySetup.style.display = 'flex';
-          chatAiPlayground.style.display = 'none';
-        }
+        chatAiKeySetup.style.display = 'none';
+        chatAiPlayground.style.display = 'flex';
       }
 
       // Kích hoạt khóa bảo mật API
@@ -3754,7 +3766,7 @@ Nguyên tắc trả lời:
                       ]
                     }
                   ],
-                  config: {
+                  generationConfig: {
                     temperature: 0.7
                   }
                 })
@@ -3777,7 +3789,7 @@ Nguyên tắc trả lời:
           }
           
           removeLoader();
-          appendMessage("Không thể kết nối máy chủ AI. Vui lòng xác nhận bạn đã nhập đúng mã khóa API và hệ thống mạng ổn định.", false);
+          appendMessage("Trợ lý AI tạm thời không kết nối được qua Proxy Server. Nếu bạn đang chạy ứng dụng tĩnh trực tiếp trên Vercel/GitHub Pages ngoài đời thực, vui lòng thiết lập biến môi trường <strong>VITE_GEMINI_API_KEY</strong> (mã khóa Google Gemini API thật của riêng bạn bắt đầu bằng <strong>AIzaSy...</strong>) trong phần cài đặt Enviroment Variables của Hosting/Vercel Dashboard để kích hoạt tính năng trò chuyện tư vấn thông thái trực tiếp client-side nhé!", false);
         }
       }
 
@@ -4563,7 +4575,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
                       ]
                     }
                   ],
-                  config: {
+                  generationConfig: {
                     temperature: 0.1,
                     responseMimeType: 'application/json'
                   }
@@ -4585,7 +4597,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
               console.error("Lỗi phân tích trực tiếp client hoàn toàn:", innerError);
             }
           }
-          alert("Không thể kết nối đến máy chủ AI để phân tích dữ liệu bán hàng. Hãy kiểm tra khóa API!");
+          alert("Không thể kết nối đến máy chủ AI để phân tích thông tin thô do proxy Node.js offline. Nếu bạn đang chạy tĩnh trên Hosting như Vercel/GitHub Pages, vui lòng bảo đảm đã thiết lập biến VITE_GEMINI_API_KEY (mã khóa Google Gemini API thật của riêng bạn bắt đầu bằng AIzaSy...) trong phần cài đặt Environment Variables của hosting nhé!");
           formDesc.value = "";
         } finally {
           btn.disabled = false;
@@ -4681,7 +4693,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                       ]
                     }
                   ],
-                  config: {
+                  generationConfig: {
                     temperature: 0.8
                   }
                 })
@@ -4703,7 +4715,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
           }
           
           descTextarea.value = "";
-          alert("Gặp lỗi mạng khi kết nối cổng dịch vụ viết bài AI. Vui lòng xác định mã khóa API chính xác và thử lại.");
+          alert("Gập lỗi mạng khi kết nối cổng dịch vụ viết bài AI do proxy Node.js offline. Nếu bạn đang chạy tĩnh trên Hosting như Vercel/GitHub Pages, vui lòng bảo đảm đã thiết lập biến VITE_GEMINI_API_KEY (mã khóa Google Gemini API thật của riêng bạn bắt đầu bằng AIzaSy...) trong phần cài đặt Environment Variables của hosting nhé!");
         } finally {
           descTextarea.disabled = false;
           if (btn && btn.tagName === "BUTTON") {
@@ -4724,25 +4736,14 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         const urlInput = document.getElementById('supabaseUrlInput');
         const keyInput = document.getElementById('supabaseKeyInput');
         
-        // Tải từ LocalStorage trước
-        if (!supabaseUrl) {
-          supabaseUrl = localStorage.getItem('supabase_url') || "";
-        }
-        if (!supabaseAnonKey) {
-          supabaseAnonKey = localStorage.getItem('supabase_anon_key') || "";
-        }
+        // Luôn sử dụng gán cứng có độ ưu tiên cao từ build-time/fallback để tự động hóa 100% không bắt khách nhập
+        supabaseUrl = buildSupabaseUrl;
+        supabaseAnonKey = buildSupabaseKey;
+        
+        localStorage.setItem('supabase_url', supabaseUrl);
+        localStorage.setItem('supabase_anon_key', supabaseAnonKey);
 
-        // Nếu chưa có local, thử lấy từ Build-time environment variables (Sự lựa chọn tuyệt vời cho Vercel/Static hosting)
-        if (!supabaseUrl && buildSupabaseUrl) {
-          supabaseUrl = buildSupabaseUrl;
-          localStorage.setItem('supabase_url', supabaseUrl);
-        }
-        if (!supabaseAnonKey && buildSupabaseKey) {
-          supabaseAnonKey = buildSupabaseKey;
-          localStorage.setItem('supabase_anon_key', supabaseAnonKey);
-        }
-
-        // Tự động kết nối Cloud 1 thẳng từ biến môi trường Server nếu chưa được đặt local
+        // Tự động gán kết nối Cloud thẳng từ biến môi trường Server nếu đang chạy node.js
         try {
           const res = await fetch('/api/supabase-config');
           if (res.ok) {
