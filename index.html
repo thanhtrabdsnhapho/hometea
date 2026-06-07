@@ -2320,6 +2320,7 @@
               <label for="filterDirection">Hướng nhà</label>
               <select id="filterDirection" class="filter-control">
                 <option value="all">-- Tất cả Hướng --</option>
+                <option value="Không xác định">Không xác định</option>
                 <option value="Đông">Đông</option>
                 <option value="Tây">Tây</option>
                 <option value="Nam">Nam</option>
@@ -2328,7 +2329,6 @@
                 <option value="Đông Bắc">Đông Bắc</option>
                 <option value="Tây Nam">Tây Nam</option>
                 <option value="Tây Bắc">Tây Bắc</option>
-                <option value="Không xác định">Không xác định</option>
               </select>
             </div>
 
@@ -2802,6 +2802,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
               <div class="admin-form-group">
                 <label for="formDirection" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Hướng tài sản *</label>
                 <select id="formDirection" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
+                  <option value="Không xác định">Không xác định</option>
                   <option value="Đông">Đông</option>
                   <option value="Tây">Tây</option>
                   <option value="Nam">Nam</option>
@@ -2810,7 +2811,6 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                   <option value="Đông Bắc">Đông Bắc</option>
                   <option value="Tây Nam">Tây Nam</option>
                   <option value="Tây Bắc">Tây Bắc</option>
-                  <option value="Không xác định">Không xác định</option>
                 </select>
               </div>
               <div class="admin-form-group">
@@ -3070,6 +3070,9 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
               </svg>
               Zalo trao đổi trực tiếp
             </a>
+            <button id="modalShareBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; font-size: 14.5px; font-weight: 700; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; border: 1.5px solid var(--border); background: #f8fafc; color: var(--text-dark);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+              <span style="font-size: 15px;">📘</span> Chia sẻ liên kết
+            </button>
           </div>
         </div>
       </div>
@@ -3509,7 +3512,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                   <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
                     <span style="font-size: 14px;">💬</span> Zalo
                   </a>
-                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); navigator.clipboard.writeText(window.location.origin + '?id=' + ${p.id}); showToast('Đã sao chép liên kết chia sẻ của căn này!', true);">
+                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); navigator.clipboard.writeText(window.location.origin + window.location.pathname + '?id=' + ${p.id}); showToast('Đã sao chép liên kết chia sẻ của căn này!', true);">
                     <span style="font-size: 14px;">📘</span> Chia sẻ
                   </button>
                 </div>
@@ -3808,6 +3811,16 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         const textMessage = `Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin chi tiết căn: "${item.title}" có mã số căn #${item.id}`;
         mZaloLink.href = `https://zalo.me/0854100036?text=${encodeURIComponent(textMessage)}`;
 
+        // Gắn nút chia sẻ động trong Modal
+        const modalShareBtn = document.getElementById('modalShareBtn');
+        if (modalShareBtn) {
+          modalShareBtn.onclick = () => {
+            const shareUrl = window.location.origin + window.location.pathname + '?id=' + item.id;
+            navigator.clipboard.writeText(shareUrl);
+            showToast('Đã sao chép liên kết chia sẻ của căn này!', true);
+          };
+        }
+
         propertyModal.classList.add('open');
         document.body.style.overflow = 'hidden'; // Ngăn chặn scroll nền
       }
@@ -3815,6 +3828,22 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       function closeProductModal() {
         propertyModal.classList.remove('open');
         document.body.style.overflow = 'auto';
+      }
+
+      function checkUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const idParam = urlParams.get('id');
+        if (idParam) {
+          const propId = parseInt(idParam);
+          if (!isNaN(propId)) {
+            const item = propertyData.find(p => p.id === propId);
+            if (item) {
+              setTimeout(() => {
+                openProductModal(propId);
+              }, 400);
+            }
+          }
+        }
       }
 
       modalCloseBtn.addEventListener('click', closeProductModal);
@@ -3990,6 +4019,12 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             .replace(/- (.*?)\n/g, '• $1<br>')
             .replace(/\n/g, '<br>');
           
+          // Chuyển đổi mã số căn trong câu trả lời thành liên kết chi tiết trực quan tự động mở popup
+          formattedText = formattedText.replace(/(?:\[?Căn\s*#(\d+)\]?)/gi, (match, propId) => {
+            const linkUrl = window.location.origin + window.location.pathname + '?id=' + propId;
+            return `<a href="${linkUrl}" onclick="event.preventDefault(); openProductModal(${propId});" class="chat-product-link" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fff3eb; color: #ea580c; border: 1px solid #ffedd5; border-radius: 6px; font-weight: 700; font-size: 12.5px; text-decoration: none; margin: 4px 2px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff3eb'">🏡 Xem chi tiết Căn #${propId} ↗</a>`;
+          });
+          
           bubble.innerHTML = formattedText;
         } else {
           bubble.textContent = text;
@@ -4063,7 +4098,7 @@ Thông tin liên hệ chính thống bắt buộc để cung cấp cho người 
 
 Nguyên tắc trả lời:
 1. Thân thiện, tận tâm, trung thực và cực kỳ ngắn gọn, súc tích (mỗi câu trả lời không quá 3-4 câu ngắn).
-2. Khi khách hỏi tìm nơi ở hoặc tầm giá, hãy đối chiếu và đề xuất KHỚP chính xác căn nhà nào đang có sẵn trong Giỏ Hàng do Thanh Trà đang bán (Mã số căn). Nếu không có căn trùng khít hoàn hảo, hãy giới thiệu căn gần giống nhất và mời họ kết nối Hotline để Thanh Trà đi tìm thêm sản phẩm ở giỏ hàng kín khác.
+2. Khi khách hỏi tìm nơi ở hoặc tầm giá, hãy đối chiếu và đề xuất KHỚP chính xác căn nhà nào đang có sẵn trong Giỏ Hàng do Thanh Trà đang bán. Khi đề cập đến một căn cụ thể, BẮT BUỘC phải ghi mã số căn ở định dạng "[Căn #ID]" (ví dụ: [Căn #1], [Căn #15]) để hệ thống lập tức chèn liên kết xem chi tiết sản phẩm trực tiếp. Nếu không có căn trùng khít hoàn hảo, hãy giới thiệu căn gần giống nhất ở dạng "[Căn #ID]" và mời họ kết nối Hotline để Thanh Trà đi tìm thêm sản phẩm ở giỏ hàng kín khác.
 3. Luôn luôn lồng ghép khéo léo lời mời khách gọi điện/Zalo số 0854.100.036 để xem nhà trực tiếp hoặc tư vấn cụ thể.
 4. Tránh luyên thuyên lý thuyết suông.
 5. TUYỆT ĐỐI KHÔNG DÙNG CÁC TỪ NGỮ QUẢNG CÁO TỰ PHONG, KHẲNG ĐỊNH THỨ HẠNG HOẶC ĐỘC QUYỀN TRÊN NỀN TẢNG (LUẬT QUẢNG CÁO):
@@ -5311,6 +5346,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                 
                 applyFilters();
                 renderAdminTable();
+                checkUrlParams();
                 
                 if (!silent) {
                   showToast(`Đã đồng bộ thành công ${data.length} bất động sản từ Supabase Cloud!`, true);
@@ -5479,6 +5515,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       window.deleteAdminProperty = deleteAdminProperty;
       window.openProductModal = openProductModal;
       window.closeProductModal = closeProductModal;
+      window.checkUrlParams = checkUrlParams;
       window.resetAllFilters = resetAllFilters;
       window.applyFilters = applyFilters;
       window.toggleFilters = toggleFilters;
@@ -5505,6 +5542,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       checkServerKey();
       checkAdminSession();
       initSupabaseState();
+      checkUrlParams();
     </script>
   </body>
 </html>

@@ -6,6 +6,22 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Helper function to safely call Gemini with a fallback model if the primary one is unavailable (e.g. 503 high demand)
+async function generateContentWithRetry(ai: any, config: { model: string; contents: any; config?: any }) {
+  try {
+    return await ai.models.generateContent(config);
+  } catch (error: any) {
+    const errorMsg = error?.message || String(error);
+    console.log(`[Info] Gemini model ${config.model} is temporarily loaded, using fallback: ${errorMsg}`);
+    const fallbackModel = "gemini-3.1-flash-lite";
+    console.log(`[Info] Executing seamless fallback to resilient model: ${fallbackModel}`);
+    return await ai.models.generateContent({
+      ...config,
+      model: fallbackModel
+    });
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -45,7 +61,7 @@ async function startServer() {
       });
       const prompt = `${systemInstruction}\n\n${warehouseData}\n\nCâu hỏi/Yêu cầu của khách hàng: ${userQuestion}`;
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry(ai, {
         model: "gemini-3.5-flash",
         contents: prompt
       });
@@ -53,7 +69,7 @@ async function startServer() {
       const reply = response.text || "";
       res.json({ reply });
     } catch (error: any) {
-      console.error("Error at /api/chat:", error);
+      console.log("Error handled at /api/chat:", error?.message || error);
       const errMsg = error?.message || "";
       if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
         res.status(429).json({ 
@@ -86,7 +102,7 @@ async function startServer() {
           }
         }
       });
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry(ai, {
         model: "gemini-3.5-flash",
         contents: promptInput
       });
@@ -94,7 +110,7 @@ async function startServer() {
       const reply = response.text || "";
       res.json({ reply });
     } catch (error: any) {
-      console.error("Error at /api/generate-desc:", error);
+      console.log("Error handled at /api/generate-desc:", error?.message || error);
       const errMsg = error?.message || "";
       if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
         res.status(429).json({ 
@@ -195,7 +211,7 @@ Hãy trả về kết quả hoàn chỉnh dưới định dạng JSON duy nhất
 DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 "${rawInput}"`;
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry(ai, {
         model: "gemini-3.5-flash",
         contents: promptInput,
         config: {
@@ -206,7 +222,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
       const reply = response.text || "";
       res.json(JSON.parse(reply));
     } catch (error: any) {
-      console.error("Error at /api/analyze-raw:", error);
+      console.log("Error handled at /api/analyze-raw:", error?.message || error);
       res.status(500).json({ error: error?.message || "Đã xảy ra lỗi khi phân tích dữ liệu AI!" });
     }
   });
