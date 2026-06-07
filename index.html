@@ -7,6 +7,15 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Thanh Trà BĐS | Bất Động Sản Nhà Phố Uy Tín</title>
+    <meta name="google-site-verification" content="googlec9d3e95b145afd57.html">
+    <meta name="description" content="Thanh Trà BĐS - Mua bán nhà phố uy tín tại TP. Thủ Đức, TP.HCM. Tư vấn miễn phí, pháp lý rõ ràng. Hotline: 0854.100.036">
+    <meta name="keywords" content="nhà phố Thủ Đức, bất động sản Long Phước, mua bán nhà TP Thủ Đức, Thanh Trà BĐS">
+
+    <!-- Open Graph (hiển thị đẹp khi chia sẻ Facebook/Zalo) -->
+    <meta property="og:title" content="Thanh Trà BĐS | Nhà Phố Thủ Đức Uy Tín">
+    <meta property="og:description" content="Mua bán nhà phố TP. Thủ Đức - Pháp lý rõ ràng - Tư vấn 24/7">
+    <meta property="og:url" content="https://thanhtrabds.vercel.app">
+    <meta property="og:image" content="https://thanhtrabds.vercel.app/thumbnail.jpg">
     <!-- Favicon thương hiệu T. tinh tế và sang trọng -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%230c1524'/%3E%3Cpath d='M16 20c0-1.1.9-2 2-2h28c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2H36v20c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2V26H18c-1.1 0-2-.9-2-2v-4z' fill='%23f97316'/%3E%3Ccircle cx='48' cy='44' r='4' fill='%23f97316'/%3E%3C/svg%3E">
     <!-- Google Fonts: Plus Jakarta Sans & Playfair Display cho phong cách sang trọng và hỗ trợ Tiếng Việt cực tốt -->
@@ -3488,7 +3497,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                     </div>
                     <div class="card-grid-spec-item">
                       <span class="card-grid-icon" style="color: #0ea5e9;">🚽</span>
-                      <span>${p.bathrooms || 3} WC</span>
+                      <span>${p.bathrooms !== undefined && p.bathrooms !== null ? p.bathrooms : 3} WC</span>
                     </div>
                   </div>
                   
@@ -3496,7 +3505,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                   <div style="display: flex; flex-direction: column; gap: 6px;">
                     <div class="card-grid-spec-item">
                       <span class="card-grid-icon" style="color: #22c55e;">🛏️</span>
-                      <span>${p.bedrooms || 3} PN</span>
+                      <span>${p.bedrooms !== undefined && p.bedrooms !== null ? p.bedrooms : 3} PN</span>
                     </div>
                     <div class="card-grid-spec-item">
                       <span class="card-grid-icon" style="color: #f59e0b;">🧭</span>
@@ -3747,10 +3756,10 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           mWidth.textContent = (item.width && item.width > 0) ? `${item.width} m` : "Thương lượng";
         }
         if (mBedrooms) {
-          mBedrooms.textContent = item.bedrooms ? `${item.bedrooms} PN` : "3 PN";
+          mBedrooms.textContent = (item.bedrooms !== undefined && item.bedrooms !== null) ? `${item.bedrooms} PN` : "3 PN";
         }
         if (mBathrooms) {
-          mBathrooms.textContent = item.bathrooms ? `${item.bathrooms} WC` : "3 WC";
+          mBathrooms.textContent = (item.bathrooms !== undefined && item.bathrooms !== null) ? `${item.bathrooms} WC` : "3 WC";
         }
         if (mLegal) {
           mLegal.textContent = item.legal || "Sổ hồng riêng";
@@ -4538,8 +4547,8 @@ Nguyên tắc trả lời:
               if (fHouseNumber) fHouseNumber.value = item.houseNumber || "";
               if (fStreet) fStreet.value = item.street || "";
               if (fWidth) fWidth.value = item.width || "";
-              if (fBedrooms) fBedrooms.value = item.bedrooms || 3;
-              if (fBathrooms) fBathrooms.value = item.bathrooms || 3;
+              if (fBedrooms) fBedrooms.value = (item.bedrooms !== undefined && item.bedrooms !== null) ? item.bedrooms : 3;
+              if (fBathrooms) fBathrooms.value = (item.bathrooms !== undefined && item.bathrooms !== null) ? item.bathrooms : 3;
               if (fFloors) fFloors.value = item.floors || 3;
               if (fLegal) fLegal.value = item.legal || "Sổ hồng riêng";
 
@@ -4615,8 +4624,8 @@ Nguyên tắc trả lời:
         const houseNumberVal = fHouseNumber ? fHouseNumber.value.trim() : "";
         const streetVal = fStreet ? fStreet.value.trim() : "";
         const widthVal = fWidth ? parseFloat(fWidth.value) || 0 : 0;
-        const bedroomsVal = fBedrooms ? parseInt(fBedrooms.value) || 3 : 3;
-        const bathroomsVal = fBathrooms ? parseInt(fBathrooms.value) || 3 : 3;
+        const bedroomsVal = fBedrooms && fBedrooms.value !== "" && !isNaN(parseInt(fBedrooms.value)) ? parseInt(fBedrooms.value) : 3;
+        const bathroomsVal = fBathrooms && fBathrooms.value !== "" && !isNaN(parseInt(fBathrooms.value)) ? parseInt(fBathrooms.value) : 3;
         const legalVal = fLegal ? fLegal.value.trim() : "Sổ hồng riêng";
 
         // Tự động lắp ráp cấu trúc địa chỉ đầy đủ
@@ -5347,8 +5356,8 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   houseNumber: item.house_number || "",
                   street: item.street || "",
                   width: parseFloat(item.width) || 0,
-                  bedrooms: parseInt(item.bedrooms) || 3,
-                  bathrooms: parseInt(item.bathrooms) || 3,
+                  bedrooms: (item.bedrooms !== undefined && item.bedrooms !== null && !isNaN(parseInt(item.bedrooms))) ? parseInt(item.bedrooms) : 3,
+                  bathrooms: (item.bathrooms !== undefined && item.bathrooms !== null && !isNaN(parseInt(item.bathrooms))) ? parseInt(item.bathrooms) : 3,
                   legal: item.legal || "Sổ hồng riêng"
                 }));
                 
