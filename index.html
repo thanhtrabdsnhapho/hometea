@@ -2317,8 +2317,8 @@
         <!-- Thanh Tìm kiếm chính dùng làm nút mở rộng / thu gọn -->
         <div id="btnToggleAdvanced" class="filter-main-bar-wrapper" style="cursor: pointer; margin-bottom: 12px;">
           <div style="position: relative; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #fff; height: 48px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-            <span id="toggleText" style="font-size: 14.5px; color: #4b5563; font-weight: 500;">Thu gọn khung tìm kiếm...</span>
-            <div id="toggleChevron" style="color: #64748b; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: transform 0.25s; transform: rotate(180deg);">
+            <span id="toggleText" style="font-size: 14.5px; color: #4b5563; font-weight: 500;">🔍 Bấm để mở rộng khung tìm kiếm & lọc bất động sản...</span>
+            <div id="toggleChevron" style="color: #64748b; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: transform 0.25s; transform: rotate(0deg);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #3b82f6;">
                 <circle cx="11" cy="11" r="8"/>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -2328,7 +2328,7 @@
         </div>
 
         <!-- Khối bộ lọc nâng cao có thể co giãn -->
-        <div id="filterCollapsibleContent" class="filter-collapsible-content expanded" style="max-height: 1000px; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden;">
+        <div id="filterCollapsibleContent" class="filter-collapsible-content" style="max-height: 0px; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden;">
           <div class="filter-grid" style="margin-top: 14px; display: grid; grid-template-columns: repeat(1, 1fr); gap: 16px;">
             
             <!-- Row 1 -->
@@ -3241,6 +3241,13 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       <!-- TRẠNG THÁI KHU VỰC CHAT HOẠT ĐỘNG THỰC TẾ -->
       <div class="chat-playground" id="chatAiPlayground">
+        <!-- HƯỚNG DẪN KHẮC PHỤC SỰ CỐ -->
+        <div style="background-color: #fffbeb; border-bottom: 1px solid #fde68a; padding: 8px 14px; font-size: 11.5px; color: #b45309; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.4; font-weight: 500;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink: 0; color: #d97706;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          Nếu gặp lỗi không nhắn tin được, vui lòng nhấn <strong>F5</strong> hoặc <strong>làm mới</strong> trang web lại!
+        </div>
         <div class="chat-messages" id="chatAiMessages">
           <div class="chat-bubble bubble-bot">
             Xin chào! Tôi là Trợ lý ảo của Thanh Trà BĐS. Tôi chuyên cung cấp thông tin nhà phố chính xác và hỗ trợ pháp lý nhanh chóng tại khu vực TP. Thủ Đức. Tôi có thể giải đáp gì cho quý anh chị hôm nay?
@@ -3360,7 +3367,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         } else {
           filterCollapsibleContent.style.maxHeight = "0px";
           filterCollapsibleContent.classList.remove('expanded');
-          toggleText.textContent = "Mở rộng khung tìm kiếm...";
+          toggleText.textContent = "🔍 Bấm để mở rộng khung tìm kiếm & lọc bất động sản...";
           toggleChevron.style.transform = "rotate(0deg)";
         }
       }
