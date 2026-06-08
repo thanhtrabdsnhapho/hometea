@@ -160,7 +160,7 @@ Yêu cầu bóc tách các thông số cụ thể:
 - Số phòng ngủ (bedrooms): Số phòng ngủ, là số nguyên (nếu đất trống ghi 0, nếu là nhà phố nhưng dữ liệu thô không nhắc tới thì ghi 3 làm mặc định).
 - Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên (nếu đất trống ghi 0, nếu là nhà phố không nhắc thì ghi 3 làm mặc định).
 - Số tầng (floors): Số tầng kết cấu, nguyên (đất trống ghi 1, nhà cấp 4 ghi 1, nhà lầu ghi số tầng thực tế, hoặc mặc định 3 nếu không nêu rõ).
-- Hướng nhà (direction): Một trong các hướng chuẩn có sẵn: "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu không nhắc tới thì chọn mặc định "Đông".
+- Hướng nhà (direction): Một trong các hướng chuẩn có sẵn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu dữ liệu thô không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định" (tuyệt đối không tự suy diễn hướng).
 - Pháp lý (legal): Ghi nhận tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
 - Nhãn nổi bật (badge): Một nhãn ngắn như "Sổ Hồng Riêng", "Hẻm Xe Hơi", "Mặt Tiền Kinh Doanh", "Sát Đại Học", "Giá Đầu Tư".
 

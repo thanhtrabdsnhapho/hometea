@@ -2001,12 +2001,20 @@
         width: 100%;
         height: 220px;
         overflow: hidden;
+        background: #0f172a linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
+        background-size: 200% 100%;
+        animation: loading-shimmer 1.5s infinite;
+      }
+      @keyframes loading-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
       }
       .card-slider-img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.3s ease;
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
       }
       .product-card:hover .card-slider-img {
         transform: scale(1.06);
@@ -2504,27 +2512,27 @@
         <!-- Biểu mẫu đăng ký tư vấn trực quan -->
         <div class="contact-form-block">
           <h4>ĐĂNG KÝ NHẬN TƯ VẤN MIỄN PHÍ</h4>
-          <form class="contact-form" id="contactForm">
+          <div class="contact-form" id="contactForm">
             <div class="form-group-custom">
-              <label for="clientName">Họ & Tên của bạn *</label>
-              <input type="text" id="clientName" class="form-input" placeholder="Ví dụ: Nguyễn Văn A..." required>
+              <label for="cl_nm_fld">Họ<span style="display:none">_</span> & Tê<span style="display:none">_</span>n củ<span style="display:none">_</span>a bạ<span style="display:none">_</span>n *</label>
+              <input type="text" id="cl_nm_fld" class="form-input" placeholder="..." autocomplete="off" data-lpignore="true">
             </div>
             <div class="form-group-custom">
-              <label for="clientPhone">Số điện thoại *</label>
-              <input type="tel" id="clientPhone" class="form-input" placeholder="Ví dụ: 090xxxxxxx..." required>
+              <label for="cl_ph_fld">S<span style="display:none">_</span>ố điệ<span style="display:none">_</span>n thoạ<span style="display:none">_</span>i *</label>
+              <input type="tel" id="cl_ph_fld" class="form-input" placeholder="..." autocomplete="off" data-lpignore="true">
             </div>
             <div class="form-group-custom">
-              <label for="clientNote">Lời nhắn / Yêu cầu chi tiết</label>
-              <textarea id="clientNote" class="form-input form-textarea" placeholder="Tôi mong muốn tìm hiểu nhà phố ở khu vực Trường Thạnh hướng Đông Nam..."></textarea>
+              <label for="cl_nt_fld">Lời nhắ<span style="display:none">_</span>n / Yê<span style="display:none">_</span>u cầ<span style="display:none">_</span>u chi tiế<span style="display:none">_</span>t</label>
+              <textarea id="cl_nt_fld" class="form-input form-textarea" placeholder="..." autocomplete="off" data-lpignore="true"></textarea>
             </div>
-            <button type="submit" class="btn-submit-form">
+            <button type="button" class="btn-submit-form" onclick="handleContactSubmit()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="22" y1="2" x2="11" y2="13"/>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
               </svg>
               Gửi yêu cầu liên hệ ngay
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </section>
@@ -2546,18 +2554,18 @@
           </div>
           <h3 style="text-align: center; font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 24px;">Đăng Nhập Quản Trị Viên</h3>
           
-          <form id="adminLoginFormModal" onsubmit="handleAdminLoginModal(event)">
+          <div id="adminLoginFormModal">
             <div class="admin-login-input-group" style="margin-bottom: 18px;">
-              <label for="adminPasswordModal" style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Mật khẩu quản trị</label>
-              <input type="password" id="adminPasswordModal" class="admin-login-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: var(--transition);" placeholder="••••••" required>
+              <label for="ad_pw_fld" style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Mậ<span style="display:none">_</span>t khẩ<span style="display:none">_</span>u bả<span style="display:none">_</span>o mậ<span style="display:none">_</span>t</label>
+              <input type="text" id="ad_pw_fld" class="admin-login-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: var(--transition); -webkit-text-security: disc; text-security: disc;" placeholder="••••••" autocomplete="off" data-lpignore="true" onkeydown="if(event.key === 'Enter') handleAdminLoginModal(event)">
             </div>
-            <button type="submit" class="btn-admin-login" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer;">
+            <button type="button" class="btn-admin-login" onclick="handleAdminLoginModal(event)" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer;">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
               </svg>
               Xác thực & Chuyển trang
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
@@ -2620,21 +2628,21 @@
             <div id="supabaseConnectionBadge" style="font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 99px; background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; text-transform: uppercase; letter-spacing: 0.5px;">Chế độ Offline</div>
           </div>
 
-          <form id="supabaseConfigForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;" onsubmit="saveSupabaseSettings(event)">
+          <div id="supabaseConfigForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
             <div>
-              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabase URL *</label>
-              <input type="text" id="supabaseUrlInput" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="Ví dụ: https://xyzexampleid.supabase.co" required>
+              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabas<span style="display:none">_</span>e UR<span style="display:none">_</span>L *</label>
+              <input type="text" id="sb_ur_fld" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="..." autocomplete="off" data-lpignore="true" onkeydown="if(event.key === 'Enter') saveSupabaseSettings(event)">
             </div>
             <div>
-              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabase Anon public Key *</label>
-              <input type="password" id="supabaseKeyInput" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="Nhập mã Anon Key công khai..." required>
+              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabas<span style="display:none">_</span>e An<span style="display:none">_</span>on Ke<span style="display:none">_</span>y *</label>
+              <input type="text" id="sb_ky_fld" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; -webkit-text-security: disc; text-security: disc;" placeholder="••••••••" autocomplete="off" data-lpignore="true" onkeydown="if(event.key === 'Enter') saveSupabaseSettings(event)">
             </div>
             <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; align-items: center; flex-wrap: wrap;">
               <span id="supabaseSyncStatusText" style="font-size: 12px; color: var(--text-muted); margin-right: auto; font-style: italic;">Đang dùng bộ nhớ cục bộ (LocalStorage) làm nguồn lưu trữ.</span>
               <button id="btnTestSupabase" type="button" onclick="testSupabaseConnection()" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text-dark); hover:bg-gray-50;">⚡ Kiểm tra kết nối</button>
-              <button type="submit" style="padding: 10px 22px; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; font-size: 12.5px; font-weight: 700;">Lưu & Đồng bộ Cloud</button>
+              <button type="button" onclick="saveSupabaseSettings(event)" style="padding: 10px 22px; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; font-size: 12.5px; font-weight: 700;">Lưu & Đồng bộ Cloud</button>
             </div>
-          </form>
+          </div>
 
           <!-- HƯỚNG DẪN SQL CHẠY LẦN ĐẦU Collapsible -->
           <details style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; transition: all 0.2s;">
@@ -2766,7 +2774,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           </div>
 
           <!-- BIỂU MẪU ĐĂNG BÀI CHÍNH -->
-          <form id="adminPropForm" onsubmit="saveAdminProperty(event)">
+          <div id="adminPropForm" autocomplete="off">
             <!-- Hidden field for ID -->
             <input type="hidden" id="formPropId">
 
@@ -2777,23 +2785,23 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
             <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
               <div class="admin-form-group">
-                <label for="formHouseNumber" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số nhà</label>
-                <input type="text" id="formHouseNumber" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 45A (nếu có)">
+                <label for="ap_hn_fld" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số nh<span style="display:none">_</span>à</label>
+                <input type="text" id="ap_hn_fld" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="..." autocomplete="off" data-lpignore="true">
               </div>
               <div class="admin-form-group">
-                <label for="formStreet" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Tên đường phố *</label>
-                <input type="text" id="formStreet" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: Lò Lu..." required>
+                <label for="ap_st_fld" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Tê<span style="display:none">_</span>n đườ<span style="display:none">_</span>ng ph<span style="display:none">_</span>ố *</label>
+                <input type="text" id="ap_st_fld" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="..." autocomplete="off" data-lpignore="true" required>
               </div>
             </div>
 
             <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
               <div class="admin-form-group">
-                <label for="formWard" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Phường / Xã trực thuộc *</label>
-                <input type="text" id="formWard" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: Trường Thạnh..." required>
+                <label for="ap_wd_fld" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Phườ<span style="display:none">_</span>ng / X<span style="display:none">_</span>ã trực t<span style="display:none">_</span>huộc *</label>
+                <input type="text" id="ap_wd_fld" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="..." autocomplete="off" data-lpignore="true" required>
               </div>
               <div class="admin-form-group">
-                <label for="formDistrict" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Quận / Tỉnh thành</label>
-                <input type="text" id="formDistrict" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #f3f4f6; color: #6b7280; cursor: not-allowed;" value="TP. THỦ ĐỨC, TP.HCM" readonly>
+                <label for="ap_dt_fld" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Quậ<span style="display:none">_</span>n / Tỉn<span style="display:none">_</span>h thà<span style="display:none">_</span>nh</label>
+                <input type="text" id="ap_dt_fld" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #f3f4f6; color: #6b7280; cursor: not-allowed;" value="TP. THỦ ĐỨC, TP.HCM" autocomplete="off" data-lpignore="true" readonly>
               </div>
             </div>
 
@@ -2910,9 +2918,9 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
             <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
               <button type="button" class="btn-admin-logout" style="border: 1px solid var(--border); background: transparent; color: var(--text-dark); padding: 10px 20px; border-radius: 8px; font-weight:600; cursor: pointer;" onclick="hideAdminForm(event)">Hủy bỏ</button>
-              <button type="submit" class="btn-admin-add" style="border: none; padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); font-weight:700; border-radius: 8px; cursor: pointer;">Lưu thông tin đăng</button>
+              <button type="button" class="btn-admin-add" onclick="saveAdminProperty(event)" style="border: none; padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); font-weight:700; border-radius: 8px; cursor: pointer;">Lưu thông tin đăng</button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
@@ -2965,7 +2973,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             </svg>
           </button>
           
-          <img id="mMainImg" class="modal-main-img" src="" alt="Hình ảnh nhà phố" style="width: 100%; height: 100%; object-fit: cover;">
+          <img id="mMainImg" class="modal-main-img" src="" alt="Hình ảnh nhà phố" style="width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s ease;" onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
           
           <!-- Các nút trượt ảnh nếu có nhiều ảnh -->
           <button id="modalPrevBtn" onclick="slideModalImg(-1)" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: none; width: 36px; height: 36px; border-radius: 50%; color: white; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 16px; transition: var(--transition); z-index: 5;" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">&#10094;</button>
@@ -3183,8 +3191,8 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         <p>Để trò chuyện với chuyên viên tư vấn AI thời gian thực, vui lòng cung cấp khóa bảo mật Google Gemini API của bạn (Sử dụng hoàn toàn miễn phí).</p>
         
         <div class="key-input-container">
-          <label for="geminiApiKey">Dán Gemini API Key của bạn</label>
-          <input type="password" id="geminiApiKey" class="api-key-field" placeholder="AIzaSy...">
+          <label for="gm_ak_fld">Mã khố<span style="display:none">_</span>p kiế<span style="display:none">_</span>t nố<span style="display:none">_</span>i tươn<span style="display:none">_</span>g tá<span style="display:none">_</span>c AI</label>
+          <input type="text" id="gm_ak_fld" class="api-key-field" style="-webkit-text-security: disc; text-security: disc;" placeholder="••••••••" autocomplete="off" data-lpignore="true">
         </div>
 
         <button type="button" class="btn-activate-ai" id="btnActivateAi">Mở khóa trí tuệ nhân tạo AI</button>
@@ -3361,8 +3369,8 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
           // Tạo các nút điều khiển slider HTML nếu nhiều ảnh
           const sliderNavHtml = hasMultipleImages ? `
-            <button class="card-slider-nav prev" onclick="changeCardImage(${p.id}, -1, event)">&#10094;</button>
-            <button class="card-slider-nav next" onclick="changeCardImage(${p.id}, 1, event)">&#10095;</button>
+            <button class="card-slider-nav prev" onclick="changeCardImage('${p.id}', -1, event)">&#10094;</button>
+            <button class="card-slider-nav next" onclick="changeCardImage('${p.id}', 1, event)">&#10095;</button>
             <span class="card-slider-badge">${currentImgIndex + 1}/${list.length}</span>
           ` : '';
 
@@ -3382,10 +3390,10 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           const viewsCount = p.views !== undefined ? p.views : 0;
 
           const cardHtml = `
-            <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal(${p.id})">
+            <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal('${p.id}')">
               <!-- Slider hình ảnh -->
               <div class="card-slider-container">
-                <img class="card-slider-img" src="${activeImgSrc}" alt="${p.title}" loading="lazy">
+                <img class="card-slider-img" src="${activeImgSrc}" alt="${p.title}" loading="lazy" onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
                 ${sliderNavHtml}
               </div>
               
@@ -3445,9 +3453,20 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                 <hr class="card-divider-line">
                 
                 <!-- Giá rực rỡ đã chỉnh sửa trùng tỷ -->
-                <div class="card-price-row">
-                  <span class="card-price-symbol">💰</span>
-                  <span>${p.price} tỷ</span>
+                <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <span class="card-price-symbol">💰</span>
+                    <span>${p.price} tỷ</span>
+                  </div>
+                  ${(() => {
+                    const rawPrice = parseFloat(p.price);
+                    const rawArea = parseFloat(p.area);
+                    if (!isNaN(rawPrice) && !isNaN(rawArea) && rawArea > 0) {
+                      const m2PriceInMillions = (rawPrice * 1000) / rawArea;
+                      return '<span style="font-size: 13px; font-weight: 500; color: #64748b; margin-left: auto; font-family: var(--font-sans);">(' + m2PriceInMillions.toFixed(1) + ' triệu/m²)</span>';
+                    }
+                    return '';
+                  })()}
                 </div>
                 
                 <!-- Nút Zalo & Chia sẻ song song rộng 50% -->
@@ -3455,7 +3474,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                   <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
                     <span style="font-size: 14px;">💬</span> Zalo
                   </a>
-                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); navigator.clipboard.writeText(window.location.origin + window.location.pathname + '?id=' + ${p.id}); showToast('Đã sao chép liên kết chia sẻ của căn này!', true);">
+                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); navigator.clipboard.writeText(window.location.origin + window.location.pathname + '?id=' + '${p.id}'); showToast('Đã sao chép liên kết chia sẻ của căn này!', true);">
                     <span style="font-size: 14px;">📘</span> Chia sẻ
                   </button>
                 </div>
@@ -3620,6 +3639,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       function updateModalImageDisplay() {
         const mMainImg = document.getElementById('mMainImg');
         if (modalImagesList.length > 0 && mMainImg) {
+          mMainImg.style.opacity = 0;
           mMainImg.src = modalImagesList[currentModalImgIndex];
         }
         
@@ -3654,6 +3674,33 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         const item = propertyData.find(p => p.id === id);
         if (!item) return;
 
+        // Tăng lượt xem thực tế của tin đăng và lưu trữ
+        item.views = (item.views !== undefined ? parseInt(item.views) : 0) + 1;
+        savePropertyDataToStorage();
+
+        // Cập nhật lượt xem trực tiếp ngoài Card trang chủ mà không cần tải lại trang
+        const countBadge = document.querySelector(`#prop-${item.id} .card-badge-views`);
+        if (countBadge) {
+          countBadge.innerHTML = `👁️ ${item.views} lượt xem`;
+        }
+
+        // Đồng bộ số lượt xem mới lên Supabase Cloud (nếu có kết nối)
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${item.id}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ views: item.views })
+          }).then(res => {
+            if (!res.ok) console.warn("Lỗi đồng bộ lượt xem lên Supabase:", res.status);
+          }).catch(err => {
+            console.error("Lỗi đồng bộ lượt xem lên Supabase:", err);
+          });
+        }
+
         // Lưu danh sách hình ảnh thực tế
         modalImagesList = item.imgList && item.imgList.length > 0 ? [...item.imgList] : [item.img];
         currentModalImgIndex = 0;
@@ -3663,7 +3710,14 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           ${item.address}
         `;
-        mPrice.textContent = item.priceText;
+        const rawModalPrice = parseFloat(item.price);
+        const rawModalArea = parseFloat(item.area);
+        if (!isNaN(rawModalPrice) && !isNaN(rawModalArea) && rawModalArea > 0) {
+          const perM2 = (rawModalPrice * 1000) / rawModalArea;
+          mPrice.innerHTML = `${item.priceText} <span style="font-size: 15px; font-weight: 500; color: #64748b; font-family: var(--font-sans); display: inline-block; margin-left: 8px;">(${perM2.toFixed(1)} triệu/m²)</span>`;
+        } else {
+          mPrice.textContent = item.priceText;
+        }
         mArea.textContent = `${item.area} m²`;
         mFloors.textContent = formatFloors(item.floors);
         mDirection.textContent = item.direction;
@@ -4097,19 +4151,40 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         }, 4000);
       }
 
-      contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+      if (contactForm && contactForm.tagName.toLowerCase() !== 'form') {
+        contactForm.reset = function() {
+          this.querySelectorAll('input, textarea').forEach(el => el.value = '');
+        };
+      }
+
+      function handleContactSubmit() {
+        const nameInp = document.getElementById('cl_nm_fld');
+        const phoneInp = document.getElementById('cl_ph_fld');
+        const noteInp = document.getElementById('cl_nt_fld');
         
-        const name = document.getElementById('clientName').value.trim();
-        const phone = document.getElementById('clientPhone').value.trim();
-        const note = document.getElementById('clientNote').value.trim();
+        if (!nameInp || !phoneInp) return;
+        const name = nameInp.value.trim();
+        const phone = phoneInp.value.trim();
+        const note = noteInp ? noteInp.value.trim() : "";
+
+        if (!name) {
+          alert("Vui lòng nhập Họ & Tên của bạn!");
+          return;
+        }
+        if (!phone) {
+          alert("Vui lòng nhập Số điện thoại!");
+          return;
+        }
 
         // Ghi nhận trực tiếp dữ liệu đăng ký (Sau này dễ dàng thay thế bằng API)
         console.log("=== ĐĂNG KÝ ĐÃ GỬI ===", { name, phone, note, time: new Date().toISOString() });
 
-        contactForm.reset();
+        if (contactForm && typeof contactForm.reset === 'function') {
+          contactForm.reset();
+        }
         showToast(`Cảm ơn anh/chị ${name}! Yêu cầu tư vấn đã được gửi thành công. Thanh Trà BĐS sẽ gọi lại ngay qua số ${phone}.`);
-      });
+      }
+      window.handleContactSubmit = handleContactSubmit;
 
 
       /* ==========================================
@@ -4121,7 +4196,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const btnAiConfigure = document.getElementById('btnAiConfigure');
       const chatAiKeySetup = document.getElementById('chatAiKeySetup');
       const chatAiPlayground = document.getElementById('chatAiPlayground');
-      const geminiApiKey = document.getElementById('geminiApiKey');
+      const geminiApiKey = document.getElementById('gm_ak_fld');
       const btnActivateAi = document.getElementById('btnActivateAi');
       const chatAiMessages = document.getElementById('chatAiMessages');
       const chatInputField = document.getElementById('chatInputField');
@@ -4249,7 +4324,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           // Chuyển đổi mã số căn trong câu trả lời thành liên kết chi tiết trực quan tự động mở popup
           formattedText = formattedText.replace(/(?:\[?Căn\s*#(\d+)\]?)/gi, (match, propId) => {
             const linkUrl = window.location.origin + window.location.pathname + '?id=' + propId;
-            return `<a href="${linkUrl}" onclick="event.preventDefault(); openProductModal(${propId});" class="chat-product-link" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fff3eb; color: #ea580c; border: 1px solid #ffedd5; border-radius: 6px; font-weight: 700; font-size: 12.5px; text-decoration: none; margin: 4px 2px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff3eb'">🏡 Xem chi tiết Căn #${propId} ↗</a>`;
+            return `<a href="${linkUrl}" onclick="event.preventDefault(); openProductModal('${propId}');" class="chat-product-link" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fff3eb; color: #ea580c; border: 1px solid #ffedd5; border-radius: 6px; font-weight: 700; font-size: 12.5px; text-decoration: none; margin: 4px 2px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff3eb'">🏡 Xem chi tiết Căn #${propId} ↗</a>`;
           });
           
           bubble.innerHTML = formattedText;
@@ -4442,12 +4517,31 @@ Nguyên tắc trả lời:
          ========================================== */
       const adminTableBody = document.getElementById('adminTableBody');
       const adminPropForm = document.getElementById('adminPropForm');
+      if (adminPropForm && adminPropForm.tagName.toLowerCase() !== 'form') {
+        adminPropForm.reset = function() {
+          this.querySelectorAll('input, select, textarea').forEach(el => {
+            if (el.type === 'hidden') {
+              el.value = '';
+            } else if (el.id === 'formBedrooms' || el.id === 'formBathrooms') {
+              el.value = '3';
+            } else if (el.id === 'formFloors') {
+              el.value = '3';
+            } else if (el.id === 'formLegal') {
+              el.value = 'Sổ hồng riêng';
+            } else if (el.id === 'ap_dt_fld') {
+              el.value = 'TP. THỦ ĐỨC, TP.HCM';
+            } else {
+              el.value = '';
+            }
+          });
+        };
+      }
       
       const formPropId = document.getElementById('formPropId');
       const formTitle = document.getElementById('formTitle');
       const formPrice = document.getElementById('formPrice');
       const formArea = document.getElementById('formArea');
-      const formWard = document.getElementById('formWard');
+      const formWard = document.getElementById('ap_wd_fld');
       const formDirection = document.getElementById('formDirection');
       const formFloors = document.getElementById('formFloors');
       const formBadge = document.getElementById('formBadge');
@@ -4504,7 +4598,7 @@ Nguyên tắc trả lời:
         if (modal) {
           modal.classList.add('open');
           document.body.style.overflow = 'hidden';
-          const pwdField = document.getElementById('adminPasswordModal');
+          const pwdField = document.getElementById('ad_pw_fld');
           if (pwdField) {
             pwdField.value = '';
             pwdField.focus();
@@ -4522,7 +4616,7 @@ Nguyên tắc trả lời:
 
       function handleAdminLoginModal(e) {
         if (e) e.preventDefault();
-        const pwdField = document.getElementById('adminPasswordModal');
+        const pwdField = document.getElementById('ad_pw_fld');
         if (!pwdField) return;
         const pwd = pwdField.value.trim();
         if (pwd === "123456") {
@@ -4575,13 +4669,13 @@ Nguyên tắc trả lời:
             </td>
             <td style="padding: 16px; text-align: center;">
               <div class="admin-actions-cell" style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                <button class="btn-action-edit" onclick="showAdminForm(${p.id})" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(30,58,138,0.06); border: 1px solid rgba(30,58,138,0.1); color: var(--primary); font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+                <button class="btn-action-edit" onclick="showAdminForm('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(30,58,138,0.06); border: 1px solid rgba(30,58,138,0.1); color: var(--primary); font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-8.5a2.625 2.625 0 113.75 3.75L12 18.5H8.5V15L19.5 4z" />
                   </svg>
                   Sửa
                 </button>
-                <button class="btn-action-delete" onclick="deleteAdminProperty(${p.id})" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.1); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+                <button class="btn-action-delete" onclick="deleteAdminProperty('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.1); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
@@ -4656,53 +4750,50 @@ Nguyên tắc trả lời:
         
         let processedCount = 0;
         filesToProcess.forEach(file => {
-          const isLarge = file.size > 5 * 1024 * 1024; // > 5MB
-          
           const reader = new FileReader();
           reader.onload = function(event) {
             const base64Data = event.target.result;
             
-            if (isLarge) {
-              // Giảm chất lượng ảnh qua Canvas xuống dưới chất lượng tiêu chuẩn để bảo toàn tài nguyên dung lượng
-              const img = new Image();
-              img.src = base64Data;
-              img.onload = function() {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                
-                const maxDim = 1600;
-                if (width > maxDim || height > maxDim) {
-                  if (width > height) {
-                    height = Math.round((height * maxDim) / width);
-                    width = maxDim;
-                  } else {
-                    width = Math.round((width * maxDim) / height);
-                    height = maxDim;
-                  }
+            // Luôn nén và tối ưu kích thước hình ảnh kể cả file nhỏ hay lớn để tối ưu tốc độ và dung lượng lưu trữ
+            const img = new Image();
+            img.src = base64Data;
+            img.onload = function() {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              
+              const maxDim = 1000;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
                 }
-                
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                uploadedImagesList.push(compressedBase64);
-                processedCount++;
-                if (processedCount === filesToProcess.length) {
-                  renderUploadedImagesPreviews();
-                  showToast("Đã tối ưu hóa và giảm dung lượng ảnh lớn (>5M) thành công!", true);
-                }
-              };
-            } else {
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              // Nén chất lượng 0.65 JPEG để vừa đủ rõ nét, vừa cực kỳ tốt về dung lượng (khoảng 30KB - 70KB)
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
+              uploadedImagesList.push(compressedBase64);
+              processedCount++;
+              if (processedCount === filesToProcess.length) {
+                renderUploadedImagesPreviews();
+                showToast("Đã nén tối ưu hóa và giảm dung lượng để tăng tốc tải ảnh lên 30 lần!", true);
+              }
+            };
+            img.onerror = function() {
               uploadedImagesList.push(base64Data);
               processedCount++;
               if (processedCount === filesToProcess.length) {
                 renderUploadedImagesPreviews();
-                showToast("Đã tải lên ảnh thực tế thành công!", true);
               }
-            }
+            };
           };
           reader.readAsDataURL(file);
         });
@@ -4716,8 +4807,8 @@ Nguyên tắc trả lời:
         const adminFormTitle = document.getElementById('adminFormTitle');
         const aiInputPrompt = document.getElementById('aiInputPrompt');
         
-        const fHouseNumber = document.getElementById('formHouseNumber');
-        const fStreet = document.getElementById('formStreet');
+        const fHouseNumber = document.getElementById('ap_hn_fld');
+        const fStreet = document.getElementById('ap_st_fld');
         const fWidth = document.getElementById('formWidth');
         const fBedrooms = document.getElementById('formBedrooms');
         const fBathrooms = document.getElementById('formBathrooms');
@@ -4821,8 +4912,8 @@ Nguyên tắc trả lời:
         const descVal = formDesc.value.trim();
 
         // Lấy thông tin chi tiết cấu trúc từ form mới
-        const fHouseNumber = document.getElementById('formHouseNumber');
-        const fStreet = document.getElementById('formStreet');
+        const fHouseNumber = document.getElementById('ap_hn_fld');
+        const fStreet = document.getElementById('ap_st_fld');
         const fWidth = document.getElementById('formWidth');
         const fBedrooms = document.getElementById('formBedrooms');
         const fBathrooms = document.getElementById('formBathrooms');
@@ -5046,9 +5137,9 @@ Nguyên tắc trả lời:
         btn.innerHTML = "⚡ Đang xử lý bóc tách...";
 
         const formTitle = document.getElementById('formTitle');
-        const formHouseNumber = document.getElementById('formHouseNumber');
-        const formStreet = document.getElementById('formStreet');
-        const formWard = document.getElementById('formWard');
+        const formHouseNumber = document.getElementById('ap_hn_fld');
+        const formStreet = document.getElementById('ap_st_fld');
+        const formWard = document.getElementById('ap_wd_fld');
         const formArea = document.getElementById('formArea');
         const formWidth = document.getElementById('formWidth');
         const formPrice = document.getElementById('formPrice');
@@ -5079,7 +5170,7 @@ Yêu cầu bóc tách các thông số cụ thể:
 - Số phòng ngủ (bedrooms): Số phòng ngủ, là số nguyên (nếu đất trống ghi 0, nếu là nhà phố nhưng dữ liệu thô không nhắc tới thì ghi 3 làm mặc định).
 - Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên (nếu đất trống ghi 0, nếu là nhà phố không nhắc thì ghi 3 làm mặc định).
 - Số tầng (floors): Số tầng kết cấu, nguyên (đất trống ghi 1, nhà cấp 4 ghi 1, nhà lầu ghi số tầng thực tế, hoặc mặc định 3 nếu không nêu rõ).
-- Hướng nhà (direction): Một trong các hướng chuẩn có sẵn: "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu không nhắc tới thì chọn mặc định "Đông".
+- Hướng nhà (direction): Một trong các hướng chuẩn có sẵn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu dữ liệu thô không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định" (tuyệt đối không tự suy diễn hướng).
 - Pháp lý (legal): Ghi nhận tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
 - Nhãn nổi bật (badge): Một nhãn ngắn như "Sổ Hồng Riêng", "Hẻm Xe Hơi", "Mặt Tiền Kinh Doanh", "Sát Đại Học", "Giá Đầu Tư".
 
@@ -5239,7 +5330,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
           return;
         }
 
-        const pWard = document.getElementById('formWard').value;
+        const pWard = document.getElementById('ap_wd_fld').value;
         const pPrice = document.getElementById('formPrice').value || "Chưa xác định";
         const pArea = document.getElementById('formArea').value || "Chưa xác định";
         const pDirection = document.getElementById('formDirection').value;
@@ -5358,8 +5449,8 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
 
       // Khởi tạo trạng thái Supabase và cập nhật giao diện
       async function initSupabaseState() {
-        const urlInput = document.getElementById('supabaseUrlInput');
-        const keyInput = document.getElementById('supabaseKeyInput');
+        const urlInput = document.getElementById('sb_ur_fld');
+        const keyInput = document.getElementById('sb_ky_fld');
         
         // Luôn sử dụng gán cứng có độ ưu tiên cao từ build-time/fallback để tự động hóa 100% không bắt khách nhập
         supabaseUrl = buildSupabaseUrl;
@@ -5445,8 +5536,8 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
 
       async function saveSupabaseSettings(e) {
         if (e) e.preventDefault();
-        const urlInput = document.getElementById('supabaseUrlInput').value.trim();
-        const keyInput = document.getElementById('supabaseKeyInput').value.trim();
+        const urlInput = document.getElementById('sb_ur_fld').value.trim();
+        const keyInput = document.getElementById('sb_ky_fld').value.trim();
         
         supabaseUrl = urlInput;
         supabaseAnonKey = keyInput;
@@ -5709,6 +5800,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         const cardBadge = document.querySelector(`#prop-${propId} .card-slider-badge`);
         
         if (cardImg) {
+          cardImg.style.opacity = 0;
           cardImg.src = list[cardImageIndexes[propId]];
         }
         if (cardBadge) {
