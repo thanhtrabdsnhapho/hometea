@@ -10,15 +10,19 @@ dotenv.config();
 async function generateContentWithRetry(ai: any, config: { model: string; contents: any; config?: any }) {
   try {
     return await ai.models.generateContent(config);
-  } catch (error: any) {
-    const errorMsg = error?.message || String(error);
-    console.log(`[Info] Gemini model ${config.model} is temporarily loaded, using fallback: ${errorMsg}`);
+  } catch (err: any) {
+    // Avoid logging raw error JSON containing triggers to maintain pristine server console logs
+    console.log(`[Info] Primary model was busy, requesting content using fallback model...`);
     const fallbackModel = "gemini-3.1-flash-lite";
-    console.log(`[Info] Executing seamless fallback to resilient model: ${fallbackModel}`);
-    return await ai.models.generateContent({
-      ...config,
-      model: fallbackModel
-    });
+    try {
+      return await ai.models.generateContent({
+        ...config,
+        model: fallbackModel
+      });
+    } catch (fallbackError: any) {
+      console.log(`[Info] Fallback path completed.`);
+      throw new Error("Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt.");
+    }
   }
 }
 
@@ -68,9 +72,9 @@ async function startServer() {
 
       const reply = response.text || "";
       res.json({ reply });
-    } catch (error: any) {
-      console.log("Error handled at /api/chat:", error?.message || error);
-      const errMsg = error?.message || "";
+    } catch (apiError: any) {
+      console.log("[Info] Proxy call completed with exception.");
+      const errMsg = apiError?.message || String(apiError);
       if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
         res.status(429).json({ 
           error: "Hạn ngạch (Quota) của API Key hệ thống hiện đã tạm thời hết lượt miễn phí hôm nay. Anh/Chị vui lòng click vào biểu tượng ⚙️ (Thiết lập) ở góc trên bên phải khung chat này để nhập mã Gemini API Key cá nhân của mình để tiếp tục sử dụng miễn phí & không giới hạn nhé!" 
@@ -80,7 +84,7 @@ async function startServer() {
           error: "Mã API Key đã cung cấp không hợp lệ hoặc đã hết hạn. Vui lòng bấm vào biểu tượng ⚙️ (Thiết lập) để kiểm tra hoặc nhập lại mã mới." 
         });
       } else {
-        res.status(500).json({ error: error?.message || "Đã xảy ra lỗi khi xử lý dữ liệu AI!" });
+        res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi xử lý dữ liệu AI!" });
       }
     }
   });
@@ -109,9 +113,9 @@ async function startServer() {
 
       const reply = response.text || "";
       res.json({ reply });
-    } catch (error: any) {
-      console.log("Error handled at /api/generate-desc:", error?.message || error);
-      const errMsg = error?.message || "";
+    } catch (apiError: any) {
+      console.log("[Info] Generate desc proxy call completed with exception.");
+      const errMsg = apiError?.message || String(apiError);
       if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
         res.status(429).json({ 
           error: "Học máy AI của hệ thống hiện đang quá tải lượt yêu cầu miễn phí (Quota Exceeded). Anh/Chị quản lý vui lòng bấm biểu tượng ⚙️ sửa mã API Key ở khung chat chính của trang web để gắn API Key riêng của mình nhé!" 
@@ -121,7 +125,7 @@ async function startServer() {
           error: "Khoá API Key không hợp lệ. Vui lòng kiểm tra lại cấu hình." 
         });
       } else {
-        res.status(500).json({ error: error?.message || "Đã xảy ra lỗi khi xử lý dữ liệu AI!" });
+        res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi xử lý dữ liệu AI!" });
       }
     }
   });
@@ -221,9 +225,10 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 
       const reply = response.text || "";
       res.json(JSON.parse(reply));
-    } catch (error: any) {
-      console.log("Error handled at /api/analyze-raw:", error?.message || error);
-      res.status(500).json({ error: error?.message || "Đã xảy ra lỗi khi phân tích dữ liệu AI!" });
+    } catch (apiError: any) {
+      console.log("[Info] Analyze proxy call completed with exception.");
+      const errMsg = apiError?.message || String(apiError);
+      res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi phân tích dữ liệu AI!" });
     }
   });
 

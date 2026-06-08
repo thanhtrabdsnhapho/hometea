@@ -489,6 +489,18 @@
         color: var(--primary-light);
       }
 
+      .grid-row-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+
+      @media (max-width: 768px) {
+        .grid-row-4 {
+          grid-template-columns: 1fr !important;
+        }
+      }
+
       /* --- PRODUCT SECTION --- */
       .products-section {
         max-width: 1200px;
@@ -2302,12 +2314,12 @@
     <!-- SECTION BỘ LỌC TÌM KIẾM SẢN PHẨM REALTIME -->
     <section class="filter-section">
       <div class="filter-card">
-        <!-- Input tìm kiếm chính luôn hiển thị -->
-        <div class="filter-main-bar-wrapper">
-          <div style="position: relative; width: 100%;">
-            <input type="text" id="filterKeyword" class="main-search-input" placeholder="Tìm kiếm thông tin...">
-            <div class="main-search-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <!-- Thanh Tìm kiếm chính dùng làm nút mở rộng / thu gọn -->
+        <div id="btnToggleAdvanced" class="filter-main-bar-wrapper" style="cursor: pointer; margin-bottom: 12px;">
+          <div style="position: relative; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #fff; height: 48px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span id="toggleText" style="font-size: 14.5px; color: #4b5563; font-weight: 500;">Thu gọn khung tìm kiếm...</span>
+            <div id="toggleChevron" style="color: #64748b; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: transform 0.25s; transform: rotate(180deg);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #3b82f6;">
                 <circle cx="11" cy="11" r="8"/>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
@@ -2315,123 +2327,145 @@
           </div>
         </div>
 
-        <!-- Thanh bấm để mở rộng/thu gọn bộ lọc nâng cao -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--primary);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-            </svg>
-            <span>Bộ lọc thông minh & tìm kiếm thời gian thực</span>
-          </div>
-          <button type="button" class="btn-toggle-advanced" id="btnToggleAdvanced" style="font-size: 13px; font-weight: 700; color: var(--accent); display: inline-flex; align-items: center; gap: 4px;">
-            <span id="toggleText">Mở rộng bộ lọc nâng cao</span>
-            <svg id="toggleChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.25s;">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-        </div>
-
         <!-- Khối bộ lọc nâng cao có thể co giãn -->
-        <div id="filterCollapsibleContent" class="filter-collapsible-content">
-          <div class="filter-grid" style="margin-top: 14px;">
-            <!-- Tỉnh thành -->
-            <div class="filter-group">
-              <label for="filterCity">Tỉnh / Thành phố</label>
-              <select id="filterCity" class="filter-control" disabled>
-                <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
-              </select>
+        <div id="filterCollapsibleContent" class="filter-collapsible-content expanded" style="max-height: 1000px; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden;">
+          <div class="filter-grid" style="margin-top: 14px; display: grid; grid-template-columns: repeat(1, 1fr); gap: 16px;">
+            
+            <!-- Row 1 -->
+            <div class="grid-row-4">
+              <!-- Tỉnh thành -->
+              <div class="filter-group">
+                <label for="filterCity" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Tỉnh/Thành phố</label>
+                <select id="filterCity" class="filter-control" disabled style="background-color: #f1f5f9; color: #475569;">
+                  <option value="TP. Hồ Chí Minh">Tp. Hồ Chí Minh</option>
+                </select>
+              </div>
+
+              <!-- Quận huyện -->
+              <div class="filter-group">
+                <label for="filterDistrict" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Quận/huyện</label>
+                <select id="filterDistrict" class="filter-control" disabled style="background-color: #f1f5f9; color: #475569;">
+                  <option value="TP. Thủ Đức">TP. Thủ Đức</option>
+                </select>
+              </div>
+
+              <!-- Phường xã -->
+              <div class="filter-group">
+                <label for="filterWard" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Phường/xã</label>
+                <select id="filterWard" class="filter-control" style="border: 1px solid #3b82f6; outline: none; background-color: #fff;">
+                  <option value="all">--Phường/xã--</option>
+                  <option value="Hiệp Phú">Hiệp Phú</option>
+                  <option value="Long Bình">Long Bình</option>
+                  <option value="Long Phước">Long Phước</option>
+                  <option value="Long Thạnh Mỹ">Long Thạnh Mỹ</option>
+                  <option value="Long Trường">Long Trường</option>
+                  <option value="Phú Hữu">Phú Hữu</option>
+                  <option value="Phước Bình">Phước Bình</option>
+                  <option value="Phước Long A">Phước Long A</option>
+                  <option value="Phước Long B">Phước Long B</option>
+                  <option value="Tân Phú">Tân Phú</option>
+                  <option value="Tăng Nhơn Phú A">Tăng Nhơn Phú A</option>
+                  <option value="Tăng Nhơn Phú B">Tăng Nhơn Phú B</option>
+                  <option value="Trường Thạnh">Trường Thạnh</option>
+                </select>
+              </div>
+
+              <!-- Hướng nhà (Tiêu chí) -->
+              <div class="filter-group">
+                <label for="filterDirection" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Chọn tiêu chí</label>
+                <select id="filterDirection" class="filter-control" style="background-color: #fff;">
+                  <option value="all">--Chọn hướng--</option>
+                  <option value="Đông">Đông</option>
+                  <option value="Tây">Tây</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Bắc">Bắc</option>
+                  <option value="Đông Nam">Đông Nam</option>
+                  <option value="Đông Bắc">Đông Bắc</option>
+                  <option value="Tây Nam">Tây Nam</option>
+                  <option value="Tây Bắc">Tây Bắc</option>
+                  <option value="Không xác định">Không xác định</option>
+                </select>
+              </div>
             </div>
 
-            <!-- Quận huyện -->
-            <div class="filter-group">
-              <label for="filterDistrict">Quận / Huyện</label>
-              <select id="filterDistrict" class="filter-control" disabled>
-                <option value="TP. Thủ Đức">TP. Thủ Đức</option>
-              </select>
+            <!-- Row 2 -->
+            <div class="grid-row-4">
+              <!-- Từ diện tích -->
+              <div class="filter-group">
+                <label for="filterAreaMin" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Từ diện tích (m²)</label>
+                <input type="number" id="filterAreaMin" class="filter-control filter-input-text" placeholder="Từ m²" style="background-color: #fff;">
+              </div>
+
+              <!-- Đến diện tích -->
+              <div class="filter-group">
+                <label for="filterAreaMax" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Đến diện tích (m²)</label>
+                <input type="number" id="filterAreaMax" class="filter-control filter-input-text" placeholder="Đến m²" style="background-color: #fff;">
+              </div>
+
+              <!-- Từ số tầng -->
+              <div class="filter-group">
+                <label for="filterFloorsMin" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Từ số tầng</label>
+                <input type="number" id="filterFloorsMin" class="filter-control filter-input-text" placeholder="Từ tầng" style="background-color: #fff;">
+              </div>
+
+              <!-- Đến số tầng -->
+              <div class="filter-group">
+                <label for="filterFloorsMax" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Đến số tầng</label>
+                <input type="number" id="filterFloorsMax" class="filter-control filter-input-text" placeholder="Đến tầng" style="background-color: #fff;">
+              </div>
             </div>
 
-            <!-- Phường xã -->
-            <div class="filter-group">
-              <label for="filterWard">Phường / Xã</label>
-              <select id="filterWard" class="filter-control">
-                <option value="all">-- Tất cả Phường --</option>
-                <option value="Trường Thạnh">Trường Thạnh</option>
-                <option value="Thảo Điền">Thảo Điền</option>
-                <option value="Linh Đông">Linh Đông</option>
-                <option value="Phú Hữu">Phú Hữu</option>
-                <option value="Hiệp Bình Chánh">Hiệp Bình Chánh</option>
-                <option value="Phước Long B">Phước Long B</option>
-                <option value="Cát Lái">Cát Lái</option>
-                <option value="Tăng Nhơn Phú A">Tăng Nhơn Phú A</option>
-                <option value="An Phú">An Phú</option>
-                <option value="Bình Chiểu">Bình Chiểu</option>
-                <option value="Hiệp Bình Phước">Hiệp Bình Phước</option>
-              </select>
+            <!-- Row 3 -->
+            <div class="grid-row-4">
+              <!-- Đường phố dã bọc -->
+              <div class="filter-group">
+                <label for="filterStreet" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Đường phố, Tòa, Phân khu</label>
+                <input type="text" id="filterStreet" class="filter-control filter-input-text" placeholder="Nhập tên đường..." style="background-color: #fff;">
+              </div>
+
+              <!-- Từ giá -->
+              <div class="filter-group">
+                <label for="filterPriceMin" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Từ giá (Tỷ)</label>
+                <input type="number" step="0.1" id="filterPriceMin" class="filter-control filter-input-text" placeholder="Từ Tỷ" style="background-color: #fff;">
+              </div>
+
+              <!-- Đến giá -->
+              <div class="filter-group">
+                <label for="filterPriceMax" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Đến giá (Tỷ)</label>
+                <input type="number" step="0.1" id="filterPriceMax" class="filter-control filter-input-text" placeholder="Đến Tỷ" style="background-color: #fff;">
+              </div>
+
+              <!-- Từ khóa tìm kiếm nhanh -->
+              <div class="filter-group">
+                <label for="filterKeyword" style="font-size: 13px; font-weight: 700; color: #334155; text-transform: none; letter-spacing: normal;">Nhập từ khóa tìm kiếm</label>
+                <div style="display: flex; gap: 0; width: 100%;">
+                  <input type="text" id="filterKeyword" class="filter-control filter-input-text" placeholder="Tìm kiếm nhanh..." style="border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; height: 100%; background-color: #fff;">
+                  <button id="btnSearchSubmit" type="button" style="background: #ef4444; color: white; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid #ef4444; border-top-right-radius: 8px; border-bottom-right-radius: 8px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- Hướng nhà -->
-            <div class="filter-group">
-              <label for="filterDirection">Hướng nhà</label>
-              <select id="filterDirection" class="filter-control">
-                <option value="all">-- Tất cả Hướng --</option>
-                <option value="Không xác định">Không xác định</option>
-                <option value="Đông">Đông</option>
-                <option value="Tây">Tây</option>
-                <option value="Nam">Nam</option>
-                <option value="Bắc">Bắc</option>
-                <option value="Đông Nam">Đông Nam</option>
-                <option value="Đông Bắc">Đông Bắc</option>
-                <option value="Tây Nam">Tây Nam</option>
-                <option value="Tây Bắc">Tây Bắc</option>
-              </select>
-            </div>
-
-            <!-- Diện tích -->
-            <div class="filter-group">
-              <label for="filterArea">Diện tích</label>
-              <select id="filterArea" class="filter-control">
-                <option value="all">-- Tất cả diện tích --</option>
-                <option value="sub50">Dưới 50 m²</option>
-                <option value="50to80">50 - 80 m²</option>
-                <option value="80to120">80 - 120 m²</option>
-                <option value="above120">Trên 120 m²</option>
-              </select>
-            </div>
-
-            <!-- Số tầng -->
-            <div class="filter-group">
-              <label for="filterFloors">Số tầng</label>
-              <select id="filterFloors" class="filter-control">
-                <option value="all">-- Tất cả số tầng --</option>
-                <option value="1">1 Tầng (Cấp 4/Trệt)</option>
-                <option value="2">2 Tầng</option>
-                <option value="3">3 Tầng</option>
-                <option value="4">4 Tầng trở lên</option>
-              </select>
-            </div>
-
-            <!-- Giá bán -->
-            <div class="filter-group">
-              <label for="filterPrice">Khoảng giá bán</label>
-              <select id="filterPrice" class="filter-control">
-                <option value="all">-- Tất cả mức giá --</option>
-                <option value="sub3">Dưới 3 Tỷ</option>
-                <option value="3to5">3 - 5 Tỷ</option>
-                <option value="5to8">5 - 8 Tỷ</option>
-                <option value="8to15">8 - 15 Tỷ</option>
-                <option value="above15">Trên 15 Tỷ</option>
-              </select>
-            </div>
           </div>
 
-          <div class="filter-stats" style="margin-top: 14px; padding-top: 14px;">
-            <div id="statCountText">Đang tìm thấy 0 sản phẩm phù hợp...</div>
-            <button type="button" class="btn-reset-filters" id="btnResetFilters">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-              </svg>
-              Xóa bộ lọc
-            </button>
+          <!-- Bottom Row with Stats count and buttons -->
+          <div class="filter-stats" style="margin-top: 14px; padding-top: 14px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 12px;">
+            <div id="statCountText" style="font-size: 14px; font-weight: bold; color: #475569;">Hiển thị 1-30 trong tổng số 84 sản phẩm</div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <button type="button" class="btn-reset-filters" id="btnResetFilters" style="border: 1px solid #cbd5e1; background: white; color: #475569; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                Xóa lọc
+              </button>
+              <button type="button" id="btnApplyFilters" style="border: none; background: #ef4444; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                Lọc thông tin
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2672,8 +2706,12 @@
   bedrooms INT,
   bathrooms INT,
   legal TEXT,
+  views INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Nếu bảng đã tồn tại sẵn, chạy lệnh này để thêm trường đếm lượt xem:
+ALTER TABLE properties_hometea ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
 
 -- Bật phân quyền truy cập thuận tiện trực tiếp từ Client app
 ALTER TABLE properties_hometea ENABLE ROW LEVEL SECURITY;
@@ -3258,6 +3296,12 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       }
 
       let propertyData = JSON.parse(localStorage.getItem('property_data')) || [...initialDefaultData];
+      const startLocalViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
+      propertyData.forEach(p => {
+        if (p && p.id && startLocalViews[p.id]) {
+          p.views = Math.max(p.views || 0, startLocalViews[p.id]);
+        }
+      });
       let lastSavedPropertyId = null;
 
       function savePropertyDataToStorage() {
@@ -3316,7 +3360,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         } else {
           filterCollapsibleContent.style.maxHeight = "0px";
           filterCollapsibleContent.classList.remove('expanded');
-          toggleText.textContent = "Mở rộng bộ lọc nâng cao";
+          toggleText.textContent = "Mở rộng khung tìm kiếm...";
           toggleChevron.style.transform = "rotate(0deg)";
         }
       }
@@ -3328,9 +3372,13 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const filterKeyword = document.getElementById('filterKeyword');
       const filterWard = document.getElementById('filterWard');
       const filterDirection = document.getElementById('filterDirection');
-      const filterArea = document.getElementById('filterArea');
-      const filterFloors = document.getElementById('filterFloors');
-      const filterPrice = document.getElementById('filterPrice');
+      const filterAreaMin = document.getElementById('filterAreaMin');
+      const filterAreaMax = document.getElementById('filterAreaMax');
+      const filterFloorsMin = document.getElementById('filterFloorsMin');
+      const filterFloorsMax = document.getElementById('filterFloorsMax');
+      const filterStreet = document.getElementById('filterStreet');
+      const filterPriceMin = document.getElementById('filterPriceMin');
+      const filterPriceMax = document.getElementById('filterPriceMax');
       const productsGrid = document.getElementById('productsGrid');
       const statCountText = document.getElementById('statCountText');
       const btnResetFilters = document.getElementById('btnResetFilters');
@@ -3349,11 +3397,15 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
               <button onclick="resetAllFilters()" class="btn-reset-filters">Đặt lại bộ lọc tìm kiếm</button>
             </div>
           `;
-          statCountText.textContent = 'Tìm thấy 0 sản phẩm phù hợp';
+          if (statCountText) {
+            statCountText.textContent = `Hiển thị 0 trong tổng số ${propertyData.length} sản phẩm`;
+          }
           return;
         }
 
-        statCountText.textContent = `Tìm thấy ${products.length} sản phẩm phù hợp`;
+        if (statCountText) {
+          statCountText.textContent = `Hiển thị 1-${products.length} trong tổng số ${propertyData.length} sản phẩm`;
+        }
 
         products.forEach(p => {
           // Tính toán danh sách hình ảnh
@@ -3487,50 +3539,63 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       // Hàm lọc sản phẩm realtime
       function applyFilters() {
-        const keyword = filterKeyword.value.toLowerCase().trim();
-        const ward = filterWard.value;
-        const direction = filterDirection.value;
-        const areaRange = filterArea.value;
-        const floorsRange = filterFloors.value;
-        const priceRange = filterPrice.value;
+        const keyword = filterKeyword ? filterKeyword.value.toLowerCase().trim() : '';
+        const ward = filterWard ? filterWard.value : 'all';
+        const direction = filterDirection ? filterDirection.value : 'all';
+        const street = filterStreet ? filterStreet.value.toLowerCase().trim() : '';
+        
+        const areaMin = filterAreaMin && filterAreaMin.value !== '' ? parseFloat(filterAreaMin.value) : null;
+        const areaMax = filterAreaMax && filterAreaMax.value !== '' ? parseFloat(filterAreaMax.value) : null;
+        
+        const floorsMin = filterFloorsMin && filterFloorsMin.value !== '' ? parseInt(filterFloorsMin.value) : null;
+        const floorsMax = filterFloorsMax && filterFloorsMax.value !== '' ? parseInt(filterFloorsMax.value) : null;
+        
+        const priceMin = filterPriceMin && filterPriceMin.value !== '' ? parseFloat(filterPriceMin.value) : null;
+        const priceMax = filterPriceMax && filterPriceMax.value !== '' ? parseFloat(filterPriceMax.value) : null;
 
         const filtered = propertyData.filter(p => {
-          // Lọc theo từ khóa
-          if (keyword && !p.title.toLowerCase().includes(keyword) && !p.address.toLowerCase().includes(keyword)) {
-            return false;
-          }
-
-          // Lọc theo Phường
+          // 1. Phường/xã
           if (ward !== 'all' && p.ward !== ward) {
             return false;
           }
 
-          // Lọc theo hướng nhà
+          // 2. Hướng nhà
           if (direction !== 'all' && p.direction !== direction) {
             return false;
           }
 
-          // Lọc theo kết cấu số tầng
-          if (floorsRange !== 'all') {
-            if (floorsRange === '4' && p.floors < 4) return false;
-            if (floorsRange !== '4' && p.floors !== parseInt(floorsRange)) return false;
+          // 3. Diện tích
+          const pArea = parseFloat(p.area);
+          if (areaMin !== null && pArea < areaMin) return false;
+          if (areaMax !== null && pArea > areaMax) return false;
+
+          // 4. Số tầng
+          const pFloors = parseInt(p.floors);
+          if (floorsMin !== null && pFloors < floorsMin) return false;
+          if (floorsMax !== null && pFloors > floorsMax) return false;
+
+          // 5. Giá tiền
+          const pPrice = parseFloat(p.price);
+          if (priceMin !== null && pPrice < priceMin) return false;
+          if (priceMax !== null && pPrice > priceMax) return false;
+
+          // 6. Đường phố
+          if (street) {
+            const propStreet = (p.street || '').toLowerCase();
+            const propAddr = (p.address || '').toLowerCase();
+            if (!propStreet.includes(street) && !propAddr.includes(street)) {
+              return false;
+            }
           }
 
-          // Lọc theo khoảng diện tích
-          if (areaRange !== 'all') {
-            if (areaRange === 'sub50' && p.area >= 50) return false;
-            if (areaRange === '50to80' && (p.area < 50 || p.area > 80)) return false;
-            if (areaRange === '80to120' && (p.area < 80 || p.area > 120)) return false;
-            if (areaRange === 'above120' && p.area <= 120) return false;
-          }
-
-          // Lọc theo khoảng giá tiền
-          if (priceRange !== 'all') {
-            if (priceRange === 'sub3' && p.price >= 3) return false;
-            if (priceRange === '3to5' && (p.price < 3 || p.price > 5)) return false;
-            if (priceRange === '5to8' && (p.price < 5 || p.price > 8)) return false;
-            if (priceRange === '8to15' && (p.price < 8 || p.price > 15)) return false;
-            if (priceRange === 'above15' && p.price <= 15) return false;
+          // 7. Từ khóa (Tìm kiếm nhanh)
+          if (keyword) {
+            const propTitle = (p.title || '').toLowerCase();
+            const propDesc = (p.desc || '').toLowerCase();
+            const propAddr = (p.address || '').toLowerCase();
+            if (!propTitle.includes(keyword) && !propDesc.includes(keyword) && !propAddr.includes(keyword)) {
+              return false;
+            }
           }
 
           return true;
@@ -3541,30 +3606,38 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       // Đặt lại toàn bộ bộ lọc
       function resetAllFilters() {
-        filterKeyword.value = '';
-        filterWard.value = 'all';
-        filterDirection.value = 'all';
-        filterArea.value = 'all';
-        filterFloors.value = 'all';
-        filterPrice.value = 'all';
+        if (filterKeyword) filterKeyword.value = '';
+        if (filterWard) filterWard.value = 'all';
+        if (filterDirection) filterDirection.value = 'all';
+        if (filterAreaMin) filterAreaMin.value = '';
+        if (filterAreaMax) filterAreaMax.value = '';
+        if (filterFloorsMin) filterFloorsMin.value = '';
+        if (filterFloorsMax) filterFloorsMax.value = '';
+        if (filterStreet) filterStreet.value = '';
+        if (filterPriceMin) filterPriceMin.value = '';
+        if (filterPriceMax) filterPriceMax.value = '';
         applyFilters();
       }
 
       // Gắn sự kiện lắng nghe để lọc realtime
-      [filterKeyword, filterWard, filterDirection, filterArea, filterFloors, filterPrice].forEach(ctrl => {
-        ctrl.addEventListener('input', applyFilters);
-        ctrl.addEventListener('change', applyFilters);
+      const filterCtrls = [
+        filterKeyword, filterWard, filterDirection,
+        filterAreaMin, filterAreaMax, filterFloorsMin, filterFloorsMax,
+        filterStreet, filterPriceMin, filterPriceMax
+      ];
+      filterCtrls.forEach(ctrl => {
+        if (ctrl) {
+          ctrl.addEventListener('input', applyFilters);
+          ctrl.addEventListener('change', applyFilters);
+        }
       });
-      btnResetFilters.addEventListener('click', resetAllFilters);
+      if (btnResetFilters) btnResetFilters.addEventListener('click', resetAllFilters);
+      
+      const btnApplyFilters = document.getElementById('btnApplyFilters');
+      if (btnApplyFilters) btnApplyFilters.addEventListener('click', applyFilters);
 
-      // Tự động mở rộng khi nhấp vào ô tìm kiếm chính
-      if (filterKeyword) {
-        filterKeyword.addEventListener('focus', () => {
-          if (!filterCollapsibleContent.classList.contains('expanded')) {
-            toggleFilters(true);
-          }
-        });
-      }
+      const btnSearchSubmit = document.getElementById('btnSearchSubmit');
+      if (btnSearchSubmit) btnSearchSubmit.addEventListener('click', applyFilters);
 
       // Khởi chạy render lần đầu
       renderProducts(propertyData);
@@ -3671,11 +3744,21 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       }
 
       function openProductModal(id) {
-        const item = propertyData.find(p => p.id === id);
+        const item = propertyData.find(p => p.id == id);
         if (!item) return;
 
         // Tăng lượt xem thực tế của tin đăng và lưu trữ
         item.views = (item.views !== undefined ? parseInt(item.views) : 0) + 1;
+        
+        // Lưu trữ cụ thể độc lập tránh bị rỗng khi DB chưa thêm cột views hoặc tải rổ hàng mới
+        try {
+          const localViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
+          localViews[item.id] = item.views;
+          localStorage.setItem('local_property_views', JSON.stringify(localViews));
+        } catch (e) {
+          console.warn("Lỗi lưu trữ local_property_views:", e);
+        }
+        
         savePropertyDataToStorage();
 
         // Cập nhật lượt xem trực tiếp ngoài Card trang chủ mà không cần tải lại trang
@@ -4826,7 +4909,7 @@ Nguyên tắc trả lời:
           document.querySelectorAll('.quick-img-option').forEach(el => el.classList.remove('active'));
           
           if (id) {
-            const item = propertyData.find(p => p.id === id);
+            const item = propertyData.find(p => p.id == id);
             if (item) {
               adminFormTitle.innerHTML = "📝 Cấu hình & Chỉnh sửa tin đăng ID: #" + item.id;
               formPropId.value = item.id;
@@ -5637,6 +5720,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
             if (Array.isArray(data)) {
               if (data.length > 0) {
                 // Ánh xạ chuỗi từ snake_case của PostgreSQL về camelCase của React app
+                const localViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
                 propertyData = data.map(item => ({
                   id: item.id,
                   title: item.title,
@@ -5656,7 +5740,8 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   width: parseFloat(item.width) || 0,
                   bedrooms: (item.bedrooms !== undefined && item.bedrooms !== null && !isNaN(parseInt(item.bedrooms))) ? parseInt(item.bedrooms) : 3,
                   bathrooms: (item.bathrooms !== undefined && item.bathrooms !== null && !isNaN(parseInt(item.bathrooms))) ? parseInt(item.bathrooms) : 3,
-                  legal: item.legal || "Sổ hồng riêng"
+                  legal: item.legal || "Sổ hồng riêng",
+                  views: Math.max(parseInt(item.views) || 0, localViews[item.id] || 0)
                 }));
                 
                 // Lưu dự phòng cục bộ
@@ -5706,7 +5791,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
           }
         }
         
-        propertyData = propertyData.filter(p => p.id !== id);
+        propertyData = propertyData.filter(p => p.id != id);
         savePropertyDataToStorage();
         renderAdminTable();
         applyFilters();
@@ -5783,7 +5868,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
           event.stopPropagation(); // Tránh kích hoạt sự kiện bấm xem chi tiết sản phẩm
         }
         
-        const item = propertyData.find(p => p.id === propId);
+        const item = propertyData.find(p => p.id == propId);
         if (!item) return;
         
         const list = item.imgList && item.imgList.length > 0 ? item.imgList : [item.img];
