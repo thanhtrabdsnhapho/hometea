@@ -4909,7 +4909,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const chatSuggestions = document.getElementById('chatSuggestions');
 
       // Các mã khóa và đường dẫn kết nối đồng bộ cơ sở dữ liệu làm giá trị mặc định (Fallback) khi chạy trên Hosting tĩnh (Vercel, Netlify, GitHub...)
-      const DEFAULT_FALLBACK_GEMINI_KEY = "AQ.Ab8RN6IOb3nLRrc28yGi_bwoKATcR8NSkXuMP2qr4vlpp3T4tA";
+      const DEFAULT_FALLBACK_GEMINI_KEY = ""; // Để trống làm mặc định để gọi lên Express API Proxy
       const DEFAULT_FALLBACK_SUPABASE_URL = "https://bywboejxhpvdahbfvote.supabase.co";
       const DEFAULT_FALLBACK_SUPABASE_KEY = "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r";
 
@@ -4930,16 +4930,27 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const buildSupabaseUrl = getValidValue(INJECTED_VITE_SUPABASE_URL, DEFAULT_FALLBACK_SUPABASE_URL);
       const buildSupabaseKey = getValidValue(INJECTED_VITE_SUPABASE_KEY, DEFAULT_FALLBACK_SUPABASE_KEY);
 
-      let localApiKey = localStorage.getItem('gemini_api_key') || "";
-      if (!localApiKey || localApiKey.trim() === "" || localApiKey === "null") {
-        localApiKey = buildGeminiKey;
-        localStorage.setItem('gemini_api_key', localApiKey);
+      // Hàm kiểm tra định dạng Gemini API Key hợp lệ (nhằm lọc các khóa placeholder như AQ...)
+      function isValidGeminiKey(key) {
+        return key && typeof key === 'string' && key.trim().startsWith('AIzaSy');
       }
-      let serverHasKey = !!buildGeminiKey; // Nếu build-time có Key thì xem như Server/Local có Key
+
+      let localApiKey = localStorage.getItem('gemini_api_key') || "";
+      if (localApiKey === "null" || localApiKey === "undefined" || !isValidGeminiKey(localApiKey)) {
+        if (isValidGeminiKey(buildGeminiKey)) {
+          localApiKey = buildGeminiKey;
+          localStorage.setItem('gemini_api_key', localApiKey);
+        } else {
+          localApiKey = "";
+          localStorage.removeItem('gemini_api_key');
+        }
+      }
+
+      let serverHasKey = isValidGeminiKey(buildGeminiKey); // Nếu build-time có Key hợp lệ thì coi như sẵn sàng
 
       // Check if server-side has the API key
       async function checkServerKey() {
-        if (buildGeminiKey) {
+        if (isValidGeminiKey(buildGeminiKey)) {
           serverHasKey = true;
           initChatboxState();
           return;
