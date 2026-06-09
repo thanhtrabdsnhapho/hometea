@@ -247,9 +247,17 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
     }
   });
  
-  // Phục vụ trực tiếp sitemap.xml từ thư mục gốc
+  // Phục vụ sơ đồ trang web động chuẩn XML trực tiếp từ server
   app.get("/sitemap.xml", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "sitemap.xml"));
+    res.header('Content-Type', 'application/xml');
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://thanhtrabds.vercel.app/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
   });
 
   // Vite middleware for development
