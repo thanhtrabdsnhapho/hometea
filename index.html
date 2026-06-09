@@ -3886,6 +3886,23 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         }
       }
 
+      // Hàm tối ưu hóa URL hình ảnh từ Cloudinary dynamically ở phía client-side
+      function getOptimizedCloudinaryUrl(url, width, height) {
+        if (!url) return "";
+        if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
+          const params = ["f_auto", "q_auto"];
+          if (width) params.push(`w_${width}`);
+          if (height) {
+            params.push(`h_${height}`);
+            params.push("c_fill");
+          } else if (width) {
+            params.push("c_limit");
+          }
+          return url.replace("/image/upload/", `/image/upload/${params.join(",")}/`);
+        }
+        return url;
+      }
+
       // Hàm hiển thị sản phẩm lên trang
       function renderProducts(products, resetPagination = true) {
         if (resetPagination) {
@@ -3949,6 +3966,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           }
           const currentImgIndex = cardImageIndexes[p.id];
           const activeImgSrc = list[currentImgIndex];
+          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 500, 365);
 
           // Tạo các nút điều khiển slider HTML nếu nhiều ảnh
           const sliderNavHtml = hasMultipleImages ? `
@@ -3976,7 +3994,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal('${p.id}')">
               <!-- Slider hình ảnh -->
               <div class="card-slider-container">
-                <img class="card-slider-img" src="${activeImgSrc}" alt="${p.title}" loading="lazy" onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+                <img class="card-slider-img" src="${activeImgSrcOptimized}" alt="${p.title}" loading="lazy" onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
                 ${sliderNavHtml}
               </div>
               
@@ -4267,7 +4285,9 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         const mMainImg = document.getElementById('mMainImg');
         if (modalImagesList.length > 0 && mMainImg) {
           mMainImg.style.opacity = 0;
-          mMainImg.src = modalImagesList[currentModalImgIndex];
+          const originalUrl = modalImagesList[currentModalImgIndex];
+          // Tối ưu hóa ảnh với kích thước chi tiết khoảng 900x675 sắc sảo
+          mMainImg.src = getOptimizedCloudinaryUrl(originalUrl, 900, 675);
         }
         
         // Cập nhật các dots tuyển chọn
@@ -4435,7 +4455,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             thumbsCont.style.display = 'flex';
             modalImagesList.forEach((src, idx) => {
               const img = document.createElement('img');
-              img.src = src;
+              img.src = getOptimizedCloudinaryUrl(src, 120, 90);
               img.className = 'modal-thumb-item';
               img.style.width = '64px';
               img.style.height = '48px';
@@ -5389,9 +5409,10 @@ Nguyên tắc trả lời:
         propertyData.forEach(p => {
           const tr = document.createElement('tr');
           tr.style.borderBottom = '1px solid var(--border)';
+          const adminImgSrc = getOptimizedCloudinaryUrl(p.img, 100, 75);
           tr.innerHTML = `
             <td style="padding: 16px;">
-              <img src="${p.img}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
+              <img src="${adminImgSrc}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
             </td>
             <td style="padding: 16px;">
               <div class="admin-prop-title" style="font-weight: 700; color: var(--primary); font-size: 15px;">${p.title}</div>
@@ -5484,51 +5505,133 @@ Nguyên tắc trả lời:
           alert(`Chỉ có thể tải thêm ${remainingSpace} ảnh (giới hạn tối đa 10 ảnh).`);
         }
         
+        const dropzone = document.getElementById('imageUploadDropzone');
+        const originalHTML = dropzone ? dropzone.innerHTML : '';
+        if (dropzone) {
+          dropzone.innerHTML = `
+            <div class="cloud-uploading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px;">
+              <svg style="color: var(--accent); margin-bottom: 12px; transform-origin: center; animation: spin 1s linear infinite;" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.2)" stroke-width="2.5"/>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+              <div style="font-size: 14px; font-weight: 700; color: var(--accent);">Đang nén & đồng bộ ảnh lên Cloudinary...</div>
+              <div id="uploadProgressText" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Đang xử lý: 0 / ${filesToProcess.length} ảnh</div>
+            </div>
+          `;
+        }
+
         let processedCount = 0;
+        let successCount = 0;
+        let failCount = 0;
+
+        async function uploadRawFile(file) {
+          try {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            const response = await fetch('/api/upload', {
+              method: 'POST',
+              body: formData
+            });
+            
+            const data = await response.json();
+            if (response.ok && data.success && data.secure_url) {
+              uploadedImagesList.push(data.secure_url);
+              successCount++;
+            } else {
+              console.error("Lỗi upload file thô:", data.error);
+              failCount++;
+            }
+          } catch (err) {
+            console.error("Lỗi kết nối upload file thô:", err);
+            failCount++;
+          } finally {
+            processedCount++;
+            updateProgressUI();
+          }
+        }
+
+        function updateProgressUI() {
+          const progressText = document.getElementById('uploadProgressText');
+          if (progressText) {
+            progressText.textContent = `Đang xử lý: ${processedCount} / ${filesToProcess.length} (Thành công: ${successCount}, Thất bại: ${failCount})`;
+          }
+          
+          if (processedCount === filesToProcess.length) {
+            if (dropzone) dropzone.innerHTML = originalHTML;
+            renderUploadedImagesPreviews();
+            
+            if (successCount > 0) {
+              showToast(`Đã tối ưu & tải lên Cloudinary thành công ${successCount} hình ảnh!`, true);
+            }
+            if (failCount > 0) {
+              alert(`Có ${failCount} hình ảnh tải lên thất bại. Vui lòng đảm bảo bạn đã điền các biến môi trường Cloudinary thích hợp ở server.`);
+            }
+          }
+        }
+
         filesToProcess.forEach(file => {
           const reader = new FileReader();
           reader.onload = function(event) {
             const base64Data = event.target.result;
             
-            // Luôn nén và tối ưu kích thước hình ảnh kể cả file nhỏ hay lớn để tối ưu tốc độ và dung lượng lưu trữ
+            // Luôn nén và tối ưu kích thước hình ảnh ở phía client để tiết kiệm 90% băng thông tải lên
             const img = new Image();
             img.src = base64Data;
-            img.onload = function() {
-              const canvas = document.createElement('canvas');
-              let width = img.width;
-              let height = img.height;
-              
-              const maxDim = 1000;
-              if (width > maxDim || height > maxDim) {
-                if (width > height) {
-                  height = Math.round((height * maxDim) / width);
-                  width = maxDim;
-                } else {
-                  width = Math.round((width * maxDim) / height);
-                  height = maxDim;
+            img.onload = async function() {
+              try {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                const maxDim = 1200; // Tăng độ phân giải tối đa lên 1200px cho sắc nét hoàn hảo
+                if (width > maxDim || height > maxDim) {
+                  if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                  } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                  }
                 }
-              }
-              
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, width, height);
-              
-              // Nén chất lượng 0.65 JPEG để vừa đủ rõ nét, vừa cực kỳ tốt về dung lượng (khoảng 30KB - 70KB)
-              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
-              uploadedImagesList.push(compressedBase64);
-              processedCount++;
-              if (processedCount === filesToProcess.length) {
-                renderUploadedImagesPreviews();
-                showToast("Đã nén tối ưu hóa và giảm dung lượng để tăng tốc tải ảnh lên 30 lần!", true);
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Nén JPEG chất lượng cao 0.75
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                
+                // Gửi chuỗi base64 nén lên API server để up trực tiếp sang Cloudinary
+                const response = await fetch('/api/upload', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ image: compressedBase64 })
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.success && data.secure_url) {
+                  uploadedImagesList.push(data.secure_url);
+                  successCount++;
+                } else {
+                  console.error("Lỗi phản hồi tải ảnh Cloudinary:", data.error);
+                  failCount++;
+                }
+              } catch (err) {
+                console.error("Lỗi kết nối API tải ảnh:", err);
+                failCount++;
+              } finally {
+                processedCount++;
+                updateProgressUI();
               }
             };
+            
             img.onerror = function() {
-              uploadedImagesList.push(base64Data);
-              processedCount++;
-              if (processedCount === filesToProcess.length) {
-                renderUploadedImagesPreviews();
-              }
+              // Nếu nén lỗi, thử upload file ảnh gốc ban đầu dạng FormData
+              uploadRawFile(file);
             };
           };
           reader.readAsDataURL(file);

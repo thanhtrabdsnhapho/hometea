@@ -3,8 +3,19 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { v2 as cloudinary } from "cloudinary";
+import multer from "multer";
 
 dotenv.config();
+
+// Cấu hình Multer sử dụng Memory Storage để giữ file đệm trên bộ nhớ RAM trước khi đẩy lên Cloudinary cực nhanh
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // Giới hạn kích thước file ảnh tối đa 10MB
+  }
+});
 
 // Helper function to safely call Gemini with a fallback model if the primary one is unavailable (e.g. 503 high demand)
 async function generateContentWithRetry(ai: any, config: { model: string; contents: any; config?: any }) {
@@ -30,7 +41,88 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  // Tăng giới hạn payload để nhận chuỗi hình ảnh Base64 dung lượng lớn từ client-side gửi lên
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // API Route hỗ trợ upload ảnh lên Cloudinary lưu trữ vào thư mục "thanhtrabds"
+  // Hỗ trợ cả hai chế độ: Chế độ gửi File qua FormData ('image') và gửi chuỗi Base64 ('req.body.image')
+  app.post("/api/upload", upload.single("image"), async (req, res) => {
+    try {
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+      if (!cloudName || !apiKey || !apiSecret) {
+        return res.status(400).json({
+          success: false,
+          error: "Chưa cấu hình thông tin kết nối Cloudinary (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) trong biến môi trường! Quý khách vui lòng cấu hình trong mục Settings hoặc file .env."
+        });
+      }
+
+      // Khởi tạo/Cập nhật cấu hình của Cloudinary động
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+      });
+
+      let fileBuffer: Buffer | null = null;
+      let base64String: string | null = null;
+
+      if (req.file) {
+        fileBuffer = req.file.buffer;
+      } else if (req.body.image) {
+        base64String = req.body.image;
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: "Không tìm thấy tập tin ảnh (qua form-data với key 'image') hoặc chuỗi Base64 (qua trường 'image' trong body)!"
+        });
+      }
+
+      const uploadOptions = {
+        folder: "thanhtrabds",
+        resource_type: "image" as const,
+      };
+
+      if (fileBuffer) {
+        // Tải lên bằng Stream cho trường hợp gửi File nhị phân trực diện
+        const uploadStream = cloudinary.uploader.upload_stream(
+          uploadOptions,
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary Upload Stream Error:", error);
+              return res.status(500).json({
+                success: false,
+                error: `Tải ảnh lên Cloudinary thất bại: ${error.message || error}`
+              });
+            }
+            return res.json({
+              success: true,
+              secure_url: result?.secure_url,
+              public_id: result?.public_id
+            });
+          }
+        );
+        uploadStream.end(fileBuffer);
+      } else if (base64String) {
+        // Tải lên bằng Base64 trực tiếp
+        const result = await cloudinary.uploader.upload(base64String, uploadOptions);
+        return res.json({
+          success: true,
+          secure_url: result.secure_url,
+          public_id: result.public_id
+        });
+      }
+    } catch (err: any) {
+      console.error("Internal Server Upload Error:", err);
+      return res.status(500).json({
+        success: false,
+        error: `Lỗi hệ thống khi tải ảnh lên Cloudinary: ${err.message || err}`
+      });
+    }
+  });
 
   // Check if system/server has the Gemini API Key configured
   app.get("/api/has-key", (req, res) => {
