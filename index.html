@@ -59,6 +59,7 @@
       :root {
         --primary: #1e3a8a;      /* Xanh Navy chủ đạo chuẩn Sleek Interface */
         --primary-light: #2563eb; /* Xanh dương đậm sáng hơn */
+        --primary-dark: #0a1f3d;  /* Màu xanh Navy sẫm lịch lãm làm màu chân trang */
         --accent: #f97316;       /* Màu Cam rực rỡ nổi bật của bộ lọc và nút nhấn */
         --accent-hover: #ea580c; /* Màu Cam sẫm hơn khi hover */
         --secondary: #3b82f6;    /* Xanh dương nhạt nổi bật */
@@ -77,6 +78,7 @@
       :root[data-theme="dark"] {
         --primary: #60a5fa;      /* Thay xanh Navy sang màu xanh sáng hơn cho dark mode */
         --primary-light: #93c5fd;
+        --primary-dark: #070e1b;  /* Màu chân trang tối sâu thẳm */
         --bg-light: #0f172a;     /* Nền tối sâu */
         --card-bg: #1e293b;      /* Nền card slate-800 */
         --text-dark: #f8fafc;    /* Chữ sáng mượt */
@@ -384,6 +386,94 @@
         position: relative;
         width: 100%;
         margin-bottom: 8px;
+      }
+
+      /* --- HỆ THỐNG SEARCH BAR PHÂN LỚP HIỆN ĐẠI --- */
+      .search-main-row-inner {
+        position: relative;
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card-bg, #ffffff);
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: var(--transition);
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      }
+      .search-main-row-inner:hover {
+        border-color: var(--accent);
+      }
+      .search-input-area {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        height: 100%;
+      }
+      .search-icon-svg {
+        color: var(--primary);
+        flex-shrink: 0;
+        margin-right: 10px;
+      }
+      .search-input {
+        border: none;
+        outline: none;
+        width: 100%;
+        height: 100%;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-dark);
+        background: transparent;
+      }
+      .result-count-badge {
+        background: linear-gradient(135deg, var(--accent), #ea580c);
+        color: white;
+        border-radius: 99px;
+        padding: 4px 12px;
+        font-size: 12.5px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 8px;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
+        transition: var(--transition);
+      }
+      .toggle-advanced-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px;
+        height: 100%;
+        border-left: 1px solid var(--border);
+        background: var(--bg-light);
+        cursor: pointer;
+        user-select: none;
+        transition: var(--transition);
+      }
+      .toggle-advanced-btn:hover {
+        background: #e2e8f0;
+      }
+      #toggleText {
+        font-size: 13.5px;
+        color: #475569;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .toggle-chevron {
+        color: #475569;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.25s;
+        transform: rotate(0deg);
       }
       .main-search-input {
         width: 100% !important;
@@ -1584,7 +1674,7 @@
         }
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 1024px) {
         .navbar {
           height: 70px;
         }
@@ -1596,7 +1686,7 @@
           top: 70px;
           left: 0;
           right: 0;
-          background-color: var(--primary);
+          background-color: #0c1524; /* Sử dụng màu xanh đen tối sẫm lịch lãm bảo đảm chữ trắng hiển thị hoàn hảo ở cả 2 chế độ */
           flex-direction: column;
           gap: 0;
           padding: 20px 0;
@@ -1625,7 +1715,7 @@
           display: none;
         }
         .nav-cta {
-          display: none; /* Ẩn hotline phụ trên navbar, đã có nút gọi đặc biệt trên Hero và liên hệ */
+          display: flex !important; /* Luôn hiển thị nút đổi giao diện Sáng/Tối mượt mà ở góc đầu trang */
         }
         .hero-content h2 {
           font-size: 32px;
@@ -1644,6 +1734,131 @@
           width: calc(100% - 48px);
           bottom: 90px;
           right: 24px;
+        }
+
+        /* --- TỐI ƯU HÓA HOÀN HẢO GIAO DIỆN MOBILE DỌC (VERTICAL) --- */
+        .search-main-row-inner {
+          flex-direction: column;
+          height: auto;
+          overflow: visible;
+          background: transparent;
+          border: none;
+          box-shadow: none;
+          gap: 10px;
+        }
+        .search-main-row-inner:hover {
+          border-color: transparent;
+        }
+        .search-input-area {
+          width: 100%;
+          background: var(--card-bg, #ffffff);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          height: 50px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+          padding: 0 12px;
+        }
+        .search-input-area:focus-within {
+          border-color: var(--accent);
+        }
+        .toggle-advanced-btn {
+          width: 100%;
+          justify-content: center;
+          height: 46px;
+          border-left: none;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--card-bg, #ffffff);
+          box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .result-count-badge {
+          padding: 3px 10px;
+          font-size: 11px;
+          margin-left: 4px;
+        }
+      }
+
+      /* Tối ưu hóa cực kỳ chi tiết cho chiều dọc điện thoại rất nhỏ (Portrait < 480px) */
+      @media (max-width: 480px) {
+        .brand-logo-container {
+          width: 36px !important;
+          height: 36px !important;
+        }
+        .brand-logo-container svg {
+          width: 20px !important;
+          height: 20px !important;
+        }
+        .brand-vertical-divider {
+          height: 28px !important;
+        }
+        .brand-wordmark div:nth-child(1) {
+          font-size: 14px !important;
+        }
+        .brand-wordmark div:nth-child(2) {
+          font-size: 8px !important;
+          letter-spacing: 2px !important;
+        }
+        .brand-wordmark div:nth-child(3) {
+          font-size: 6px !important;
+          max-width: 110px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        
+        .hero {
+          height: auto !important;
+          padding: 110px 16px 70px 16px !important;
+        }
+        .hero-content h2 {
+          font-size: 24px !important;
+          line-height: 1.3 !important;
+        }
+        .hero-content p {
+          font-size: 12px !important;
+          letter-spacing: 1px !important;
+        }
+        .hero-ctas {
+          flex-direction: column !important;
+          width: 100%;
+          gap: 10px !important;
+        }
+        .hero-ctas .btn-phone, .hero-ctas .btn-hero-secondary {
+          width: 100% !important;
+          justify-content: center;
+        }
+        
+        .filter-section {
+          margin-top: -24px !important;
+          padding: 0 12px !important;
+        }
+        .filter-card {
+          padding: 16px !important;
+          border-radius: 12px !important;
+        }
+        
+        .product-card {
+          border-radius: 12px !important;
+        }
+        .product-info {
+          padding: 16px !important;
+        }
+        .section-header h3 {
+          font-size: 22px !important;
+        }
+        
+        .modal-backdrop {
+          padding: 8px !important;
+        }
+        .modal-card {
+          border-radius: 12px !important;
+        }
+        .modal-img-container {
+          height: 220px !important;
+        }
+        .modal-info-grid {
+          grid-template-columns: 1fr !important;
+          gap: 12px !important;
         }
       }
 
@@ -2343,13 +2558,13 @@
 
       @media (max-width: 767px) {
         .mobile-sticky-actions {
-          display: flex;
+          display: none !important;
         }
         .ai-chat-trigger {
-          bottom: 74px !important;
+          bottom: 24px !important;
         }
         body {
-          padding-bottom: 70px !important;
+          padding-bottom: 0 !important;
         }
       }
     </style>
@@ -2410,12 +2625,6 @@
           <button id="themeToggleBtn" aria-label="Đổi giao diện Sáng/Tối" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1.5px solid rgba(255, 255, 255, 0.15); color: #fff; cursor: pointer; transition: all 0.25s ease;" onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.08)'" title="Đổi giao diện Sáng/Tối">
             <span id="themeToggleIcon" style="font-size: 18px;">🌙</span>
           </button>
-          <a href="tel:0854100036" class="btn-phone">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-            </svg>
-            0854.100.036
-          </a>
         </div>
 
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
@@ -2454,28 +2663,26 @@
     <section class="filter-section">
       <div class="filter-card">
         <!-- Thanh Tìm kiếm chính dùng làm nút mở rộng / thu gọn -->
-        <div id="searchBarContainer" class="filter-main-bar-wrapper" style="margin-bottom: 12px; position: relative;">
-          <div style="position: relative; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg, #ffffff); height: 50px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.03);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div id="searchBarContainer" class="filter-main-bar-wrapper">
+          <div class="search-main-row-inner" id="searchMainRowInner">
             
             <!-- Vùng nhập liệu từ khóa trực diện -->
-            <div style="flex: 1; display: flex; align-items: center; padding: 0 16px; height: 100%;">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color: var(--primary); flex-shrink: 0; margin-right: 10px;">
+            <div class="search-input-area">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="search-icon-svg">
                 <circle cx="11" cy="11" r="8"/>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
-              <input type="text" id="mainSearchKeyword" placeholder="Nhập tên đường, phường bds hoặc từ khóa cần tìm..." style="border: none; outline: none; width: 100%; height: 100%; font-size: 14px; font-weight: 500; color: var(--text-dark); background: transparent;" autocomplete="off">
+              <input type="text" id="mainSearchKeyword" placeholder="Nhập từ khóa hoặc địa chỉ cần tìm..." class="search-input" autocomplete="off">
               <!-- Nhãn số lượng sản phẩm đang lọc được rực rỡ và chuyên nghiệp -->
-              <span id="filterResultCountBadge" style="background: linear-gradient(135deg, var(--accent), #ea580c); color: white; border-radius: 99px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; white-space: nowrap; box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3); transition: var(--transition);">
+              <span id="filterResultCountBadge" class="result-count-badge">
                 🎯 <span id="filterResultCountText">0</span> căn hợp lệ
               </span>
             </div>
 
             <!-- Nút bật tắt Bộ lọc nâng cao chuyên sâu -->
-            <div id="btnToggleAdvanced" style="display: flex; align-items: center; gap: 8px; padding: 0 16px; height: 100%; border-left: 1px solid var(--border); background: var(--bg-light); cursor: pointer; user-select: none; transition: var(--transition);" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='var(--bg-light)'">
-              <span id="toggleText" style="font-size: 13.5px; color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                Bộ lọc nâng cao
-              </span>
-              <div id="toggleChevron" style="color: #475569; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: transform 0.25s; transform: rotate(0deg);">
+            <div id="btnToggleAdvanced" class="toggle-advanced-btn">
+              <span id="toggleText">Bộ lọc nâng cao</span>
+              <div id="toggleChevron" class="toggle-chevron">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -3446,21 +3653,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       </div>
     </div>
 
-    <!-- NÚT GỌI NGAY & CHAT ZALO CỐ ĐỊNH Ở GÓC DƯỚI MÀN HÌNH ĐIỆN THOẠI -->
-    <div class="mobile-sticky-actions">
-      <a href="tel:0854100036" class="sticky-action-btn phone-btn">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink: 0;">
-          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-        </svg>
-        <span>Gọi Ngay: 0854.100.036</span>
-      </a>
-      <a href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="sticky-action-btn zalo-btn">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-        <span>Chat Zalo</span>
-      </a>
-    </div>
+
 
 
     <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG --- -->
@@ -4003,19 +4196,40 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         navMenu.classList.toggle('open');
       });
 
-      // Tự động đóng menu khi nhấp vào link chuyển hướng
+      // Tự động đóng menu khi nhấp vào link chuyển hướng và hỗ trợ quay về home nếu đang ở admin
       document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
-          if (link.id === 'navAdminLink' && !isAdminLoggedIn) {
-            // Đừng thay đổi class active nếu chưa xác thực admin thành công
-            menuToggle.classList.remove('active');
-            navMenu.classList.remove('open');
-            return;
+          if (link.id === 'navAdminLink') {
+            if (!isAdminLoggedIn) {
+              if (menuToggle) menuToggle.classList.remove('active');
+              if (navMenu) navMenu.classList.remove('open');
+              return;
+            }
+          } else {
+            // Nếu không phải là admin link, đảm bảo quay lại trang chủ
+            switchToPage('home');
+            
+            // Lấy anchor từ href để tự động cuộn chính xác
+            const targetId = link.getAttribute('href');
+            if (targetId && targetId.startsWith('#')) {
+              e.preventDefault();
+              setTimeout(() => {
+                const targetEl = document.querySelector(targetId);
+                if (targetEl) {
+                  const navHeight = 75;
+                  const targetPosition = targetEl.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                  window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                  });
+                }
+              }, 50);
+            }
           }
           document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
           link.classList.add('active');
-          menuToggle.classList.remove('active');
-          navMenu.classList.remove('open');
+          if (menuToggle) menuToggle.classList.remove('active');
+          if (navMenu) navMenu.classList.remove('open');
         });
       });
 
