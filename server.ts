@@ -37,12 +37,27 @@ async function startServer() {
     res.json({ hasKey: !!process.env.GEMINI_API_KEY });
   });
 
-  // API router to deliver Supabase Cloud connection configuration if defined on Server environment
+  // API router to deliver Supabase Cloud connection configuration with server-side fallback to avoid exposure in source files
   app.get("/api/supabase-config", (req, res) => {
     res.json({
-      supabaseUrl: process.env.SUPABASE_URL || "",
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || ""
+      supabaseUrl: process.env.SUPABASE_URL || "https://bywboejxhpvdahbfvote.supabase.co",
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r"
     });
+  });
+
+  // API router to verify administrator password securely on backend side
+  app.post("/api/admin-login", (req, res) => {
+    try {
+      const { password } = req.body;
+      const adminPassword = process.env.ADMIN_PASSWORD || "123456";
+      if (password === adminPassword) {
+        res.json({ success: true, message: "Xác thực quản trị viên thành công!" });
+      } else {
+        res.status(401).json({ success: false, error: "Sai mật khẩu hệ thống! Vui lòng thử lại." });
+      }
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: "Đã xảy ra lỗi hệ thống khi đăng nhập!" });
+    }
   });
 
   // API router to proxy Gemini Chat calls

@@ -2315,15 +2315,30 @@
     <section class="filter-section">
       <div class="filter-card">
         <!-- Thanh Tìm kiếm chính dùng làm nút mở rộng / thu gọn -->
-        <div id="btnToggleAdvanced" class="filter-main-bar-wrapper" style="cursor: pointer; margin-bottom: 12px;">
-          <div style="position: relative; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #fff; height: 48px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-            <span id="toggleText" style="font-size: 14.5px; color: #4b5563; font-weight: 500;">🔍 Bấm để mở rộng khung tìm kiếm & lọc bất động sản...</span>
-            <div id="toggleChevron" style="color: #64748b; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: transform 0.25s; transform: rotate(0deg);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #3b82f6;">
+        <div id="searchBarContainer" class="filter-main-bar-wrapper" style="margin-bottom: 12px; position: relative;">
+          <div style="position: relative; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #fff; height: 50px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.03);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            
+            <!-- Vùng nhập liệu từ khóa trực diện -->
+            <div style="flex: 1; display: flex; align-items: center; padding: 0 16px; height: 100%;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color: var(--primary); flex-shrink: 0; margin-right: 10px;">
                 <circle cx="11" cy="11" r="8"/>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
+              <input type="text" id="mainSearchKeyword" placeholder="Nhập tên đường, phường bds hoặc từ khóa cần tìm..." style="border: none; outline: none; width: 100%; height: 100%; font-size: 14px; font-weight: 500; color: var(--text-dark); background: transparent;" autocomplete="off">
             </div>
+
+            <!-- Nút bật tắt Bộ lọc nâng cao chuyên sâu -->
+            <div id="btnToggleAdvanced" style="display: flex; align-items: center; gap: 8px; padding: 0 16px; height: 100%; border-left: 1px solid var(--border); background: var(--bg-light); cursor: pointer; user-select: none; transition: var(--transition);" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='var(--bg-light)'">
+              <span id="toggleText" style="font-size: 13.5px; color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                Bộ lọc nâng cao
+              </span>
+              <div id="toggleChevron" style="color: #475569; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: transform 0.25s; transform: rotate(0deg);">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -3241,12 +3256,19 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       <!-- TRẠNG THÁI KHU VỰC CHAT HOẠT ĐỘNG THỰC TẾ -->
       <div class="chat-playground" id="chatAiPlayground">
-        <!-- HƯỚNG DẪN KHẮC PHỤC SỰ CỐ -->
-        <div style="background-color: #fffbeb; border-bottom: 1px solid #fde68a; padding: 8px 14px; font-size: 11.5px; color: #b45309; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.4; font-weight: 500;">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink: 0; color: #d97706;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          Nếu gặp lỗi không nhắn tin được, vui lòng nhấn <strong>F5</strong> hoặc <strong>làm mới</strong> trang web lại!
+        <!-- HƯỚNG DẪN KHẮC PHỤC SỰ CỐ TINH TẾ -->
+        <div id="chatTroubleshootAlert" style="background-color: rgba(245, 158, 11, 0.05); border-bottom: 1px solid rgba(245, 158, 11, 0.12); padding: 6px 12px; font-size: 11px; color: #b45309; text-align: center; display: flex; align-items: center; justify-content: space-between; gap: 8px; line-height: 1.4; font-weight: 500; font-family: var(--font-sans);">
+          <div style="display: flex; align-items: center; gap: 6px; text-align: left;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink: 0; color: #ea580c;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Bấm <strong>F5</strong> hoặc <strong>làm mới trang</strong> nếu không nhắn tin được.</span>
+          </div>
+          <button onclick="document.getElementById('chatTroubleshootAlert').style.display='none'" style="cursor: pointer; padding: 2px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.15)'" onmouseout="this.style.backgroundColor='transparent'" title="Đóng">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: #ea580c;">
+              <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
         <div class="chat-messages" id="chatAiMessages">
           <div class="chat-bubble bubble-bot">
@@ -3353,6 +3375,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const filterCollapsibleContent = document.getElementById('filterCollapsibleContent');
       const toggleText = document.getElementById('toggleText');
       const toggleChevron = document.getElementById('toggleChevron');
+      const mainSearchKeyword = document.getElementById('mainSearchKeyword');
 
       function toggleFilters(forceOpen = null) {
         if (!filterCollapsibleContent) return;
@@ -3362,21 +3385,46 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         if (nextState) {
           filterCollapsibleContent.style.maxHeight = "1000px"; // high enough value
           filterCollapsibleContent.classList.add('expanded');
-          toggleText.textContent = "Thu gọn khung tìm kiếm...";
-          toggleChevron.style.transform = "rotate(180deg)";
+          if (toggleText) toggleText.textContent = "Thu gọn bộ lọc";
+          if (toggleChevron) toggleChevron.style.transform = "rotate(180deg)";
         } else {
           filterCollapsibleContent.style.maxHeight = "0px";
           filterCollapsibleContent.classList.remove('expanded');
-          toggleText.textContent = "🔍 Bấm để mở rộng khung tìm kiếm & lọc bất động sản...";
-          toggleChevron.style.transform = "rotate(0deg)";
+          if (toggleText) toggleText.textContent = "Bộ lọc nâng cao";
+          if (toggleChevron) toggleChevron.style.transform = "rotate(0deg)";
         }
       }
 
       if (btnToggleAdvanced) {
-        btnToggleAdvanced.addEventListener('click', () => toggleFilters());
+        btnToggleAdvanced.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleFilters();
+        });
       }
 
       const filterKeyword = document.getElementById('filterKeyword');
+
+      // Tự động đồng bộ trường nhập liệu và kích hoạt hiển thị bộ lọc
+      if (mainSearchKeyword) {
+        mainSearchKeyword.addEventListener('focus', () => {
+          toggleFilters(true);
+        });
+        mainSearchKeyword.addEventListener('input', (e) => {
+          if (filterKeyword) {
+            filterKeyword.value = e.target.value;
+          }
+          applyFilters();
+        });
+      }
+
+      if (filterKeyword) {
+        filterKeyword.addEventListener('input', (e) => {
+          if (mainSearchKeyword) {
+            mainSearchKeyword.value = e.target.value;
+          }
+          applyFilters();
+        });
+      }
       const filterWard = document.getElementById('filterWard');
       const filterDirection = document.getElementById('filterDirection');
       const filterAreaMin = document.getElementById('filterAreaMin');
@@ -3613,6 +3661,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       // Đặt lại toàn bộ bộ lọc
       function resetAllFilters() {
+        if (mainSearchKeyword) mainSearchKeyword.value = '';
         if (filterKeyword) filterKeyword.value = '';
         if (filterWard) filterWard.value = 'all';
         if (filterDirection) filterDirection.value = 'all';
@@ -4295,8 +4344,8 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       // Các mã khóa và đường dẫn kết nối đồng bộ cơ sở dữ liệu làm giá trị mặc định (Fallback) khi chạy trên Hosting tĩnh (Vercel, Netlify, GitHub...)
       const DEFAULT_FALLBACK_GEMINI_KEY = "AQ.Ab8RN6IOb3nLRrc28yGi_bwoKATcR8NSkXuMP2qr4vlpp3T4tA";
-      const DEFAULT_FALLBACK_SUPABASE_URL = "https://bywboejxhpvdahbfvote.supabase.co";
-      const DEFAULT_FALLBACK_SUPABASE_KEY = "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r";
+      const DEFAULT_FALLBACK_SUPABASE_URL = "";
+      const DEFAULT_FALLBACK_SUPABASE_KEY = "";
 
       // Các biến môi trường được thay thế tự động khi build bằng Vite (Cung cấp giải pháp cho Vercel, Netlify, Github...)
       const INJECTED_VITE_GEMINI_KEY = "%VITE_GEMINI_API_KEY%";
@@ -4704,19 +4753,46 @@ Nguyên tắc trả lời:
         }
       }
 
-      function handleAdminLoginModal(e) {
+      async function handleAdminLoginModal(e) {
         if (e) e.preventDefault();
         const pwdField = document.getElementById('ad_pw_fld');
         if (!pwdField) return;
         const pwd = pwdField.value.trim();
-        if (pwd === "123456") {
-          isAdminLoggedIn = true;
-          sessionStorage.setItem('admin_logged_in', 'true');
-          closeAdminLoginModal();
-          switchToPage('admin');
-          showToast("Xác thực quản trị viên thành công!", true);
-        } else {
-          alert("Sai mật khẩu hệ thống! Vui lòng thử lại.");
+        
+        try {
+          const btn = document.querySelector('#adminLoginModal button[type="submit"]');
+          const originalText = btn ? btn.textContent : '';
+          if (btn) {
+            btn.textContent = 'Đang xác thực...';
+            btn.disabled = true;
+          }
+          
+          const res = await fetch("/api/admin-login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ password: pwd })
+          });
+          
+          if (btn) {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }
+          
+          const data = await res.json();
+          if (res.ok && data.success) {
+            isAdminLoggedIn = true;
+            sessionStorage.setItem('admin_logged_in', 'true');
+            closeAdminLoginModal();
+            switchToPage('admin');
+            showToast(data.message || "Xác thực quản trị viên thành công!", true);
+          } else {
+            alert(data.error || "Sai mật khẩu hệ thống! Vui lòng thử lại.");
+          }
+        } catch (err) {
+          console.error("Lỗi đăng nhập admin:", err);
+          alert("Không thể kết nối với máy chủ quản trị. Vui lòng thử lại.");
         }
       }
 
