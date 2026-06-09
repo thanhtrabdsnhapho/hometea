@@ -4676,8 +4676,8 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       // Các mã khóa và đường dẫn kết nối đồng bộ cơ sở dữ liệu làm giá trị mặc định (Fallback) khi chạy trên Hosting tĩnh (Vercel, Netlify, GitHub...)
       const DEFAULT_FALLBACK_GEMINI_KEY = "AQ.Ab8RN6IOb3nLRrc28yGi_bwoKATcR8NSkXuMP2qr4vlpp3T4tA";
-      const DEFAULT_FALLBACK_SUPABASE_URL = "";
-      const DEFAULT_FALLBACK_SUPABASE_KEY = "";
+      const DEFAULT_FALLBACK_SUPABASE_URL = "https://bywboejxhpvdahbfvote.supabase.co";
+      const DEFAULT_FALLBACK_SUPABASE_KEY = "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r";
 
       // Các biến môi trường được thay thế tự động khi build bằng Vite (Cung cấp giải pháp cho Vercel, Netlify, Github...)
       const INJECTED_VITE_GEMINI_KEY = "%VITE_GEMINI_API_KEY%";
@@ -5974,20 +5974,25 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         const urlInput = document.getElementById('sb_ur_fld');
         const keyInput = document.getElementById('sb_ky_fld');
         
-        // Không xóa đè tùy tiện cấu hình localStorage của khách nếu build-time rỗng
-        if (typeof buildSupabaseUrl === 'string' && buildSupabaseUrl.trim() !== '' && !buildSupabaseUrl.startsWith('%')) {
-          supabaseUrl = buildSupabaseUrl;
-          localStorage.setItem('supabase_url', supabaseUrl);
-        } else {
-          supabaseUrl = localStorage.getItem('supabase_url') || "";
+        let savedUrl = localStorage.getItem('supabase_url') || "";
+        let savedKey = localStorage.getItem('supabase_anon_key') || "";
+
+        // Kiểm tra xem có cấu hình build-time hợp lệ không
+        const hasBuildUrl = typeof buildSupabaseUrl === 'string' && buildSupabaseUrl.trim() !== '' && !buildSupabaseUrl.startsWith('%');
+        const hasBuildKey = typeof buildSupabaseKey === 'string' && buildSupabaseKey.trim() !== '' && !buildSupabaseKey.startsWith('%');
+
+        // Chỉ tự động nạp cấu hình mặc định (build-time/fallback) nếu localStorage trống
+        if (!savedUrl && hasBuildUrl) {
+          savedUrl = buildSupabaseUrl;
+          localStorage.setItem('supabase_url', savedUrl);
+        }
+        if (!savedKey && hasBuildKey) {
+          savedKey = buildSupabaseKey;
+          localStorage.setItem('supabase_anon_key', savedKey);
         }
 
-        if (typeof buildSupabaseKey === 'string' && buildSupabaseKey.trim() !== '' && !buildSupabaseKey.startsWith('%')) {
-          supabaseAnonKey = buildSupabaseKey;
-          localStorage.setItem('supabase_anon_key', supabaseAnonKey);
-        } else {
-          supabaseAnonKey = localStorage.getItem('supabase_anon_key') || "";
-        }
+        supabaseUrl = savedUrl;
+        supabaseAnonKey = savedKey;
 
         // Tự động gán kết nối Cloud thẳng từ biến môi trường Server nếu đang chạy node.js
         try {
