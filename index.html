@@ -3488,85 +3488,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       /* ==========================================
          1. DỮ LIỆU SẢN PHẨM MẪU CHẤT LƯỢNG CAO (MẢNG CƠ SỞ)
          ========================================== */
-      const initialDefaultData = [
-        {
-          id: 9001,
-          title: "🔥 BÁN NHÀ PHỐ 2 MẶT TIỀN ĐƯỜNG HIỆP BÌNH, HIỆP BÌNH CHÁNH, THỦ ĐỨC - KINH DOANH SẦM UẤT",
-          price: 8.5,
-          priceText: "8.5 Tỷ",
-          ward: "Hiệp Bình Chánh",
-          direction: "Đông Nam",
-          floors: 3,
-          badge: "🔥 Mặt tiền hot",
-          address: "Mặt tiền đường Hiệp Bình, Phường Hiệp Bình Chánh, Thủ Đức, TP.HCM",
-          img: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
-          imgList: [
-            "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80"
-          ],
-          desc: "Bán gấp căn biệt thự mini đường Hiệp Bình, vị trí đắc địa ngay Hiệp Bình Chánh, Thủ Đức. Diện tích khuôn viên rộng rãi ngang 5m dài 17m vuông thẳng tắp, đúc kiên cố 1 trệt 2 lầu gồm sân ô tô lớn rộng rãi, phòng khách sang trọng, phòng bếp ấm cúng hiện đại, 4 phòng ngủ thoáng đãng có ban công hướng Đông Nam hút tài đón gió mát, 4 toilet trang thiết bị cao cấp nhập khẩu. Vùng giao lộ vàng thuận lợi làm nhà ở gia đình kết hợp văn phòng công ty, spa, siêu thị tiện ích mini hoặc cho thuê hiệu suất sinh lời cao. Cách đại lộ Phạm Văn Đồng chỉ 3 phút, Gigamall 5 phút giao thông đi cả Sân Bay Tân Sơn Nhất cực kỳ trơn tru lành lặn.",
-          area: 85,
-          houseNumber: "28",
-          street: "Hiệp Bình",
-          width: 5.0,
-          bedrooms: 4,
-          bathrooms: 4,
-          legal: "Sổ hồng riêng hoàn công đầy đủ",
-          views: 452
-        },
-        {
-          id: 9002,
-          title: "👑 SIÊU PHẨM NHÀ PHỐ GÓC 2 MẶT TIỀN VIP TÔ NGỌC VÂN, LINH TÂY, THỦ ĐỨC - CẬN KỀ CHỢ THỦ ĐỨC",
-          price: 5.6,
-          priceText: "5.6 Tỷ",
-          ward: "Linh Tây",
-          direction: "Tây Nam",
-          floors: 2,
-          badge: "⭐ Góc 2 mặt tiền",
-          address: "Hẻm xe hơi tránh nhau Tô Ngọc Vân, Phường Linh Tây, Thủ Đức, TP.HCM",
-          img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
-          imgList: [
-            "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=800&q=80"
-          ],
-          desc: "Nhà phố đúc thật kiên cố 1 trệt 1 lầu diện tích 68m2 sàn sử dụng thực tế rộng hơn 120m2. Thiết kế phong cách Âu Châu tối giản ngầm hiện đại lấy sáng và gió thông minh từ hai phía góc thông thoáng mát lành. Gồm có sân riêng cực kỳ rộng, 3 phòng ngủ đầy đủ tiện ích hoàn hảo, 3 phòng vệ sinh. Đường nhựa rộng thênh thang ô tô chạy thẳng tắp tránh nhau không lo sạt sườn. Vị trí vô cùng đẳng cấp tiệm cận Chợ Thủ Đức, Đại Học Sư Phạm Kỹ Thuật, bệnh viện quận và trường học các cấp chỉ trong bán kính 1km bước đi chuyển mình, là nơi dọn vào ở hưởng thụ lâu bền tuyệt vời nhất.",
-          area: 68,
-          houseNumber: "85/4",
-          street: "Tô Ngọc Vân",
-          width: 4.2,
-          bedrooms: 3,
-          bathrooms: 3,
-          legal: "Sổ hồng riêng công chứng ngay",
-          views: 298
-        },
-        {
-          id: 9003,
-          title: "🏰 BIỆT THỰ PHỐ TÂN CỔ ĐIỂN SÂN VƯỜN ĐƯỜNG LINH ĐÔNG, THỦ ĐỨC - XE LỚN ĐẬU NGẬP SÂN",
-          price: 12.8,
-          priceText: "12.8 Tỷ",
-          ward: "Linh Đông",
-          direction: "Đông Bắc",
-          floors: 4,
-          badge: "👑 Đẳng cấp thượng lưu",
-          address: "Khu biệt thự phân lô đồng bộ đường Linh Đông, Phường Linh Đông, Thủ Đức, TP.HCM",
-          img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
-          imgList: [
-            "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80"
-          ],
-          desc: "Dành cho khách hàng thích sự yên tĩnh tinh tế và mong muốn thể hiện đẳng cấp thượng lưu. Biệt thự vườn phong cách tân cổ điển nhẹ nhàng quyến rũ tọa lạc trong khu phân lô khép kín đồng bộ hoàn chỉnh có camera an ninh túc trực 24/7. Kết cấu 1 trệt 3 lầu lửng sân vườn trồng cây uống trà thanh nhã, gara đậu vừa 2 ô tô 7 chỗ dư dả tấp lề. Có đến 5 phòng ngủ khép kín sang chảnh toàn bộ lát sàn gỗ tự nhiên cực ấm chân mát phổi. Toàn bộ sảnh nhà được hoàn thiện đá Marble ngoại nhập chịu lực bền chắc vượt thời đại. Sổ hồng trao tay mua bán trọn vẹn vay được ngân hàng thế chấp lãi suất ưu đãi cực cao sướng lòng.",
-          area: 140,
-          houseNumber: "12A",
-          street: "Linh Đông",
-          width: 8.0,
-          bedrooms: 5,
-          bathrooms: 5,
-          legal: "Sổ hồng hoàn công 100%",
-          views: 612
-        }
-      ];
+      const initialDefaultData = [];
 
       // Cơ chế tự động giải phóng cache khi hệ thống cập nhật phiên bản mới
       const APP_CACHE_VERSION = "v3.0";
@@ -6052,12 +5974,20 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         const urlInput = document.getElementById('sb_ur_fld');
         const keyInput = document.getElementById('sb_ky_fld');
         
-        // Luôn sử dụng gán cứng có độ ưu tiên cao từ build-time/fallback để tự động hóa 100% không bắt khách nhập
-        supabaseUrl = buildSupabaseUrl;
-        supabaseAnonKey = buildSupabaseKey;
-        
-        localStorage.setItem('supabase_url', supabaseUrl);
-        localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+        // Không xóa đè tùy tiện cấu hình localStorage của khách nếu build-time rỗng
+        if (typeof buildSupabaseUrl === 'string' && buildSupabaseUrl.trim() !== '' && !buildSupabaseUrl.startsWith('%')) {
+          supabaseUrl = buildSupabaseUrl;
+          localStorage.setItem('supabase_url', supabaseUrl);
+        } else {
+          supabaseUrl = localStorage.getItem('supabase_url') || "";
+        }
+
+        if (typeof buildSupabaseKey === 'string' && buildSupabaseKey.trim() !== '' && !buildSupabaseKey.startsWith('%')) {
+          supabaseAnonKey = buildSupabaseKey;
+          localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+        } else {
+          supabaseAnonKey = localStorage.getItem('supabase_anon_key') || "";
+        }
 
         // Tự động gán kết nối Cloud thẳng từ biến môi trường Server nếu đang chạy node.js
         try {
