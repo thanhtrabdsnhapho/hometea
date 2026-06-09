@@ -63,6 +63,7 @@
         --accent-hover: #ea580c; /* Màu Cam sẫm hơn khi hover */
         --secondary: #3b82f6;    /* Xanh dương nhạt nổi bật */
         --bg-light: #f8fafc;     /* Nền sáng mượt của slate-50 */
+        --card-bg: #ffffff;      /* Nền trắng sáng cho các thành phần */
         --text-dark: #0f172a;    /* Màu chữ sẫm của slate-900 */
         --text-muted: #64748b;   /* Chữ ghi nhạt của slate-500 */
         --border: #e2e8f0;       /* Viền thanh lịch border-slate-200 */
@@ -71,6 +72,23 @@
         --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         --shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
         --shadow-lg: 0 10px 25px -5px rgba(30, 58, 138, 0.1), 0 8px 10px -6px rgba(30, 58, 138, 0.1);
+      }
+
+      :root[data-theme="dark"] {
+        --primary: #60a5fa;      /* Thay xanh Navy sang màu xanh sáng hơn cho dark mode */
+        --primary-light: #93c5fd;
+        --bg-light: #0f172a;     /* Nền tối sâu */
+        --card-bg: #1e293b;      /* Nền card slate-800 */
+        --text-dark: #f8fafc;    /* Chữ sáng mượt */
+        --text-muted: #94a3b8;   /* Màu chữ phụ xám nhẹ */
+        --border: #334155;       /* Viền sẫm */
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+      }
+
+      .card-badge-popular {
+        background-image: linear-gradient(135deg, #e11d48, #ea580c) !important;
+        color: #ffffff !important;
       }
 
       /* RESET CSS */
@@ -354,7 +372,7 @@
       }
 
       .filter-card {
-        background: #fff;
+        background: var(--card-bg, #ffffff);
         border-radius: 16px;
         padding: 24px;
         box-shadow: var(--shadow-lg);
@@ -436,11 +454,11 @@
       .filter-control {
         width: 100%;
         padding: 12px;
-        background-color: var(--bg-light);
-        border: 1px solid var(--border);
+        background-color: var(--card-bg, #ffffff) !important;
+        border: 1px solid var(--border) !important;
         border-radius: 8px;
         font-size: 14px;
-        color: var(--text-dark);
+        color: var(--text-dark) !important;
         outline: none;
         transition: var(--transition);
         appearance: none;
@@ -452,8 +470,8 @@
       }
 
       .filter-control:focus {
-        border-color: var(--accent);
-        background-color: #fff;
+        border-color: var(--accent) !important;
+        background-color: var(--card-bg, #ffffff) !important;
         box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
       }
 
@@ -543,7 +561,7 @@
 
       /* Card sản phẩm */
       .product-card {
-        background:#fff;
+        background: var(--card-bg, #ffffff);
         border-radius: 16px;
         overflow: hidden;
         box-shadow: var(--shadow);
@@ -712,7 +730,7 @@
         grid-column: 1 / -1;
         text-align: center;
         padding: 60px 24px;
-        background: #fff;
+        background: var(--card-bg, #ffffff);
         border-radius: 16px;
         border: 1px dashed var(--border);
       }
@@ -1020,7 +1038,7 @@
       }
 
       .modal-card {
-        background-color: #fff;
+        background-color: var(--card-bg, #ffffff);
         max-width: 800px;
         width: 100%;
         max-height: 90vh;
@@ -1640,7 +1658,7 @@
       }
 
       .admin-card {
-        background: #fff;
+        background: var(--card-bg, #ffffff);
         border-radius: 16px;
         padding: 32px;
         box-shadow: var(--shadow-lg);
@@ -1671,7 +1689,7 @@
       }
 
       .admin-login-card {
-        background: #fff;
+        background: var(--card-bg, #ffffff);
         border-radius: 16px;
         padding: 40px 32px;
         box-shadow: var(--shadow-lg);
@@ -1820,7 +1838,7 @@
         overflow-x: auto;
         border: 1px solid var(--border);
         border-radius: 12px;
-        background: #fff;
+        background: var(--card-bg, #ffffff);
       }
 
       .admin-table {
@@ -2217,6 +2235,123 @@
           transform: scale(1);
         }
       }
+
+      /* --- SKELETON LOADING EFFECTS --- */
+      .skeleton-card {
+        background: var(--card-bg, #ffffff);
+        border-radius: 12px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        animation: pulse-skeleton 1.5s infinite ease-in-out;
+      }
+      .skeleton-image {
+        width: 100%;
+        height: 190px;
+        background: #e2e8f0;
+      }
+      .skeleton-body {
+        padding: 16px;
+      }
+      .skeleton-line {
+        height: 14px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        margin-bottom: 12px;
+      }
+      .skeleton-line-title {
+        height: 18px;
+        width: 80%;
+        background: #e2e8f0;
+        border-radius: 4px;
+        margin-bottom: 14px;
+      }
+      .skeleton-line-paragraph {
+        height: 12px;
+        width: 100%;
+        background: #e2e8f0;
+        border-radius: 4px;
+        margin-bottom: 8px;
+      }
+      .skeleton-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 16px 0;
+      }
+      .skeleton-spec {
+        height: 12px;
+        background: #e2e8f0;
+        border-radius: 4px;
+      }
+      @keyframes pulse-skeleton {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+      }
+
+      /* --- STICKY BOTTOM ACTIONS FOR MOBILE PHONES --- */
+      .mobile-sticky-actions {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        padding: 8px 16px;
+        gap: 12px;
+        z-index: 1001;
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+      }
+
+      .sticky-action-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 46px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+
+      .mobile-sticky-actions .phone-btn {
+        background: linear-gradient(135deg, #16a34a, #10b981);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+      }
+
+      .mobile-sticky-actions .phone-btn:hover {
+        background: linear-gradient(135deg, #15803d, #059669);
+      }
+
+      .mobile-sticky-actions .zalo-btn {
+        background: linear-gradient(135deg, #0284c7, #0068ff);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+      }
+
+      .mobile-sticky-actions .zalo-btn:hover {
+        background: linear-gradient(135deg, #0369a1, #0056d6);
+      }
+
+      @media (max-width: 767px) {
+        .mobile-sticky-actions {
+          display: flex;
+        }
+        .ai-chat-trigger {
+          bottom: 74px !important;
+        }
+        body {
+          padding-bottom: 70px !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -2270,7 +2405,11 @@
           <li><a href="#" onclick="showAdminSection(event)" id="navAdminLink" class="nav-link"><span style="margin-right: 4px;">🔐</span>Admin</a></li>
         </ul>
 
-        <div class="nav-cta">
+        <div class="nav-cta" style="display: flex; align-items: center; gap: 12px;">
+          <!-- Nút Dark/Light Mode Toggle -->
+          <button id="themeToggleBtn" aria-label="Đổi giao diện Sáng/Tối" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1.5px solid rgba(255, 255, 255, 0.15); color: #fff; cursor: pointer; transition: all 0.25s ease;" onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.08)'" title="Đổi giao diện Sáng/Tối">
+            <span id="themeToggleIcon" style="font-size: 18px;">🌙</span>
+          </button>
           <a href="tel:0854100036" class="btn-phone">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
@@ -2292,7 +2431,7 @@
       <!-- HERO SECTION -->
       <div class="hero-content">
         <h2>BẤT ĐỘNG SẢN NHÀ PHỐ</h2>
-        <p>UY TÍN - TẬT TÂM - CHUYÊN NGHIỆP</p>
+        <p>UY TÍN - TẬN TÂM - CHUYÊN NGHIỆP</p>
         <div class="hero-ctas">
           <a href="tel:0854100036" class="btn-hero-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -2316,7 +2455,7 @@
       <div class="filter-card">
         <!-- Thanh Tìm kiếm chính dùng làm nút mở rộng / thu gọn -->
         <div id="searchBarContainer" class="filter-main-bar-wrapper" style="margin-bottom: 12px; position: relative;">
-          <div style="position: relative; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #fff; height: 50px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.03);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="position: relative; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg, #ffffff); height: 50px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.03);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
             
             <!-- Vùng nhập liệu từ khóa trực diện -->
             <div style="flex: 1; display: flex; align-items: center; padding: 0 16px; height: 100%;">
@@ -2325,6 +2464,10 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
               <input type="text" id="mainSearchKeyword" placeholder="Nhập tên đường, phường bds hoặc từ khóa cần tìm..." style="border: none; outline: none; width: 100%; height: 100%; font-size: 14px; font-weight: 500; color: var(--text-dark); background: transparent;" autocomplete="off">
+              <!-- Nhãn số lượng sản phẩm đang lọc được rực rỡ và chuyên nghiệp -->
+              <span id="filterResultCountBadge" style="background: linear-gradient(135deg, var(--accent), #ea580c); color: white; border-radius: 99px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; white-space: nowrap; box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3); transition: var(--transition);">
+                🎯 <span id="filterResultCountText">0</span> căn hợp lệ
+              </span>
             </div>
 
             <!-- Nút bật tắt Bộ lọc nâng cao chuyên sâu -->
@@ -2494,6 +2637,13 @@
 
       <div class="products-grid" id="productsGrid">
         <!-- Các card sản phẩm được render tự động qua JavaScript -->
+      </div>
+
+      <!-- Nút Xem thêm phân trang của Thanh Trà BĐS -->
+      <div id="loadMoreContainer" style="display: flex; justify-content: center; margin-top: 32px; margin-bottom: 32px; width: 100%;">
+        <button id="btnLoadMore" style="display: none; align-items: center; justify-content: center; gap: 8px; padding: 12px 32px; font-size: 15px; font-weight: 700; border-radius: 99px; border: none; background: var(--accent); color: white; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(249, 115, 22, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(249, 115, 22, 0.25)';">
+          Xem thêm sản phẩm <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle;"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
     </main>
 
@@ -2984,7 +3134,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         <!-- Nhãn hàng hiệu -->
         <div class="footer-brand">
           <h5>THANH TRÀ BĐS</h5>
-          <p>Nền tảng tư vấn, môi giới bất động sản nhà phố chuyên nghiệp, uy tín hàng đầu tại TP. Thủ Đức - TP. Hồ Chí Minh. Chúng tôi luôn đồng hành bảo vệ pháp lý vững vàng cho gia đình bạn.</p>
+          <p>Nền tảng tư vấn, môi giới bất động sản nhà phố chuyên nghiệp, uy tín tại TP. Thủ Đức - TP. Hồ Chí Minh. Chúng tôi luôn đồng hành bảo vệ pháp lý vững vàng cho gia đình bạn.</p>
         </div>
 
         <!-- Liên kết nhanh -->
@@ -3296,12 +3446,36 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       </div>
     </div>
 
+    <!-- NÚT GỌI NGAY & CHAT ZALO CỐ ĐỊNH Ở GÓC DƯỚI MÀN HÌNH ĐIỆN THOẠI -->
+    <div class="mobile-sticky-actions">
+      <a href="tel:0854100036" class="sticky-action-btn phone-btn">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink: 0;">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+        </svg>
+        <span>Gọi Ngay: 0854.100.036</span>
+      </a>
+      <a href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="sticky-action-btn zalo-btn">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <span>Chat Zalo</span>
+      </a>
+    </div>
+
 
     <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG --- -->
     <script>
+      // Khởi tạo theme tức thì để tránh giật lag nhấp nháy giao diện
+      (function() {
+        const savedTheme = localStorage.getItem('app-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+
       // Khai báo các biến trạng thái toàn cục trước để tránh lỗi TDZ (Temporal Dead Zone)
       let isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
       const cardImageIndexes = {};
+      let currentFilteredProducts = [];
+      let displayedProductLimit = 12;
 
       function formatFloors(floors) {
         const val = parseInt(floors);
@@ -3438,9 +3612,103 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const statCountText = document.getElementById('statCountText');
       const btnResetFilters = document.getElementById('btnResetFilters');
 
-      // Hàm hiển thị sản phẩm lên trang
-      function renderProducts(products) {
+      // Hàm hiển thị hiệu ứng skeleton loading khi đang tải sản phẩm từ Cloud
+      function renderSkeletons() {
+        if (!productsGrid) return;
         productsGrid.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+          productsGrid.innerHTML += `
+            <div class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-body">
+                <style>
+                  /* Thêm một số thuộc tính animation phụ trợ trực tiếp nếu cần */
+                </style>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
+                  <div class="skeleton-line" style="width: 70px; height: 16px; margin-bottom: 0;"></div>
+                  <div class="skeleton-line" style="width: 80px; height: 16px; margin-bottom: 0;"></div>
+                </div>
+                <div class="skeleton-line-title" style="height: 20px;"></div>
+                <div class="skeleton-line-paragraph" style="height: 14px;"></div>
+                <div class="skeleton-line-paragraph" style="width: 90%; height: 14px;"></div>
+                <div class="skeleton-grid">
+                  <div class="skeleton-spec" style="height: 14px;"></div>
+                  <div class="skeleton-spec" style="height: 14px;"></div>
+                  <div class="skeleton-spec" style="height: 14px;"></div>
+                  <div class="skeleton-spec" style="height: 14px;"></div>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #f1f5f9; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div class="skeleton-line" style="width: 100px; height: 20px; margin-bottom: 0;"></div>
+                  <div class="skeleton-line" style="width: 60px; height: 20px; margin-bottom: 0;"></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Hàm sao chép liên kết chia sẻ của từng sản phẩm chứa mã căn ?id=X
+      function fallbackCopyText(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            showToast('Đã sao chép liên kết chia sẻ của căn này!', true);
+          } else {
+            showToast('Không tự động sao chép được liên kết!', false);
+          }
+        } catch (err) {
+          showToast('Có lỗi xảy ra khi sao chép liên kết!', false);
+        }
+        document.body.removeChild(textArea);
+      }
+
+      function copyShareLink(id) {
+        try {
+          const shareUrl = window.location.origin + window.location.pathname + '?id=' + id;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+              showToast('Đã sao chép liên kết chia sẻ của căn này!', true);
+            }).catch(() => {
+              fallbackCopyText(shareUrl);
+            });
+          } else {
+            fallbackCopyText(shareUrl);
+          }
+        } catch (e) {
+          console.error(e);
+          showToast('Có lỗi xảy ra khi sao chép liên kết!', false);
+        }
+      }
+
+      // Hàm hiển thị sản phẩm lên trang
+      function renderProducts(products, resetPagination = true) {
+        if (resetPagination) {
+          displayedProductLimit = 12;
+        }
+        currentFilteredProducts = products;
+        productsGrid.innerHTML = '';
+        
+        // Cập nhật số lượng sản phẩm đang lọc được ngay trên thanh filter
+        const filterResultCountText = document.getElementById('filterResultCountText');
+        if (filterResultCountText) {
+          filterResultCountText.textContent = products.length;
+        }
+
+        // Tính toán lượt xem cao nhất để gắn nhãn "Xem nhiều nhất"
+        const maxViewsVal = propertyData && propertyData.length > 0 
+          ? Math.max(...propertyData.map(item => item.views || 0)) 
+          : 0;
+        
+        const btnLoadMore = document.getElementById('btnLoadMore');
         
         if (products.length === 0) {
           productsGrid.innerHTML = `
@@ -3455,14 +3723,25 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           if (statCountText) {
             statCountText.textContent = `Hiển thị 0 trong tổng số ${propertyData.length} sản phẩm`;
           }
+          if (btnLoadMore) btnLoadMore.style.display = 'none';
           return;
         }
 
+        const visibleProducts = products.slice(0, displayedProductLimit);
+
         if (statCountText) {
-          statCountText.textContent = `Hiển thị 1-${products.length} trong tổng số ${propertyData.length} sản phẩm`;
+          statCountText.textContent = `Hiển thị 1-${visibleProducts.length} trong tổng số ${products.length} sản phẩm (Tổng kho: ${propertyData.length})`;
         }
 
-        products.forEach(p => {
+        if (btnLoadMore) {
+          if (products.length > displayedProductLimit) {
+            btnLoadMore.style.display = 'inline-flex';
+          } else {
+            btnLoadMore.style.display = 'none';
+          }
+        }
+
+        visibleProducts.forEach(p => {
           // Tính toán danh sách hình ảnh
           const list = p.imgList && p.imgList.length > 0 ? p.imgList : [p.img];
           const hasMultipleImages = list.length > 1;
@@ -3510,6 +3789,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                 <div class="card-badges-row">
                   <span class="card-badge-item card-badge-new">🔥 Mới đăng</span>
                   <span class="card-badge-item card-badge-views">👁️ ${viewsCount} lượt xem</span>
+                  ${viewsCount > 0 && viewsCount === maxViewsVal ? '<span class="card-badge-item card-badge-popular">👑 Xem nhiều nhất</span>' : ''}
                 </div>
 
                 <!-- Tiêu đề đóng vai trò viết hoa in đậm -->
@@ -3581,7 +3861,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
                   <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
                     <span style="font-size: 14px;">💬</span> Zalo
                   </a>
-                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); navigator.clipboard.writeText(window.location.origin + window.location.pathname + '?id=' + '${p.id}'); showToast('Đã sao chép liên kết chia sẻ của căn này!', true);">
+                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); copyShareLink('${p.id}');">
                     <span style="font-size: 14px;">📘</span> Chia sẻ
                   </button>
                 </div>
@@ -3803,6 +4083,20 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         const item = propertyData.find(p => p.id == id);
         if (!item) return;
 
+        // Cập nhật tiêu đề trang web động để Google Index tốt hơn
+        document.title = `${item.title} | Thanh Trà BĐS`;
+
+        // Tạo URL riêng biệt dạng ?id=123 để Google có thể thu thập dữ liệu sản phẩm
+        try {
+          const currentUrl = new URL(window.location.href);
+          if (currentUrl.searchParams.get('id') !== String(id)) {
+            currentUrl.searchParams.set('id', id);
+            window.history.pushState({ id: id }, '', currentUrl.toString());
+          }
+        } catch (urlErr) {
+          console.warn("Không thể cập nhật URL PushState:", urlErr);
+        }
+
         // Tăng lượt xem thực tế của tin đăng và lưu trữ
         item.views = (item.views !== undefined ? parseInt(item.views) : 0) + 1;
         
@@ -3951,9 +4245,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         const modalShareBtn = document.getElementById('modalShareBtn');
         if (modalShareBtn) {
           modalShareBtn.onclick = () => {
-            const shareUrl = window.location.origin + window.location.pathname + '?id=' + item.id;
-            navigator.clipboard.writeText(shareUrl);
-            showToast('Đã sao chép liên kết chia sẻ của căn này!', true);
+            copyShareLink(item.id);
           };
         }
 
@@ -4248,6 +4540,20 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       function closeProductModal() {
         propertyModal.classList.remove('open');
         document.body.style.overflow = 'auto';
+
+        // Khôi phục tiêu đề gốc của trang web khi đóng modal
+        document.title = "Thanh Trà BĐS | Mua Bán Nhà Phố Uy Tín TP. Thủ Đức, TP.HCM";
+
+        // Khôi phục URL sạch (loại bỏ ?id khỏi địa chỉ) khi dọn dẹp modal
+        try {
+          const currentUrl = new URL(window.location.href);
+          if (currentUrl.searchParams.has('id')) {
+            currentUrl.searchParams.delete('id');
+            window.history.pushState({ id: null }, '', currentUrl.toString());
+          }
+        } catch (urlErr) {
+          console.warn("Không thể xóa URL param PushState:", urlErr);
+        }
       }
 
       function checkUrlParams() {
@@ -4269,6 +4575,28 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       modalCloseBtn.addEventListener('click', closeProductModal);
       propertyModal.addEventListener('click', (e) => {
         if (e.target === propertyModal) closeProductModal();
+      });
+
+      // Lắng nghe sự kiện nhấn nút điều hướng (Back/Forward) của Trình duyệt để xử lý đóng mở modal đồng bộ với URL ?id=X
+      window.addEventListener('popstate', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const idParam = urlParams.get('id');
+        if (idParam) {
+          const propId = parseInt(idParam);
+          if (!isNaN(propId)) {
+            const item = propertyData || [];
+            const foundItem = item.find(p => p.id == propId);
+            if (foundItem) {
+              openProductModal(propId);
+            }
+          }
+        } else {
+          if (propertyModal && propertyModal.classList.contains('open')) {
+            propertyModal.classList.remove('open');
+            document.body.style.overflow = 'auto';
+            document.title = "Thanh Trà BĐS | Mua Bán Nhà Phố Uy Tín TP. Thủ Đức, TP.HCM";
+          }
+        }
       });
 
 
@@ -5789,6 +6117,11 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       async function fetchPropertiesFromSupabase(silent = false) {
         if (!supabaseUrl || !supabaseAnonKey) return;
         
+        // Hiển thị khung xương skeleton khi đang nạp dữ liệu từ Cloud
+        if (!silent || propertyData.length === 0) {
+          renderSkeletons();
+        }
+        
         try {
           const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?select=*&order=id.desc`, {
             method: 'GET',
@@ -6024,8 +6357,42 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       window.fetchPropertiesFromSupabase = fetchPropertiesFromSupabase;
       window.initSupabaseState = initSupabaseState;
 
+      function setupThemeToggle() {
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeToggleIcon = document.getElementById('themeToggleIcon');
+        if (!themeToggleBtn || !themeToggleIcon) return;
+
+        const currentTheme = localStorage.getItem('app-theme') || 'light';
+        if (currentTheme === 'dark') {
+          themeToggleIcon.textContent = '☀️';
+        } else {
+          themeToggleIcon.textContent = '🌙';
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+          const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+          const newTheme = activeTheme === 'light' ? 'dark' : 'light';
+          
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('app-theme', newTheme);
+          
+          if (newTheme === 'dark') {
+            themeToggleIcon.textContent = '☀️';
+            showToast('Đã chuyển sang giao diện Tối thanh lịch!', true);
+          } else {
+            themeToggleIcon.textContent = '🌙';
+            showToast('Đã chuyển sang giao diện Sáng tối giản!', true);
+          }
+        });
+      }
+
       // Khởi động kiểm tra thông số và phiên hoạt động
       document.getElementById('formRealImages')?.addEventListener('change', handleRealImagesUpload);
+      document.getElementById('btnLoadMore')?.addEventListener('click', () => {
+        displayedProductLimit += 12;
+        renderProducts(currentFilteredProducts, false);
+      });
+      setupThemeToggle();
       checkServerKey();
       checkAdminSession();
       initSupabaseState();

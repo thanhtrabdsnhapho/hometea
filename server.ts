@@ -246,6 +246,11 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
       res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi phân tích dữ liệu AI!" });
     }
   });
+ 
+  // Phục vụ trực tiếp sitemap.xml từ thư mục gốc
+  app.get("/sitemap.xml", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "sitemap.xml"));
+  });
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
