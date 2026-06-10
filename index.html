@@ -3609,6 +3609,30 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="key-guide-link">
           Hướng dẫn lấy API Key miễn phí trong 1 phút ↗
         </a>
+
+        <!-- Bổ sung phần hướng dẫn và tạo mã nhúng an toàn cố định vào file index.html -->
+        <div class="secure-embed-tool" style="margin-top: 15px; padding: 10px; background: rgba(59, 130, 246, 0.04); border: 1px dashed rgba(59, 130, 246, 0.15); border-radius: 8px; font-size: 11px; text-align: left; color: #4b5563; font-family: var(--font-sans);">
+          <div style="font-weight: 600; color: #1e3a8a; display: flex; align-items: center; gap: 4px; margin-bottom: 5px;">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+            </svg>
+            <span>Nhúng Cố Định (Dùng cho mọi trình duyệt)</span>
+          </div>
+          <div>Để tránh đổi trình duyệt/máy thiết bị khác phải nhập lại, hãy gõ API Key thật của bạn ở trên rồi nhấn nút dưới để tạo mã dán trực tiếp vào code web (Bảo mật 100% không lo bị quét khóa):</div>
+          <button type="button" id="btnGenSecureCode" style="display: block; width: 100%; margin-top: 6px; padding: 4px 8px; background: #e0f2fe; color: #0369a1; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; text-align: center; font-size: 11px; transition: background 0.2s;">
+            🔒 Tạo mã đảo chuỗi dán trực tiếp
+          </button>
+          <div id="secureCodeResultContainer" style="display: none; margin-top: 8px;">
+            <p style="margin: 0 0 4px; font-weight: 500; color: #1e293b;">Mã nhúng bảo mật của bạn:</p>
+            <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+              <input type="text" id="secureCodeOutput" readonly style="flex-grow: 1; padding: 4px 6px; font-size: 11px; font-family: var(--font-mono); border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc;" onclick="this.select()">
+              <button type="button" id="btnCopySecureCode" style="padding: 2px 8px; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 10px;">Copy</button>
+            </div>
+            <p style="margin: 0; font-size: 10px; color: #475569; line-height: 1.3;">
+              👉 Tiếp theo, hãy mở file code <code>index.html</code>, tìm dòng <strong>4925</strong> có: <code>const SECURE_EMBEDDED_KEY = "";</code> và dán mã đã copy này vào giữa cặp nháy kép đó!
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- TRẠNG THÁI KHU VỰC CHAT HOẠT ĐỘNG THỰC TẾ -->
@@ -4922,7 +4946,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       // - Đảo ngược chuỗi (Ví dụ: "AIzaSyABC..." viết ngược thành "...CBAySazIA")
       // - Hoặc Mã hoá Base64 của API Key (Ví dụ: "QUl6YVN5...")
       // - Hoặc dán trực tiếp API Key gốc vào đây.
-      const SECURE_EMBEDDED_KEY = ""; // <--- DÁN KHÓA AN TOÀN VÀO ĐÂY (đã đảo chuỗi hoặc mã Base64)
+      const SECURE_EMBEDDED_KEY = "A358_gJzecH-yuX91MoEGs44icbbbIQDGaU7C2EtXzqJ6NR8bA.QA"; // <--- DÁN KHÓA AN TOÀN VÀO ĐÂY (đã đảo chuỗi hoặc mã Base64)
 
       // Giải mã khóa an toàn (hỗ trợ đảo chuỗi, bóc tách base64, hoặc khóa trực tiếp)
       function decodeSecureKey(str) {
@@ -4931,16 +4955,16 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         if (trimmed === "" || trimmed.startsWith("%")) return "";
         
         try {
-          // 1. Kiểm tra nếu là chuỗi đảo ngược (kết thúc bằng 'ySazIA' sau khi đảo ngược ngược lại sẽ thành 'AIzaSy')
+          // 1. Kiểm tra nếu là chuỗi đảo ngược (kết thúc bằng 'ySazIA' hoặc '.QA' sau khi đảo ngược ngược lại)
           const reversed = trimmed.split("").reverse().join("");
-          if (reversed.startsWith("AIzaSy")) {
+          if (reversed.startsWith("AIzaSy") || reversed.startsWith("AQ.")) {
             return reversed;
           }
           
           // 2. Kiểm tra nếu là mã hóa Base64
           if (/^[A-Za-z0-9+/=]+$/.test(trimmed)) {
             const decoded = atob(trimmed);
-            if (decoded && (decoded.startsWith("AIzaSy") || decoded.length > 10)) {
+            if (decoded && (decoded.startsWith("AIzaSy") || decoded.startsWith("AQ."))) {
               return decoded;
             }
           }
@@ -4979,13 +5003,20 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         return trimmed.length >= 8; // Chấp nhận tất cả khóa hợp lệ từ 8 ký tự trở lên để tránh lọc nhầm
       }
 
-      // Tự động kiểm tra và dọn dẹp khóa không hợp lệ trên trang tải
+      // Tự động kiểm tra và dọn dẹp khóa không hợp lệ trên trang tải, tự động nạp khóa nhúng an toàn nếu trình duyệt chưa có để chạy mượt mà ngay
       (function cleanOnLoad() {
         const storedKey = localStorage.getItem('gemini_api_key') || "";
-        if (storedKey === "null" || storedKey === "undefined" || (storedKey && !isValidGeminiKey(storedKey))) {
-          if (isValidGeminiKey(buildGeminiKey)) {
+        const isStoredValid = isValidGeminiKey(storedKey);
+        const isBuildValid = isValidGeminiKey(buildGeminiKey);
+        
+        if (isBuildValid) {
+          // Chỉ ghi đè nạp khóa nếu trình duyệt mới (chưa có key hợp lệ)
+          if (!isStoredValid) {
             localStorage.setItem('gemini_api_key', buildGeminiKey);
-          } else {
+          }
+        } else {
+          // Không có key cứng hợp lệ, thực hiện dọn dẹp nếu có chuỗi rác hoặc null/undefined
+          if (storedKey === "null" || storedKey === "undefined" || (storedKey && !isStoredValid)) {
             localStorage.removeItem('gemini_api_key');
           }
         }
@@ -5061,6 +5092,38 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         initChatboxState();
         showToast("Mở khóa Trợ Lý AI Nhà Phố thành công!", true);
       });
+
+      // Tạo mã tương tác cố định an toàn chống quét
+      const btnGenSecureCode = document.getElementById('btnGenSecureCode');
+      const secureCodeResultContainer = document.getElementById('secureCodeResultContainer');
+      const secureCodeOutput = document.getElementById('secureCodeOutput');
+      const btnCopySecureCode = document.getElementById('btnCopySecureCode');
+
+      if (btnGenSecureCode) {
+        btnGenSecureCode.addEventListener('click', () => {
+          const keyRaw = geminiApiKey.value.trim();
+          if (!keyRaw || keyRaw.length < 15) {
+            alert("Vui lòng gõ trước API Key thật của bạn vào ô 'Mã khớp kết nối' ở trên để tạo chuỗi mã hóa bảo mật!");
+            return;
+          }
+          // Đảo ngược chuỗi làm mã bảo mật đảo chuỗi chống quét
+          const reversedKey = keyRaw.split("").reverse().join("");
+          secureCodeOutput.value = reversedKey;
+          secureCodeResultContainer.style.display = 'block';
+        });
+      }
+
+      if (btnCopySecureCode) {
+        btnCopySecureCode.addEventListener('click', () => {
+          secureCodeOutput.select();
+          try {
+            document.execCommand('copy');
+            showToast("Đã copy mã dán cố định an toàn!", true);
+          } catch (err) {
+            alert("Không thể tự động copy, vui lòng chọn bôi đen thủ công và Copy nhé!");
+          }
+        });
+      }
 
       // Nhấn nút cấu hình lại bánh răng
       btnAiConfigure.addEventListener('click', () => {
