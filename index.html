@@ -4930,20 +4930,28 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       const buildSupabaseUrl = getValidValue(INJECTED_VITE_SUPABASE_URL, DEFAULT_FALLBACK_SUPABASE_URL);
       const buildSupabaseKey = getValidValue(INJECTED_VITE_SUPABASE_KEY, DEFAULT_FALLBACK_SUPABASE_KEY);
 
-      // Hàm kiểm tra định dạng Gemini API Key hợp lệ (nhằm lọc các khóa placeholder như AQ...)
+      // Hàm kiểm tra định dạng Gemini API Key hợp lệ (nhằm lọc các khóa placeholder cũ hoặc không đầy đủ)
       function isValidGeminiKey(key) {
-        return key && typeof key === 'string' && key.trim().startsWith('AIzaSy');
+        if (!key || typeof key !== 'string') return false;
+        const trimmed = key.trim();
+        if (trimmed.startsWith('AQ.')) return false; // Lọc khóa AQ placeholder
+        return trimmed.length >= 20; // Chấp nhận các khóa hợp lệ từ 20 ký tự trở lên
       }
 
-      let localApiKey = localStorage.getItem('gemini_api_key') || "";
-      if (localApiKey === "null" || localApiKey === "undefined" || !isValidGeminiKey(localApiKey)) {
-        if (isValidGeminiKey(buildGeminiKey)) {
-          localApiKey = buildGeminiKey;
-          localStorage.setItem('gemini_api_key', localApiKey);
-        } else {
-          localApiKey = "";
-          localStorage.removeItem('gemini_api_key');
+      // Tự động kiểm tra và dọn dẹp khóa không hợp lệ trên trang tải
+      (function cleanOnLoad() {
+        const storedKey = localStorage.getItem('gemini_api_key') || "";
+        if (storedKey === "null" || storedKey === "undefined" || (storedKey && !isValidGeminiKey(storedKey))) {
+          if (isValidGeminiKey(buildGeminiKey)) {
+            localStorage.setItem('gemini_api_key', buildGeminiKey);
+          } else {
+            localStorage.removeItem('gemini_api_key');
+          }
         }
+      })();
+
+      function getActiveLocalKey() {
+        return localStorage.getItem('gemini_api_key') || "";
       }
 
       let serverHasKey = isValidGeminiKey(buildGeminiKey); // Nếu build-time có Key hợp lệ thì coi như sẵn sàng
@@ -4983,10 +4991,17 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         aiChatWindow.classList.remove('open');
       });
 
-      // Kiểm tra trạng thái Key ban đầu - tự động ẩn setup và bật thẳng cửa sổ hội thoại (ẩn giao diện yêu cầu key cho cả khách hàng)
+      // Kiểm tra trạng thái Key ban đầu - hiển thị setup nếu chưa có key và bật cửa sổ hội thoại khi có key
       function initChatboxState() {
-        chatAiKeySetup.style.display = 'none';
-        chatAiPlayground.style.display = 'flex';
+        const activeLocalKey = getActiveLocalKey();
+        const hasKey = isValidGeminiKey(activeLocalKey) || serverHasKey;
+        if (hasKey) {
+          chatAiKeySetup.style.display = 'none';
+          chatAiPlayground.style.display = 'flex';
+        } else {
+          chatAiKeySetup.style.display = 'flex';
+          chatAiPlayground.style.display = 'none';
+        }
       }
 
       // Kích hoạt khóa bảo mật API
@@ -5097,7 +5112,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
       // Gửi yêu cầu tư vấn đến Google Gemini API
       async function askGeminiAPI(userQuestion) {
-        const activeClientKey = localApiKey || buildGeminiKey;
+        const activeClientKey = getActiveLocalKey() || buildGeminiKey;
         if (!activeClientKey && !serverHasKey) {
           initChatboxState();
           return;
