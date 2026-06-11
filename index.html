@@ -3099,13 +3099,21 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
 
         <div class="admin-table-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div style="font-weight: 700; font-size: 16px; color: var(--primary);">Danh sách tin sản phẩm hiện thời</div>
-          <button class="btn-admin-add" onclick="showAdminForm(null)" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(249,115,22,0.25); cursor: pointer; border: none;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Đăng tin mới ngay
-          </button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn-admin-bulk" onclick="showAdminBulkForm()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563eb, #1D4ED8); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(37,99,235,0.2); cursor: pointer; border: none; transition: var(--transition);">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              ⚡ Đăng tin nhanh từ Thư mục
+            </button>
+            <button class="btn-admin-add" onclick="showAdminForm(null)" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(249,115,22,0.25); cursor: pointer; border: none;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Đăng tin mới ngay
+            </button>
+          </div>
         </div>
 
         <div class="admin-table-container" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; box-shadow: var(--shadow);">
@@ -3187,6 +3195,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           <div id="adminPropForm" autocomplete="off">
             <!-- Hidden field for ID -->
             <input type="hidden" id="formPropId">
+            <input type="hidden" id="formAddress">
 
             <!-- PHẦN 1: VỊ TRÍ -->
             <div style="font-size: 14.5px; font-weight: 700; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid rgba(249,115,22,0.1); padding-bottom: 8px; text-transform: uppercase;">
@@ -3329,6 +3338,83 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
               <button type="button" class="btn-admin-logout" style="border: 1px solid var(--border); background: transparent; color: var(--text-dark); padding: 10px 20px; border-radius: 8px; font-weight:600; cursor: pointer;" onclick="hideAdminForm(event)">Hủy bỏ</button>
               <button type="button" class="btn-admin-add" onclick="saveAdminProperty(event)" style="border: none; padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); font-weight:700; border-radius: 8px; cursor: pointer;">Lưu thông tin đăng</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 3: ĐĂNG TIN NHANH TỪ THƯ MỤC (FAST POSTING FROM CO-DIRECTORY FILES) -->
+      <div id="adminBulkSection" style="display: none; max-width: 850px; margin: 0 auto; margin-top: 20px;">
+        <div style="margin-bottom: 24px;">
+          <a href="#" onclick="hideAdminBulkForm(event)" style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 14px; font-weight: 700; text-decoration: none;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Quay lại bảng điều khiển
+          </a>
+        </div>
+
+        <div class="admin-card" style="background: #fff; padding: 40px; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--bg-light); padding-bottom: 16px;">
+            <span style="font-size: 32px;">⚡</span>
+            <div>
+              <h4 id="adminBulkTitle" style="font-family: var(--font-serif); font-size: 22px; font-weight: 800; color: var(--primary); margin: 0;">Đăng Tin BĐS Nhanh từ Thư Mục</h4>
+              <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Bôi đen chọn tất cả tệp tin trong Thư mục của một căn (gồm các file hình ảnh và 1 file .txt chứa mô tả). Hệ thống sẽ tự nạp & phân tách tự động vào các ô đăng tin!</p>
+            </div>
+          </div>
+
+          <!-- Fast Folder Dropzone Area -->
+          <div id="fastUploadDropzone" style="border: 2.5px dashed #bfdbfe; border-radius: 16px; background: #f8fafc; padding: 45px 24px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; margin-bottom: 24px;"
+               onclick="document.getElementById('fastFolderInput').click()"
+               ondragover="handleFastDragOver(event)"
+               ondragleave="handleFastDragLeave(event)"
+               ondrop="handleFastDrop(event)">
+            
+            <input type="file" id="fastFolderInput" multiple accept="image/*,.txt" style="display: none;" onchange="handleFastUpload(event)">
+            
+            <svg style="color: #3b82f6; margin: 0 auto 16px auto; transition: transform 0.2s;" class="drop-icon" width="52" height="52" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+            </svg>
+            
+            <h5 style="font-size: 16px; font-weight: 800; color: var(--primary); margin: 0 0 8px 0;">Kéo thả tất cả File trong thư mục của bạn vào đây</h5>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 8px 0; line-height: 1.5;">Hoặc nhấp chuột vào đây để chọn đồng thời nhiều tệp (Bôi đen file ảnh + tệp mô tả .txt)</p>
+            <div style="font-size: 12px; display: inline-block; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 6px 14px; border-radius: 8px; font-weight: 700;">
+              💡 Tự động đọc bài viết trong .txt + AI bóc tách thông tin + Đồ thị hóa ảnh Cloud
+            </div>
+          </div>
+
+          <!-- Progress status details -->
+          <div id="fastProgressArea" style="display: none; background: #fafbfe; border: 1px solid #bfdbfe; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 14.5px; color: var(--primary); margin-bottom: 12px;">
+              <span id="fastProgressLabel" style="display: flex; align-items: center; gap: 8px; color: #1d4ed8;">
+                <svg style="color: #2563eb; transform-origin: center; animation: spin 1s linear infinite;" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10" stroke="rgba(0,0,0,0.1)" stroke-width="2.5"/>
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                Đang xử lý thư mục bất động sản nhanh...
+              </span>
+              <span id="fastProgressPercent" style="color: #2563eb; font-weight: 800; font-size: 15px;">0%</span>
+            </div>
+            
+            <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden; margin-bottom: 16px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">
+              <div id="fastProgressBar" style="width: 0%; height: 100%; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 99px; transition: width 0.3s ease-out;"></div>
+            </div>
+
+            <!-- Steps checkpoint UI -->
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; border-top: 1px dashed var(--border); padding-top: 16px; margin-bottom: 14px;">
+              <div id="stepReadTxt" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600;">
+                <span id="iconReadTxt">⚪</span> <span>1. Đọc tệp tin văn bản mô tả (.txt)...</span>
+              </div>
+              <div id="stepAnalyzeAI" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600;">
+                <span id="iconAnalyzeAI">⚪</span> <span>2. Trợ lý AI bóc tách các trường thông số...</span>
+              </div>
+              <div id="stepUploadImgs" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600;">
+                <span id="iconUploadImgs">⚪</span> <span id="labelUploadImgs">3. Đồng bộ hóa hình ảnh lên Cloudinary (0 ảnh)...</span>
+              </div>
+            </div>
+
+            <div id="fastProgressDetail" style="font-size: 12px; color: var(--text-dark); background: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border); min-height: 44px; line-height: 1.5; font-family: var(--font-mono);">
+              Đang chờ dữ liệu đầu vào...
             </div>
           </div>
         </div>
@@ -3719,6 +3805,15 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       if (!Array.isArray(propertyData) || propertyData.length === 0) {
         propertyData = [...initialDefaultData];
       }
+      
+      // Khắc phục an toàn: Chuyển đổi toàn bộ các mã ID lớn hơn giới hạn Integer 2147483647 về dạng giây an toàn
+      propertyData.forEach(p => {
+        if (p && p.id && parseInt(p.id) > 2147483647) {
+          const oldId = p.id;
+          p.id = Math.floor(parseInt(p.id) / 1000);
+          console.log(`Đã chuẩn hóa ID lớn ${oldId} thành ID an toàn ${p.id}`);
+        }
+      });
       
       const startLocalViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
       propertyData.forEach(p => {
@@ -5578,6 +5673,107 @@ Nguyên tắc trả lời:
         });
       }
 
+      function showAdminForm(id) {
+        const formSection = document.getElementById('adminFormSection');
+        const dashboardSection = document.getElementById('adminDashboardSection');
+        const formTitleHeader = document.getElementById('adminFormTitle');
+
+        // Reset all inputs first
+        if (formPropId) formPropId.value = '';
+        if (formTitle) formTitle.value = '';
+        if (formPrice) formPrice.value = '';
+        if (formArea) formArea.value = '';
+        if (formWard) formWard.value = '';
+        if (formDirection) formDirection.value = 'Không xác định';
+        if (formFloors) formFloors.value = '';
+        if (formBadge) formBadge.value = '';
+        if (formAddress) formAddress.value = '';
+        if (formImg) formImg.value = '';
+        if (formDesc) formDesc.value = '';
+
+        const houseNumberInput = document.getElementById('ap_hn_fld');
+        const streetInput = document.getElementById('ap_st_fld');
+        const widthInput = document.getElementById('formWidth');
+        const bedroomsInput = document.getElementById('formBedrooms');
+        const bathroomsInput = document.getElementById('formBathrooms');
+        const legalInput = document.getElementById('formLegal');
+
+        if (houseNumberInput) houseNumberInput.value = '';
+        if (streetInput) streetInput.value = '';
+        if (widthInput) widthInput.value = '';
+        if (bedroomsInput) bedroomsInput.value = '';
+        if (bathroomsInput) bathroomsInput.value = '';
+        if (legalInput) legalInput.value = 'Sổ hồng riêng';
+
+        if (id) {
+          // Edit mode
+          const item = propertyData.find(p => p.id == id);
+          if (item) {
+            if (formTitleHeader) formTitleHeader.innerHTML = '📋 Chỉnh sửa tin đăng bất động sản';
+            if (formPropId) formPropId.value = item.id;
+            if (formTitle) formTitle.value = item.title || '';
+            if (formPrice) formPrice.value = item.price || '';
+            if (formArea) formArea.value = item.area || '';
+            if (formWard) formWard.value = item.ward || '';
+            if (formDirection) formDirection.value = item.direction || 'Không xác định';
+            if (formFloors) formFloors.value = item.floors || '';
+            if (formBadge) formBadge.value = item.badge || '';
+            if (formAddress) formAddress.value = item.address || '';
+            if (formImg) formImg.value = item.img || '';
+            if (formDesc) formDesc.value = item.desc || '';
+
+            if (houseNumberInput) houseNumberInput.value = item.houseNumber || '';
+            if (streetInput) streetInput.value = item.street || '';
+            if (widthInput) widthInput.value = item.width || '';
+            if (bedroomsInput) bedroomsInput.value = item.bedrooms || '';
+            if (bathroomsInput) bathroomsInput.value = item.bathrooms || '';
+            if (legalInput) legalInput.value = item.legal || 'Sổ hồng riêng';
+
+            // Handle images
+            uploadedImagesList = [];
+            if (Array.isArray(item.imgList)) {
+              uploadedImagesList = [...item.imgList];
+            } else if (typeof item.imgList === 'string' && item.imgList.trim() !== '') {
+              try {
+                const parsed = JSON.parse(item.imgList);
+                if (Array.isArray(parsed)) {
+                  uploadedImagesList = parsed;
+                } else {
+                  uploadedImagesList = [parsed];
+                }
+              } catch (e) {
+                uploadedImagesList = [item.imgList];
+              }
+            } else if (item.img) {
+              uploadedImagesList = [item.img];
+            }
+          }
+        } else {
+          // Create Mode
+          if (formTitleHeader) formTitleHeader.innerHTML = '📋 Đăng tin rao bán nhà phố';
+          uploadedImagesList = [];
+        }
+
+        renderUploadedImagesPreviews();
+
+        if (dashboardSection) dashboardSection.style.display = 'none';
+        if (formSection) formSection.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function hideAdminForm(e) {
+        if (e) e.preventDefault();
+        const formSection = document.getElementById('adminFormSection');
+        const dashboardSection = document.getElementById('adminDashboardSection');
+        if (formSection) formSection.style.display = 'none';
+        if (dashboardSection) dashboardSection.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function selectQuickImg(url) {
+        if (formImg) formImg.value = url;
+      }
+
       let uploadedImagesList = []; // Mảng danh sách chuỗi Base64 ảnh thực tế
 
       // Hàm hiển thị list ảnh đã chọn
@@ -5735,352 +5931,242 @@ Nguyên tắc trả lời:
                 
                 // Nén JPEG chất lượng cao 0.75
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                const blobResponse = await fetch(compressedBase64);
+                const blob = await blobResponse.blob();
+                const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
                 
-                // Gửi chuỗi base64 nén lên API server để up trực tiếp sang Cloudinary
-                const response = await fetch('/api/upload', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({ image: compressedBase64 })
-                });
-                
-                const data = await response.json();
-                if (response.ok && data.success && data.secure_url) {
-                  uploadedImagesList.push(data.secure_url);
-                  successCount++;
-                } else {
-                  console.error("Lỗi phản hồi tải ảnh Cloudinary:", data.error);
-                  failCount++;
-                }
+                await uploadRawFile(compressedFile);
               } catch (err) {
-                console.error("Lỗi kết nối API tải ảnh:", err);
-                failCount++;
-              } finally {
-                processedCount++;
-                updateProgressUI();
+                console.error("Lỗi nén ảnh:", err);
+                await uploadRawFile(file);
               }
             };
-            
-            img.onerror = function() {
-              // Nếu nén lỗi, thử upload file ảnh gốc ban đầu dạng FormData
-              uploadRawFile(file);
+            img.onerror = async function() {
+              await uploadRawFile(file);
             };
           };
           reader.readAsDataURL(file);
         });
       }
 
-      function showAdminForm(id = null) {
-        const dbSection = document.getElementById('adminDashboardSection');
-        const formSection = document.getElementById('adminFormSection');
-        const formTitle = document.getElementById('formTitle');
-        const formPropId = document.getElementById('formPropId');
-        const adminFormTitle = document.getElementById('adminFormTitle');
-        const aiInputPrompt = document.getElementById('aiInputPrompt');
-        
-        const fHouseNumber = document.getElementById('ap_hn_fld');
-        const fStreet = document.getElementById('ap_st_fld');
-        const fWidth = document.getElementById('formWidth');
-        const fBedrooms = document.getElementById('formBedrooms');
-        const fBathrooms = document.getElementById('formBathrooms');
-        const fFloors = document.getElementById('formFloors');
-        const fLegal = document.getElementById('formLegal');
-
-        if (dbSection && formSection) {
-          dbSection.style.display = 'none';
-          formSection.style.display = 'block';
-          
-          adminPropForm.reset();
-          formPropId.value = '';
-          if (aiInputPrompt) aiInputPrompt.value = '';
-          
-          document.querySelectorAll('.quick-img-option').forEach(el => el.classList.remove('active'));
-          
-          if (id) {
-            const item = propertyData.find(p => p.id == id);
-            if (item) {
-              adminFormTitle.innerHTML = "📝 Cấu hình & Chỉnh sửa tin đăng ID: #" + item.id;
-              formPropId.value = item.id;
-              formTitle.value = item.title;
-              formPrice.value = item.price;
-              formArea.value = item.area;
-              formWard.value = item.ward;
-              formDirection.value = item.direction;
-              formFloors.value = item.floors;
-              formBadge.value = item.badge;
-              if (formAddress) formAddress.value = item.address;
-              formImg.value = item.img;
-              formDesc.value = item.desc;
-
-              // Thiết lập các thông số chi tiết
-              if (fHouseNumber) fHouseNumber.value = item.houseNumber || "";
-              if (fStreet) fStreet.value = item.street || "";
-              if (fWidth) fWidth.value = item.width || "";
-              if (fBedrooms) fBedrooms.value = (item.bedrooms !== undefined && item.bedrooms !== null) ? item.bedrooms : 3;
-              if (fBathrooms) fBathrooms.value = (item.bathrooms !== undefined && item.bathrooms !== null) ? item.bathrooms : 3;
-              if (fFloors) fFloors.value = item.floors || 3;
-              if (fLegal) fLegal.value = item.legal || "Sổ hồng riêng";
-
-              // Danh sách ảnh thực tế
-              uploadedImagesList = item.imgList ? [...item.imgList] : (item.img ? [item.img] : []);
-              renderUploadedImagesPreviews();
-              
-              document.querySelectorAll('.quick-img-option').forEach(el => {
-                const tempUrl = el.getAttribute('data-url') || (el.getAttribute('onclick') || "").match(/'([^']+)'/)?.[1] || "";
-                if (tempUrl && item.img === tempUrl) el.classList.add('active');
-              });
-            }
-          } else {
-            adminFormTitle.innerHTML = "📋 Đăng tin rao bán nhà phố mới";
-            formImg.value = 'https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80';
-            const activeOpt = document.querySelector('.quick-img-option');
-            if (activeOpt) activeOpt.classList.add('active');
-
-            if (fHouseNumber) fHouseNumber.value = "";
-            if (fStreet) fStreet.value = "";
-            if (fWidth) fWidth.value = "";
-            if (fBedrooms) fBedrooms.value = 3;
-            if (fBathrooms) fBathrooms.value = 3;
-            if (fFloors) fFloors.value = 3;
-            if (fLegal) fLegal.value = "Sổ hồng riêng";
-
-            uploadedImagesList = [];
-            renderUploadedImagesPreviews();
-          }
-          
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }
-
-      function hideAdminForm(e) {
-        if (e) e.preventDefault();
-        const dbSection = document.getElementById('adminDashboardSection');
-        const formSection = document.getElementById('adminFormSection');
-        if (dbSection && formSection) {
-          dbSection.style.display = 'block';
-          formSection.style.display = 'none';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }
-
-      function selectQuickImg(element, url) {
-        document.querySelectorAll('.quick-img-option').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
-        formImg.value = url;
-      }
-
       async function saveAdminProperty(e) {
-        e.preventDefault();
+        if (e) e.preventDefault();
         
-        const idVal = formPropId.value ? parseInt(formPropId.value) : null;
-        const titleVal = formTitle.value.trim();
-        const priceVal = parseFloat(formPrice.value);
-        const areaVal = parseInt(formArea.value);
-        const wardVal = formWard.value;
-        const directionVal = formDirection.value;
-        const floorsVal = parseInt(formFloors.value);
-        const badgeVal = formBadge.value.trim();
-        const descVal = formDesc.value.trim();
-
-        // Lấy thông tin chi tiết cấu trúc từ form mới
-        const fHouseNumber = document.getElementById('ap_hn_fld');
-        const fStreet = document.getElementById('ap_st_fld');
-        const fWidth = document.getElementById('formWidth');
-        const fBedrooms = document.getElementById('formBedrooms');
-        const fBathrooms = document.getElementById('formBathrooms');
-        const fLegal = document.getElementById('formLegal');
-
-        const houseNumberVal = fHouseNumber ? fHouseNumber.value.trim() : "";
-        const streetVal = fStreet ? fStreet.value.trim() : "";
-        const widthVal = fWidth ? parseFloat(fWidth.value) || 0 : 0;
-        const bedroomsVal = fBedrooms && fBedrooms.value !== "" && !isNaN(parseInt(fBedrooms.value)) ? parseInt(fBedrooms.value) : 3;
-        const bathroomsVal = fBathrooms && fBathrooms.value !== "" && !isNaN(parseInt(fBathrooms.value)) ? parseInt(fBathrooms.value) : 3;
-        const legalVal = fLegal ? fLegal.value.trim() : "Sổ hồng riêng";
+        const idVal = formPropId ? formPropId.value : "";
+        const titleVal = document.getElementById('formTitle').value.trim();
+        const priceVal = parseFloat(document.getElementById('formPrice').value) || 0;
+        const areaVal = parseInt(document.getElementById('formArea').value) || 0;
+        const wardVal = document.getElementById('ap_wd_fld').value;
+        const directionVal = document.getElementById('formDirection').value;
+        const floorsVal = parseInt(document.getElementById('formFloors').value) || 0;
+        const badgeVal = document.getElementById('formBadge').value.trim();
+        const descVal = document.getElementById('formDesc').value;
+        
+        const houseNumberVal = document.getElementById('ap_hn_fld').value.trim();
+        const streetVal = document.getElementById('ap_st_fld').value.trim();
+        const widthVal = parseFloat(document.getElementById('formWidth').value) || 4;
+        const bedroomsVal = parseInt(document.getElementById('formBedrooms').value) || 3;
+        const bathroomsVal = parseInt(document.getElementById('formBathrooms').value) || 3;
+        const legalVal = document.getElementById('formLegal').value.trim() || 'Sổ hồng riêng';
+        const formImg = document.getElementById('formImg');
 
         // Tự động lắp ráp cấu trúc địa chỉ đầy đủ
         let addressVal = "";
-        if (houseNumberVal) {
-          addressVal += "Số " + houseNumberVal + " ";
-        }
-        addressVal += streetVal + ", Phường " + wardVal + ", TP. Thủ Đức, TP.HCM";
+        let addressParts = [];
+        if (houseNumberVal) addressParts.push(houseNumberVal);
+        if (streetVal) addressParts.push(streetVal);
+        if (wardVal) addressParts.push("Phường " + wardVal);
+        addressParts.push("TP. Thủ Đức, TP.HCM");
+        
+        const formAddress = document.getElementById('formAddress');
+        addressVal = (formAddress && formAddress.value.trim() !== "") ? formAddress.value.trim() : addressParts.join(", ");
 
-        // Kiểm tra danh sách ảnh thực tế
-        if (uploadedImagesList.length === 0) {
-          alert("Vui lòng đính kèm tối thiểu 1 hình ảnh thực tế cho bất động sản này bằng cách nhấn nút 'Chọn & Tải Ảnh'!");
-          return;
-        }
+        const imgVal = formImg.value.trim() || "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80";
+        const imgListVal = uploadedImagesList && uploadedImagesList.length > 0 ? uploadedImagesList : [imgVal];
 
-        // Chọn hình ảnh đầu tiên làm ảnh đại diện chính của sản phẩm
-        const mainImgVal = uploadedImagesList[0];
+        let success = true;
+        let finalItem = null;
 
-        let finalProperty = {
-          title: titleVal,
-          price: priceVal,
-          priceText: priceVal + " Tỷ",
-          city: "TP. Hồ Chí Minh",
-          district: "TP. Thủ Đức",
-          ward: wardVal,
-          address: addressVal,
-          area: areaVal,
-          floors: floorsVal,
-          direction: directionVal,
-          badge: badgeVal,
-          img: mainImgVal,
-          imgList: [...uploadedImagesList],
-          desc: descVal,
-          houseNumber: houseNumberVal,
-          street: streetVal,
-          width: widthVal,
-          bedrooms: bedroomsVal,
-          bathrooms: bathroomsVal,
-          legal: legalVal
-        };
+        if (idVal) {
+          // Chỉnh sửa tin đăng có sẵn
+          const item = propertyData.find(p => p.id == idVal);
+          if (item) {
+            item.title = titleVal;
+            item.price = priceVal;
+            item.priceText = priceVal + " Tỷ";
+            item.area = areaVal;
+            item.ward = wardVal;
+            item.direction = directionVal;
+            item.floors = floorsVal;
+            item.badge = badgeVal;
+            
+            // Làm sạch nội dung mô tả, thay thế thẻ HTML <br> và xóa dòng liên hệ BĐS theo yêu cầu người dùng
+            let cleanedDesc = descVal.replace(/<br\s*\/?>/gi, '\n');
+            const linesToRemove = [
+              /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*TP\.\s*Thủ\s*Đức\)\.?/gi,
+              /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*Lò\s*Lu,\s*TP\.\s*Thủ\s*Đức\)\.?/gi
+            ];
+            for (const regex of linesToRemove) {
+              cleanedDesc = cleanedDesc.replace(regex, '');
+            }
+            cleanedDesc = cleanedDesc.trim();
+            item.desc = cleanedDesc;
+            
+            item.address = addressVal;
+            item.img = imgVal;
+            item.imgList = imgListVal;
+            item.houseNumber = houseNumberVal;
+            item.street = streetVal;
+            item.width = widthVal;
+            item.bedrooms = bedroomsVal;
+            item.bathrooms = bathroomsVal;
+            item.legal = legalVal;
+            finalItem = item;
+            lastSavedPropertyId = idVal;
+          }
+        } else {
+          // Đăng tin mới với ID số nguyên 32-bit an toàn (sử dụng mốc giây thay vì mili giây)
+          let newId = Math.floor(Date.now() / 1000);
+          while (propertyData.some(p => p.id == newId)) {
+            newId++;
+          }
+          // Làm sạch nội dung mô tả, thay thế thẻ HTML <br> và xóa dòng liên hệ BĐS theo yêu cầu người dùng
+          let cleanedDesc = descVal.replace(/<br\s*\/?>/gi, '\n');
+          const linesToRemove = [
+            /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*TP\.\s*Thủ\s*Đức\)\.?/gi,
+            /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*Lò\s*Lu,\s*TP\.\s*Thủ\s*Đức\)\.?/gi
+          ];
+          for (const regex of linesToRemove) {
+            cleanedDesc = cleanedDesc.replace(regex, '');
+          }
+          cleanedDesc = cleanedDesc.trim();
 
-        let successSync = true;
-
-        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
-          showToast("Đang đồng bộ lưu tin lên Supabase Cloud...", true);
-          
-          const dbPayload = {
+          const newItem = {
+            id: newId,
             title: titleVal,
             price: priceVal,
-            price_text: priceVal + " Tỷ",
+            priceText: priceVal + " Tỷ",
+            area: areaVal,
             ward: wardVal,
             direction: directionVal,
             floors: floorsVal,
             badge: badgeVal,
+            desc: cleanedDesc,
             address: addressVal,
-            img: mainImgVal,
-            img_list: uploadedImagesList,
-            desc: descVal,
-            area: areaVal,
-            house_number: houseNumberVal,
+            img: imgVal,
+            imgList: imgListVal,
+            houseNumber: houseNumberVal,
             street: streetVal,
             width: widthVal,
             bedrooms: bedroomsVal,
             bathrooms: bathroomsVal,
-            legal: legalVal
+            legal: legalVal,
+            views: 0
           };
-
-          // Cơ chế đồng bộ tự phục hồi khi thiếu cột trong lược đồ Postgres (Self-Healing Sync Mode)
-          const executeSyncWithSelfHealing = async (method, requestUrl, payload) => {
-            let limitCounter = 0;
-            const maxRetries = 15;
-            
-            while (limitCounter < maxRetries) {
-              const response = await fetch(requestUrl, {
-                method: method,
-                headers: {
-                  'apikey': supabaseAnonKey,
-                  'Authorization': `Bearer ${supabaseAnonKey}`,
-                  'Content-Type': 'application/json',
-                  'Prefer': 'return=representation'
-                },
-                body: JSON.stringify(payload)
-              });
-
-              if (response.ok) {
-                return response;
-              }
-
-              const errorText = await response.text();
-              console.warn(`Đồng bộ Supabase gặp lỗi (Số lần thử ${limitCounter + 1}):`, errorText);
-
-              let errObj = {};
-              try {
-                errObj = JSON.parse(errorText);
-              } catch (e) {}
-
-              const msg = errObj.message || "";
-              const code = errObj.code || "";
-
-              // Phân tích mã lỗi PostgREST về việc cột không tồn tại
-              if (code === "PGRST204" || msg.includes("Could not find the") || msg.includes("column")) {
-                let missingColumn = null;
-                
-                // Trực xuất tên cột từ thông báo dạng 1 (Ví dụ: Could not find the 'badge' column of 'properties')
-                const matchSingleQuote = msg.match(/Could not find the '([^']+)' column/);
-                if (matchSingleQuote && matchSingleQuote[1]) {
-                  missingColumn = matchSingleQuote[1];
-                } else {
-                  // Trực xuất tên cột từ thông báo dạng 2 (Ví dụ: column "badge" of relation "properties" does not exist)
-                  const matchDoubleQuote = msg.match(/column "([^"]+)" of/);
-                  if (matchDoubleQuote && matchDoubleQuote[1]) {
-                    missingColumn = matchDoubleQuote[1];
-                  }
-                }
-
-                if (missingColumn && payload.hasOwnProperty(missingColumn)) {
-                  console.warn(`[Self-Healing] Loại bỏ trường thiếu '${missingColumn}' khỏi dữ liệu truyền lên Supabase và tiến hành thử lại.`);
-                  delete payload[missingColumn];
-                  limitCounter++;
-                  continue;
-                }
-              }
-
-              throw new Error(errorText);
-            }
-            throw new Error("Vượt quá số lần tự cấu hình bóc tách để khôi phục payload đồng bộ.");
-          };
-
-          try {
-            if (idVal) {
-              // Update PATCH với cơ chế tự phục hồi
-              const response = await executeSyncWithSelfHealing('PATCH', `${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${idVal}`, dbPayload);
-              
-              finalProperty.id = idVal;
-              const index = propertyData.findIndex(p => p.id === idVal);
-              if (index !== -1) {
-                // Giữ lại các cột cũ trong local state nếu Supabase lược bỏ
-                propertyData[index] = { ...propertyData[index], ...finalProperty };
-              }
-              showToast(`Đã cập nhật bài đăng bất động sản lên Supabase (${supabaseTable}) thành công!`, true);
-            } else {
-              // Insert POST với cơ chế tự phục hồi
-              const response = await executeSyncWithSelfHealing('POST', `${supabaseUrl}/rest/v1/${supabaseTable}`, dbPayload);
-
-              const returnedData = await response.json();
-              if (returnedData && returnedData[0]) {
-                finalProperty.id = returnedData[0].id;
-              } else {
-                finalProperty.id = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
-              }
-              
-              propertyData.unshift(finalProperty);
-              showToast("Đăng tin rao bán mới lên Supabase Cloud thành công!", true);
-            }
-          } catch (err) {
-            console.error("Database sync fault after trying self-healing:", err);
-            successSync = false;
-            alert("Đồng bộ lên Cloud gặp lỗi (Không thể tự phân tích vá lỗi cấu trúc bảng). Hệ thống tự động chuyển sang lưu cục bộ.");
-          }
+          propertyData.unshift(newItem);
+          finalItem = newItem;
+          lastSavedPropertyId = newId;
         }
 
-        if (!successSync || !isSupabaseConnected) {
-          if (idVal) {
-            finalProperty.id = idVal;
-            const index = propertyData.findIndex(p => p.id === idVal);
-            if (index !== -1) {
-              propertyData[index] = finalProperty;
-              showToast("Đã cập nhật thông tin thành công cục bộ!", true);
+        // Lưu vào Supabase Cloud nếu được kết nối
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey && finalItem) {
+          showToast("Đang đồng bộ dữ liệu sửa đổi lên Supabase Cloud...", true);
+          try {
+            const bodyPayload = {
+              id: finalItem.id,
+              title: finalItem.title,
+              price: finalItem.price,
+              price_text: finalItem.priceText,
+              ward: finalItem.ward,
+              direction: finalItem.direction,
+              floors: finalItem.floors,
+              badge: finalItem.badge,
+              address: finalItem.address,
+              img: finalItem.img,
+              img_list: JSON.stringify(finalItem.imgList),
+              desc: finalItem.desc,
+              area: finalItem.area,
+              house_number: finalItem.houseNumber,
+              street: finalItem.street,
+              width: finalItem.width,
+              bedrooms: finalItem.bedrooms,
+              bathrooms: finalItem.bathrooms,
+              legal: finalItem.legal,
+              views: finalItem.views
+            };
+
+            const url = idVal 
+              ? `${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${idVal}`
+              : `${supabaseUrl}/rest/v1/${supabaseTable}`;
+            
+            let response = await fetch(url, {
+              method: idVal ? 'PATCH' : 'POST',
+              headers: {
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(bodyPayload)
+            });
+
+            if (!response.ok) {
+              const errTxt = await response.text();
+              const isKnownViewsIssue = errTxt.includes("views") || errTxt.includes("PGRST204") || errTxt.includes("column");
+              
+              if (isKnownViewsIssue) {
+                console.warn("Supabase write first attempt warning (known views schema omission, will try fallback):", errTxt);
+              } else {
+                console.error("Supabase write failed:", errTxt);
+              }
+              
+              // Nếu gặp lỗi PGRST204 hoặc thông báo lỗi cột 'views' không tồn tại
+              if (isKnownViewsIssue) {
+                console.warn("Phát hiện lỗi cột 'views' chưa được khởi tạo trên database Supabase của bạn. Đang thử lưu lại sau khi bỏ thuộc tính views...");
+                const fallbackPayload = { ...bodyPayload };
+                delete fallbackPayload.views;
+
+                const fallbackResponse = await fetch(url, {
+                  method: idVal ? 'PATCH' : 'POST',
+                  headers: {
+                    'apikey': supabaseAnonKey,
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(fallbackPayload)
+                });
+
+                if (fallbackResponse.ok) {
+                  showToast("Lưu thành công (Đã bỏ qua lưu trữ lượt xem do DB của bạn chưa chạy lệnh SQL thêm cột 'views')", true);
+                } else {
+                  const fallbackErrTxt = await fallbackResponse.text();
+                  console.error("Supabase write fallback failed:", fallbackErrTxt);
+                  alert("Không thể tải thông tin đồng bộ lên Supabase: " + fallbackErrTxt);
+                  success = false;
+                }
+              } else {
+                alert("Không thể tải thông tin đồng bộ lên Supabase: " + errTxt);
+                success = false;
+              }
             }
-          } else {
-            finalProperty.id = propertyData.length > 0 ? Math.max(...propertyData.map(p => p.id)) + 1 : 1;
-            propertyData.unshift(finalProperty);
-            showToast("Đăng tin bất động sản thành công cục bộ!", true);
+          } catch (e) {
+            console.error("Network problem syncing with Supabase:", e);
+            success = false;
           }
         }
 
         savePropertyDataToStorage();
         renderAdminTable();
-        applyFilters(); 
-        
-        // Lưu lại thông tin ID sản phẩm vừa thêm mới/cập nhật để phục vụ việc Xem sản phẩm
-        lastSavedPropertyId = finalProperty.id;
-        
-        // Hiển thị modal lựa chọn tiện ích: Đăng tiếp hay Xem sản phẩm
-        openSaveSuccessModal();
+        applyFilters();
+
+        if (success) {
+          showToast("Đã lưu trữ tin rao bán bất động sản thành công!", true);
+          openSaveSuccessModal();
+        } else {
+          showToast("Đã lưu tin cục bộ (Lỗi kết nối đồng bộ Cloud Database)", false);
+          openSaveSuccessModal();
+        }
       }
 
       async function analyzeRawDataAI(e) {
@@ -6097,11 +6183,13 @@ Nguyên tắc trả lời:
           return;
         }
 
-        const rawInputText = document.getElementById('aiInputPrompt').value.trim();
+        let rawInputText = document.getElementById('aiInputPrompt').value.trim();
         if (!rawInputText) {
           alert("Vui lòng nhập hoặc dán thông tin thô của bất động sản trước khi thực hiện phân tích!");
           return;
         }
+        // Thay thế sạch toàn bộ <br>, <br/> hoặc <br /> thành ký tự xuống dòng thực tế \n
+        rawInputText = rawInputText.replace(/<br\s*\/?>/gi, '\n');
 
         const btn = e.currentTarget || e.target;
         let originalContent = btn.innerHTML;
@@ -6126,46 +6214,61 @@ Nguyên tắc trả lời:
         // Hiện thông báo trạng thái tạm thời
         formDesc.value = "🤖 Trợ lý AI đang áp dụng quy tắc phân tích chi tiết dữ liệu thô và cấu trúc bài viết... Vui lòng đợi trong giây lát...";
 
-        const systemPayloadPrompt = `Bạn là một trợ lý thông minh cao cấp cho trang web BĐS TP. Thủ Đức.
-Nhiệm vụ của bạn là nhận thông tin thô (thông số, vị trí, giá, đặc điểm) do người dùng cung cấp và:
+        const systemPayloadPrompt = `Bạn là một trợ lý thông minh cao cấp cho trang web BĐS TP. Thủ Đức, là chuyên gia sáng tạo nội dung bất động sản chuyên nghiệp.
+Nhiệm vụ của bạn là nhận thông tin thô do người dùng cung cấp, lọc bỏ từ ngữ vi phạm, và:
 1. Phân tích chi tiết để bóc tách các thông số cấu trúc của bất động sản.
-2. Biên soạn một bài viết quảng cáo đăng bán chuẩn mực theo đúng quy tắc bên dưới.
+2. Biên soạn một bài viết quảng cáo đăng bán (desc) chuẩn mực theo đúng quy tắc bên dưới.
 
 Yêu cầu bóc tách các thông số cụ thể:
-- Tiêu đề (title): Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn mạnh nhất của bất động sản (VD: LOẠI HÌNH – VỊ TRÍ – DIỆN TÍCH – GIÁ).
-- Số nhà (houseNumber): Số nhà/số căn (nếu có nhắc tới trong dữ liệu thô, nếu không có thì để trống "").
-- Tên đường (street): Tên đường phố, hẻm chính (nếu có nhắc tới trong dữ liệu thô, nếu không thì ghi tên đường chính gần nhất hoặc bỏ trống).
+- Tiêu đề (title): Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn (Loại hình – Vị trí – Diện tích – Giá).
+- Số nhà (houseNumber): Số nhà/số căn (nếu nhắc tới trong dữ liệu thô, nếu không thì để trống "").
+- Tên đường (street): Tên đường phố, hẻm chính (nếu nhắc tới, không thì bỏ trống).
 - Phường/xã (ward): Tên phường tại TP. Thủ Đức (VD: Trường Thạnh, Long Phước, Hiệp Phú, Thạnh Mỹ Lợi, Cát Lái...). Nếu không nhắc tới phường nhưng có tên đường, hãy suy đoán phường tương ứng hoặc ghi "Thủ Đức".
-- Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên (VD: 51).
-- Ngang (width): Chiều ngang (m), số thực (VD: 4.2). Nếu không có ghi nhận trong dữ liệu thô, hãy để mặc định là 4.
-- Giá bán (price): Giá chào bán quy đổi thành số thực đơn vị TỶ ĐỒNG (VD: 2.5 hoặc 3.6). Nếu không có, gán mặc định là 0.
-- Số phòng ngủ (bedrooms): Số phòng ngủ, là số nguyên (nếu đất trống ghi 0, nếu là nhà phố nhưng dữ liệu thô không nhắc tới thì ghi 3 làm mặc định).
-- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên (nếu đất trống ghi 0, nếu là nhà phố không nhắc thì ghi 3 làm mặc định).
-- Số tầng (floors): Số tầng kết cấu, nguyên (đất trống ghi 1, nhà cấp 4 ghi 1, nhà lầu ghi số tầng thực tế, hoặc mặc định 3 nếu không nêu rõ).
-- Hướng nhà (direction): Một trong các hướng chuẩn có sẵn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu dữ liệu thô không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định" (tuyệt đối không tự suy diễn hướng).
-- Pháp lý (legal): Ghi nhận tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
+- Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên.
+- Ngang (width): Chiều ngang (m), số thực. Nếu không có, mặc định là 4.
+- Giá bán (price): Giá chào bán quy đổi thành số thực đơn vị TỶ ĐỒNG. Nếu không có, gán mặc định là 0.
+- Số phòng ngủ (bedrooms): Số phòng ngủ, nguyên. Nếu không có, mặc định là 3.
+- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên. Nếu không có, mặc định là 3.
+- Số tầng (floors): Số tầng kết cấu, nguyên. Nếu không có, mặc định là 3.
+- Hướng nhà (direction): Một trong các hướng chuẩn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định".
+- Pháp lý (legal): Tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
 - Nhãn nổi bật (badge): Một nhãn ngắn như "Sổ Hồng Riêng", "Hẻm Xe Hơi", "Mặt Tiền Kinh Doanh", "Sát Đại Học", "Giá Đầu Tư".
 
 Yêu cầu biên soạn bài viết quảng cáo (desc):
 Bạn phải tuân thủ nghiêm ngặt các quy tắc sau:
-* Cấu trúc bài viết:
-- Tiêu đề: Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn mạnh nhất của bất động sản (VD: LOẠI HÌNH – VỊ TRÍ – DIỆN TÍCH – GIÁ).
-- Mục 1: THÔNG SỐ & GIÁ BÁN: Liệt kê các thông tin: Vị trí (phường/quận), Diện tích, Kết cấu (nếu là nhà), Hướng (nếu có), Giá bán (ghi rõ mức giá hoặc 'Liên hệ' nếu cần).
-- Mục 2: HIỆN TRẠNG & TIỀN NĂNG BỨT PHÁ: Sử dụng gạch đầu dòng để làm nổi bật các điểm mạnh: Thiết kế, nội thất, tiện ích xung quanh, tiềm năng tăng giá, giao thông, pháp lý.
-- Kết bài: Một câu kêu gọi hành động (Call-to-action) lịch sự, ngắn gọn: 'Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.'
 
-* Nguyên tắc trình bày:
-- Trình bày liền mạch, hoàn toàn KHÔNG CÓ KHOẢNG CÁCH DÒNG TRỐNG (tất cả các dòng phải nằm cạnh nhau liền dải văn bản, không dùng ký tự xuống dòng kép \\n\\n, hãy dùng \\n đơn lẻ và không để trống dòng).
-- Tuyệt đối KHÔNG SỬ DỤNG tiêu đề 'Ưu điểm' trong bất kỳ trường hợp nào.
-- KHÔNG LIỆT KÊ số nhà cụ thể hoặc tên hẻm cụ thể trong bài đăng quảng cáo (VD: hẻm 383 Long Phước hay số nhà 45 -> hãy ghi ẩn đi thành hẻm ô tô Long Phước hoặc khu vực Long Phước).
-- Tuyệt đối KHÔNG ĐỀ CẬP đến các yếu tố tiêu cực như 'ngập lụt', 'ngập nước' kể cả khi thông tin thô có nhắc tới. Thay vào đó tập trung vào hạ tầng hoàn thiện, vị trí đẹp, tiện ích xung quanh.
-- Sử dụng ngôn ngữ trung thực, chuyên nghiệp, không gây phiền.
+1. CẤU TRÚC BÀI VIẾT (BẮT BUỘC SỬ DỤNG KÝ TỰ XUỐNG DÒNG '\n' ĐỂ CHIA DÒNG CỤ THỂ):
+Bạn bắt buộc phải trình bày nội dung bài viết dưới dạng có xuống dòng rõ ràng bằng ký tự '\n' cho từng dòng y hệt như cấu trúc dưới đây. Mỗi ý, mỗi thông tin hoặc mỗi gạch đầu dòng phải nằm trên một dòng riêng biệt. KHÔNG được gộp tất cả các dòng thành một đoạn văn duy nhất liền dòng.
+- Tiêu đề: VIẾT HOA TOÀN BỘ, bắt đầu bằng icon (🔥), tóm tắt điểm nhấn (như loại hình, vị trí, diện tích, giá).
+- Mục 1: THÔNG SỐ & GIÁ BÁN:
+  + Dòng chữ: THÔNG SỐ & GIÁ BÁN:
+  + Dòng tiếp theo: Vị trí tại phường [Tên Phường, ví dụ: Long Phước], TP. Thủ Đức.
+  + Dòng tiếp theo: - Diện tích đất [Diện tích]m2.
+  + Dòng tiếp theo: - Kết cấu gồm [Số tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.
+  + Dòng tiếp theo: - Hướng nhà: [Hướng nhà]. Giá bán: [Giá] tỷ đồng.
+- Mục 2: HIỆN TRẠNG:
+  + Dòng chữ: HIỆN TRẠNG:
+  + Sử dụng các dòng tiếp theo, mỗi dòng bắt đầu bằng dấu trừ '-' để liệt kê: thiết kế, nội thất, hạ tầng giao thông đường xá, pháp lý minh bạch...
+- Kết bài: Dòng tiếp theo: Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.
+👉 CHÚ Ý QUAN TRỌNG: Tuyệt đối KHÔNG ĐƯỢC ghi thêm bất kỳ thông tin liên hệ, số điện thoại, zalo, email, hoặc địa chỉ văn phòng của Thanh Trà BĐS ở cuối bài viết. Hãy kết thúc chính xác ở câu kêu gọi hành động phía trên.
 
-* Phong cách viết:
-- Ngắn gọn, súc tích, đánh mạnh vào giá trị đầu tư và công năng sử dụng.
-- Tập trung vào sự uy tín và minh bạch về pháp lý (sổ hồng, hoàn công).
-- Nếu thông tin thiếu (như giá hoặc diện tích), hãy viết bài dựa trên thông tin hiện có và giữ nguyên phần kêu gọi liên hệ để biết chi tiết.
-- Luôn ưu tiên trình bày đẹp mắt, dễ đọc trên thiết bị di động.
+2. QUY ĐỊNH VỀ NGÔN NGỮ VÀ TRÌNH BÀY (TUÂN THỦ PHÁP LUẬT):
+- CẤM: Tuyệt đối không dùng các từ ngữ khẳng định tuyệt đối hoặc mang tính cường điệu như: "tốt nhất", "đẹp nhất", "hiếm nhất", "số 1", "đỉnh nhất", "duy nhất", "hoàn hảo", "đẳng cấp nhất", "siêu phẩm".
+- KHUYẾN KHÍCH: Sử dụng từ ngữ trung lập, khách quan như: "đắc địa", "tiềm năng", "hiện đại", "thuận tiện", "thông thoáng", "nổi bật", "phù hợp cho nhu cầu ở hoặc kinh doanh", "thiết kế chỉn chu".
+- TRÌNH BÀY HÌNH THỨC:
+  + BẮT BUỘC xuống dòng bằng kí tự '\n' cho từng thông số, từng dòng như hướng dẫn ở trên để bài viết đẹp mắt, dễ đọc.
+  + Tuyệt đối KHÔNG dùng ký tự xuống dòng kép (\n\n) để tạo khoảng trống dòng trống giữa các dòng. Hãy dùng đúng một ký tự '\n' duy nhất để xuống dòng viết tiếp ngay dòng dưới để các dòng nằm khít nhau nhưng vẫn xuống dòng đẹp đẽ.
+  + TUYỆT ĐỐI KHÔNG sử dụng hay cấu tạo thẻ HTML '<br>' hoặc bất kỳ thẻ HTML nào trong nội dung "desc" mà bạn biên soạn. Hãy chỉ dùng ký tự xuống dòng thực tế '\n' thông thường để đổi dòng.
+  + Không được đưa số nhà cụ thể hay số hẻm riêng tư chi tiết vào nội dung bài viết quảng cáo (trừ khi có yêu cầu riêng). Chỉ đăng thông tin chung về khu vực/đường phố.
+  + Không sử dụng tiêu đề "Ưu điểm" hay "Ưu điểm nổi bật". Thay vào đó hãy đặt tên phần là "HIỆN TRẠNG" đúng theo yêu cầu.
+
+3. PHONG CÁCH VIẾT:
+Ngắn gọn, súc tích, tập trung vào công năng sử dụng và tính pháp lý minh bạch (Sổ hồng, hoàn công đầy đủ).
+Ngôn ngữ chuyên nghiệp, rõ ràng, phù hợp để người dùng đọc nhanh trên thiết bị di động.
+
+4. CƠ CHẾ XỬ LÝ DỮ LIỆU:
+Trực xuất thông tin có sẵn và lọc bỏ các từ ngữ vi phạm quy định ở mục 2 và áp dụng cấu trúc ở mục 1.
+Nếu thông tin thiếu (như giá hoặc diện tích), hãy trình bày dựa trên những gì có sẵn và giữ nguyên câu kết bài.
 
 Hãy trả về kết quả hoàn chỉnh dưới định dạng JSON duy nhất. KHÔNG bao quanh bằng bất cứ văn bản dẫn dắt hay markdown nhãn ngoại trừ cấu trúc JSON hợp lệ sau:
 {
@@ -6182,7 +6285,7 @@ Hãy trả về kết quả hoàn chỉnh dưới định dạng JSON duy nhất
   "direction": "...",
   "legal": "...",
   "badge": "...",
-  "desc": "Bài viết chuẩn liền dòng theo yêu cầu..."
+  "desc": "THÔNG SỐ & GIÁ BÁN:\nVị trí tại phường [Tên Phường], TP. Thủ Đức.\n- Diện tích đất [Diện Tích]m2.\n- Kết cấu gồm [Số Tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.\n- Hướng nhà: [Hướng Nhà]. Giá bán: [Giá] tỷ đồng.\nHIỆN TRẠNG:\n- [Ý hiện trạng 1]\n- [Ý hiện trạng 2]\n- [Ý hiện trạng 3]\n- [Ý hiện trạng 4]\n- [Ý hiện trạng 5]\nQuý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất."
 }
 
 DỮ LIỆU THÔ CẦN PHÂN TÍCH:
@@ -6202,7 +6305,19 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
           if (data.floors !== undefined && formFloors) formFloors.value = data.floors;
           if (data.legal && formLegal) formLegal.value = data.legal;
           if (data.badge && formBadge) formBadge.value = data.badge;
-          if (data.desc && formDesc) formDesc.value = data.desc;
+          
+          if (data.desc && formDesc) {
+            // Thay thế cả thẻ HTML <br> và bỏ dòng liên hệ Thanh Trà BĐS để tránh lỗi hiển thị
+            let tempDesc = data.desc.replace(/<br\s*\/?>/gi, '\n');
+            const linesToRemove = [
+              /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*TP\.\s*Thủ\s*Đức\)\.?/gi,
+              /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*Lò\s*Lu,\s*TP\.\s*Thủ\s*Đức\)\.?/gi
+            ];
+            for (const regex of linesToRemove) {
+              tempDesc = tempDesc.replace(regex, '');
+            }
+            formDesc.value = tempDesc.trim();
+          }
 
           // Hướng nhà
           if (data.direction && formDirection) {
@@ -6833,6 +6948,438 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
       }
 
+      // ==========================================
+      // QUẢN LÝ ĐĂNG TIN NHANH TỪ THƯ MỤC (FAST POST LOGIC)
+      // ==========================================
+      function showAdminBulkForm() {
+        const dashboardSection = document.getElementById('adminDashboardSection');
+        const bulkSection = document.getElementById('adminBulkSection');
+        const formSection = document.getElementById('adminFormSection');
+        
+        if (formSection) formSection.style.display = 'none';
+        if (dashboardSection) dashboardSection.style.display = 'none';
+        if (bulkSection) {
+          bulkSection.style.display = 'block';
+          // Trả về trạng thái sạch ban đầu của giao diện Đăng nhanh
+          document.getElementById('fastProgressArea').style.display = 'none';
+          document.getElementById('fastFolderInput').value = '';
+          const dropzone = document.getElementById('fastUploadDropzone');
+          if (dropzone) {
+            dropzone.style.background = '#f8fafc';
+            dropzone.style.borderColor = '#bfdbfe';
+          }
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function hideAdminBulkForm(e) {
+        if (e) e.preventDefault();
+        const bulkSection = document.getElementById('adminBulkSection');
+        const dashboardSection = document.getElementById('adminDashboardSection');
+        if (bulkSection) bulkSection.style.display = 'none';
+        if (dashboardSection) dashboardSection.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function handleFastDragOver(e) {
+        e.preventDefault();
+        const dropzone = document.getElementById('fastUploadDropzone');
+        if (dropzone) {
+          dropzone.style.background = '#eff6ff';
+          dropzone.style.borderColor = '#3b82f6';
+          const icon = dropzone.querySelector('.drop-icon');
+          if (icon) icon.style.transform = 'scale(1.15)';
+        }
+      }
+
+      function handleFastDragLeave(e) {
+        e.preventDefault();
+        const dropzone = document.getElementById('fastUploadDropzone');
+        if (dropzone) {
+          dropzone.style.background = '#f8fafc';
+          dropzone.style.borderColor = '#bfdbfe';
+          const icon = dropzone.querySelector('.drop-icon');
+          if (icon) icon.style.transform = 'scale(1)';
+        }
+      }
+
+      function handleFastDrop(e) {
+        e.preventDefault();
+        const dropzone = document.getElementById('fastUploadDropzone');
+        if (dropzone) {
+          dropzone.style.background = '#f8fafc';
+          dropzone.style.borderColor = '#bfdbfe';
+          const icon = dropzone.querySelector('.drop-icon');
+          if (icon) icon.style.transform = 'scale(1)';
+        }
+        if (e.dataTransfer && e.dataTransfer.files) {
+          const files = Array.from(e.dataTransfer.files);
+          processFastFiles(files);
+        }
+      }
+
+      function handleFastUpload(e) {
+        if (e.target && e.target.files) {
+          const files = Array.from(e.target.files);
+          processFastFiles(files);
+        }
+      }
+
+      // Xử lý nạp các tệp tin hình ảnh & mô tả .txt
+      async function processFastFiles(files) {
+        if (!files || files.length === 0) {
+          return;
+        }
+
+        const txtFile = files.find(f => f.name.toLowerCase().endsWith('.txt'));
+        const imgFiles = files.filter(f => f.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name));
+
+        const activeClientKey = localStorage.getItem('gemini_api_key') || buildGeminiKey;
+
+        // Bắt đầu hiển thị khu vực tiến trình và cập nhật các checkbox trạng thái
+        const progressArea = document.getElementById('fastProgressArea');
+        const progressBar = document.getElementById('fastProgressBar');
+        const progressPercent = document.getElementById('fastProgressPercent');
+        const progressLabel = document.getElementById('fastProgressLabel');
+        const progressDetail = document.getElementById('fastProgressDetail');
+
+        progressArea.style.display = 'block';
+        progressBar.style.width = '5%';
+        progressPercent.textContent = '5%';
+        progressLabel.innerHTML = `
+          <svg style="color: #2563eb; transform-origin: center; animation: spin 1s linear infinite; margin-right: 6px;" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10" stroke="rgba(0,0,0,0.1)" stroke-width="2.5"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          Đang phân tích các tài liệu trong Thư mục...
+        `;
+
+        // Reset text & checkmarks
+        document.getElementById('iconReadTxt').textContent = '⏳';
+        document.getElementById('stepReadTxt').style.color = 'var(--text-dark)';
+        document.getElementById('iconAnalyzeAI').textContent = '⚪';
+        document.getElementById('stepAnalyzeAI').style.color = 'var(--text-muted)';
+        document.getElementById('iconUploadImgs').textContent = '⚪';
+        document.getElementById('stepUploadImgs').style.color = 'var(--text-muted)';
+        document.getElementById('labelUploadImgs').textContent = `3. Đồng bộ hóa hình ảnh lên Cloudinary (${imgFiles.length} ảnh)...`;
+
+        progressDetail.textContent = 'Đang khởi chạy trình đọc tệp tin thuyết minh...';
+
+        // 1. Phân tích: Đọc tệp tin .txt chứa mô tả
+        if (!txtFile) {
+          document.getElementById('iconReadTxt').textContent = '❌';
+          document.getElementById('stepReadTxt').style.color = '#dc2626';
+          progressLabel.textContent = '⚠️ Quá trình bị gián đoạn!';
+          progressDetail.innerHTML = `
+            <span style="color: #dc2626; font-weight: 700;">Không tìm thấy tệp .txt nào!</span><br>
+            Để sử dụng tính năng Đăng nhanh, bạn bắt buộc phải kéo thả hoặc chọn ĐỒNG THỜI cả các tệp hình ảnh và 1 tệp văn bản <code>.txt</code> chứa bài thuyết minh thô của căn nhà đó.
+          `;
+          progressBar.style.width = '0%';
+          progressPercent.textContent = '0%';
+          return;
+        }
+
+        // Đọc nội dung tệp .txt bằng FileReader
+        const reader = new FileReader();
+        reader.onload = async function() {
+          const rawText = reader.result.trim();
+          if (!rawText) {
+            document.getElementById('iconReadTxt').textContent = '❌';
+            document.getElementById('stepReadTxt').style.color = '#dc2626';
+            progressLabel.textContent = '⚠️ Thất bại khi đọc file!';
+            progressDetail.textContent = `Tệp ${txtFile.name} trống hoặc không chứa ký tự hợp lệ.`;
+            return;
+          }
+
+          document.getElementById('iconReadTxt').textContent = '✔️';
+          document.getElementById('stepReadTxt').style.color = '#155724';
+          progressDetail.textContent = `Đọc thành công tệp [${txtFile.name}] (Độ dài: ${rawText.length} ký tự).`;
+          progressBar.style.width = '20%';
+          progressPercent.textContent = '20%';
+
+          // Chuyển qua Bước 2: Gọi AI phân tích bóc tách các trường thông số dồi dào
+          await analyzeFastTextAI(rawText, imgFiles, activeClientKey);
+        };
+        reader.onerror = function() {
+          document.getElementById('iconReadTxt').textContent = '❌';
+          document.getElementById('stepReadTxt').style.color = '#dc2626';
+          progressLabel.textContent = '⚠️ Không đọc được tệp!';
+          progressDetail.textContent = 'Lỗi hệ thống khi tải tệp văn bản. Vui lòng kiểm tra lại quyền truy cập file.';
+        };
+        reader.readAsText(txtFile, 'UTF-8');
+      }
+
+      // Bước 2: Gọi Trợ lý AI phân tích và bóc tách các trường thông số thông minh
+      async function analyzeFastTextAI(rawText, imgFiles, activeClientKey) {
+        const progressBar = document.getElementById('fastProgressBar');
+        const progressPercent = document.getElementById('fastProgressPercent');
+        const progressDetail = document.getElementById('fastProgressDetail');
+
+        document.getElementById('iconAnalyzeAI').textContent = '⏳';
+        document.getElementById('stepAnalyzeAI').style.color = 'var(--text-dark)';
+        progressBar.style.width = '40%';
+        progressPercent.textContent = '40%';
+        progressDetail.textContent = 'Đang kết nối đến Trợ lý AI để giải mã dữ liệu bài viết & bóc tách các thông số...';
+
+        let parsedData = null;
+
+        try {
+          const response = await fetch('/api/analyze-raw', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              rawInput: rawText,
+              localKey: activeClientKey || ''
+            })
+          });
+
+          if (response.ok) {
+            parsedData = await response.json();
+          } else {
+            // Khởi chạy chế độ gọi trực tiếp Gemini client-side nếu API Proxy bận
+            if (activeClientKey) {
+              const systemPrompt = `Bạn là trợ lý thông minh cao cấp bóc tách BĐS. Hãy trả về kết quả JSON duy nhất theo đúng cấu trúc. DỮ LIỆU THÔ: "${rawText}"`;
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeClientKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: systemPrompt }] }]
+                })
+              });
+              if (directResponse.ok) {
+                const directJson = await directResponse.json();
+                const textResult = directJson.candidates[0].content.parts[0].text;
+                const cleanedResult = textResult.replace(/```json/gi, '').replace(/```/g, '').trim();
+                parsedData = JSON.parse(cleanedResult);
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Lỗi AI bóc tách Đăng nhanh:", err);
+        }
+
+        // Tạo dữ liệu trống mặc định nếu AI không thể phản hồi đúng định dạng hoặc kết nối bị đứt
+        if (!parsedData || !parsedData.title) {
+          document.getElementById('iconAnalyzeAI').textContent = '⚠️';
+          document.getElementById('stepAnalyzeAI').style.color = '#856404';
+          progressDetail.textContent = 'AI bận hoặc bị giới hạn. Hệ thống sẽ giữ nguyên bản văn thô và tiếp tục đồng bộ ảnh...';
+          
+          parsedData = {
+            title: "TIN ĐĂNG NHANH TỪ THƯ MỤC CHƯA CÓ TIÊU ĐỀ",
+            desc: rawText,
+            price: 0,
+            area: 0,
+            ward: "",
+            direction: "Không xác định",
+            floors: 3,
+            bedrooms: 3,
+            bathrooms: 3,
+            badge: "Tin mới",
+            houseNumber: "",
+            street: "",
+            width: 4,
+            legal: "Sổ hồng riêng"
+          };
+        } else {
+          document.getElementById('iconAnalyzeAI').textContent = '✔️';
+          document.getElementById('stepAnalyzeAI').style.color = '#155724';
+          progressDetail.textContent = `AI giải mã thành công! Căn hộ: ${parsedData.title.slice(0, 45)}... (Giá bóc tách: ${parsedData.price} Tỷ, DT: ${parsedData.area}m2).`;
+        }
+
+        progressBar.style.width = '60%';
+        progressPercent.textContent = '60%';
+
+        // Chuyển sang Bước 3: Upload đồng bộ hóa các hình ảnh lên Cloudinary
+        await uploadFastImagesCloud(imgFiles, parsedData);
+      }
+
+      // Bước 3: Đồng bộ tải các hình ảnh thực tế lên Cloudinary
+      async function uploadFastImagesCloud(imgFiles, parsedData) {
+        const progressBar = document.getElementById('fastProgressBar');
+        const progressPercent = document.getElementById('fastProgressPercent');
+        const progressDetail = document.getElementById('fastProgressDetail');
+
+        document.getElementById('iconUploadImgs').textContent = '⏳';
+        document.getElementById('stepUploadImgs').style.color = 'var(--text-dark)';
+
+        const uploadedUrlsList = [];
+        const totalImgs = imgFiles.length;
+
+        if (totalImgs === 0) {
+          document.getElementById('iconUploadImgs').textContent = '✔️';
+          document.getElementById('stepUploadImgs').style.color = '#155724';
+          progressBar.style.width = '100%';
+          progressPercent.textContent = '100%';
+          progressDetail.textContent = 'Không có tệp hình ảnh bổ sung nào trong folder. Bắt đầu mở form...';
+          
+          fillFormAndOpenFast(parsedData, []);
+          return;
+        }
+
+        // Thực hiện tải lần lượt từng ảnh lên Cloudinary server-side
+        for (let i = 0; i < totalImgs; i++) {
+          const file = imgFiles[i];
+          const calculatedPct = 60 + Math.round((i / totalImgs) * 35);
+          
+          progressBar.style.width = `${calculatedPct}%`;
+          progressPercent.textContent = `${calculatedPct}%`;
+          document.getElementById('labelUploadImgs').textContent = `3. Đồng bộ hóa hình ảnh lên Cloudinary (${i + 1}/${totalImgs} ảnh)...`;
+          progressDetail.innerHTML = `Đang nén mật độ cao & tải ảnh lên Cloudinary:<br>↳ <em style="font-size:11px; color:#555;">${file.name} (Kích thước: ${Math.round(file.size / 1024)} KB)</em>`;
+
+          try {
+            // Nén ảnh canvas cơ bản để gia tăng vận tốc và độ phản hồi ổn định nhất
+            const compressed = await compressImageToBlob(file);
+            const uploadFile = compressed ? new File([compressed], file.name, { type: 'image/jpeg' }) : file;
+
+            const formData = new FormData();
+            formData.append('image', uploadFile);
+
+            const uploadResponse = await fetch('/api/upload', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (uploadResponse.ok) {
+              const uData = await uploadResponse.json();
+              if (uData.success && uData.secure_url) {
+                uploadedUrlsList.push(udataUrlFilter(uData.secure_url));
+              }
+            }
+          } catch (uploadError) {
+            console.error(`Không thể tải ảnh nhanh: ${file.name}`, uploadError);
+          }
+        }
+
+        // Hoàn tất Bước 3
+        document.getElementById('iconUploadImgs').textContent = '✔️';
+        document.getElementById('stepUploadImgs').style.color = '#155724';
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
+        progressDetail.textContent = `Tải thành công ${uploadedUrlsList.length}/${totalImgs} ảnh lên Cloudinary. Đang kết chuyển dữ liệu vào ô mô tả...`;
+
+        setTimeout(() => {
+          fillFormAndOpenFast(parsedData, uploadedUrlsList);
+        }, 800);
+      }
+
+      // Giúp dọn định dạng url ảnh an toàn
+      function udataUrlFilter(url) {
+        if (!url) return '';
+        return url.replace('http://', 'https://');
+      }
+
+      // Hàm nén ảnh tiện dụng client-side cho tính năng Đăng nhanh
+      function compressImageToBlob(file) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = function(event) {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = function() {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              
+              const maxDim = 1200;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              canvas.toBlob((blob) => {
+                resolve(blob);
+              }, 'image/jpeg', 0.75);
+            };
+            img.onerror = () => resolve(null);
+          };
+          reader.onerror = () => resolve(null);
+        });
+      }
+
+      // Nạp tất cả thông số bóc tách và danh sách ảnh Cloud lên Form Đăng Tin chính để người dùng rà soát
+      function fillFormAndOpenFast(parsedData, uploadedUrls) {
+        // 1. Chuyển form đăng tin sang chế độ tạo mới sạch sẽ
+        showAdminForm(null);
+
+        // 2. Đổ đầy dữ liệu bóc tách được trực tiếp vào các ô input trong form đăng tin
+        document.getElementById('formTitle').value = parsedData.title ? parsedData.title.toUpperCase() : '';
+        document.getElementById('formPrice').value = parsedData.price || '';
+        document.getElementById('formArea').value = parsedData.area || '';
+        
+        // So khớp và gán phường chuẩn xác
+        const wardField = document.getElementById('ap_wd_fld');
+        if (wardField && parsedData.ward) {
+          let rawWard = parsedData.ward.trim();
+          let cleanWard = rawWard.replace(/^[Pp]hường\s+/, "");
+          wardField.value = cleanWard;
+        }
+
+        // Hướng nhà
+        const dirField = document.getElementById('formDirection');
+        if (dirField && parsedData.direction) {
+          dirField.value = parsedData.direction;
+        }
+
+        document.getElementById('formFloors').value = parsedData.floors || 3;
+        document.getElementById('formBadge').value = parsedData.badge || 'Sổ hồng riêng';
+        
+        // Làm sạch mô tả trước khi đổ vào form theo yêu cầu xóa Thanh Trà BĐS
+        let normDesc = parsedData.desc || '';
+        const regexesToRemove = [
+          /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*TP\.\s*Thủ\s*Đức\)\.?/gi,
+          /Thanh Trà BĐS\s*\(Hotline\/Zalo:\s*0854\.100\.036\s*-\s*Email:\s*thanhtra1996st@gmail.com\s*-\s*Văn phòng:\s*Lò\s*Lu,\s*TP\.\s*Thủ\s*Đức\)\.?/gi
+        ];
+        for (const regex of regexesToRemove) {
+          normDesc = normDesc.replace(regex, '');
+        }
+        document.getElementById('formDesc').value = normDesc.trim();
+
+        document.getElementById('ap_hn_fld').value = parsedData.houseNumber || '';
+        document.getElementById('ap_st_fld').value = parsedData.street || '';
+        document.getElementById('formWidth').value = parsedData.width || 4;
+        document.getElementById('formBedrooms').value = parsedData.bedrooms || 3;
+        document.getElementById('formBathrooms').value = parsedData.bathrooms || 3;
+        document.getElementById('formLegal').value = parsedData.legal || 'Sổ hồng riêng';
+
+        // Lắp ráp địa chỉ hiển thị
+        let addressParts = [];
+        if (parsedData.houseNumber) addressParts.push(parsedData.houseNumber.trim());
+        if (parsedData.street) addressParts.push(parsedData.street.trim());
+        if (parsedData.ward) addressParts.push("Phường " + parsedData.ward.trim());
+        addressParts.push("TP. Thủ Đức, TP.HCM");
+        const addrField = document.getElementById('formAddress');
+        if (addrField) {
+          addrField.value = addressParts.join(", ");
+        }
+
+        // 3. Xử lý hình ảnh thực tế vừa nạp
+        if (uploadedUrls && uploadedUrls.length > 0) {
+          uploadedImagesList = uploadedUrls;
+          const imgField = document.getElementById('formImg');
+          if (imgField) {
+            imgField.value = uploadedUrls[0];
+          }
+          // Kích hoạt render preview của Form đăng tin để hiện ảnh trực quan
+          renderUploadedImagesPreviews();
+        }
+
+        // 4. Toàn bộ hiệu ứng mở form mượt mà cuốn hút
+        document.getElementById('adminBulkSection').style.display = 'none';
+        document.getElementById('fastProgressArea').style.display = 'none';
+
+        showToast("🪄 Đồng bộ hình ảnh & phân bóc nội dung AI thành công! Hãy bấm 'Lưu thông tin đăng' để lưu.", true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
       // Đăng ký cho các đường link trang chủ chuyển hoàn lại màn hình chính diện
       document.querySelectorAll("#navMenu a").forEach(link => {
         if (link.id !== "navAdminLink") {
@@ -6873,6 +7420,18 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
       window.closeSaveSuccessModal = closeSaveSuccessModal;
       window.handleSaveSuccessChoice = handleSaveSuccessChoice;
       window.changeCardImage = changeCardImage;
+
+      // Đăng ký các hàm quản lý Đăng nhanh từ Thư mục (Fast Posting) lên window toàn cục
+      window.showAdminBulkForm = showAdminBulkForm;
+      window.hideAdminBulkForm = hideAdminBulkForm;
+      window.handleFastDragOver = handleFastDragOver;
+      window.handleFastDragLeave = handleFastDragLeave;
+      window.handleFastDrop = handleFastDrop;
+      window.handleFastUpload = handleFastUpload;
+      window.processFastFiles = processFastFiles;
+      window.analyzeFastTextAI = analyzeFastTextAI;
+      window.uploadFastImagesCloud = uploadFastImagesCloud;
+      window.fillFormAndOpenFast = fillFormAndOpenFast;
 
       // Gắn các hàm cấu hình Supabase Cloud vào window
       window.copySupabaseSql = copySupabaseSql;

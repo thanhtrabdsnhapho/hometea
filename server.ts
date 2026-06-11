@@ -246,6 +246,9 @@ async function startServer() {
         return res.status(400).json({ error: "Chưa cấu hình Gemini API Key trên hệ thống!" });
       }
 
+      // Convert any literal HTML break tags from user copy-paste or web references to clean actual newlines
+      const sanitizedRawInput = (rawInput || "").replace(/<br\s*\/?>/gi, '\n');
+
       const ai = new GoogleGenAI({ 
         apiKey,
         httpOptions: {
@@ -255,51 +258,61 @@ async function startServer() {
         }
       });
 
-      const promptInput = `Bạn là một trợ lý thông minh cao cấp cho trang web BĐS TP. Thủ Đức.
-Nhiệm vụ của bạn là nhận thông tin thô (thông số, vị trí, giá, đặc điểm) do người dùng cung cấp và:
+      const promptInput = `Bạn là một trợ lý thông minh cao cấp cho trang web BĐS TP. Thủ Đức, là chuyên gia sáng tạo nội dung bất động sản chuyên nghiệp.
+Nhiệm vụ của bạn là nhận thông tin thô do người dùng cung cấp, lọc bỏ từ ngữ vi phạm, và:
 1. Phân tích chi tiết để bóc tách các thông số cấu trúc của bất động sản.
-2. Biên soạn một bài viết quảng cáo đăng bán chuẩn mực theo đúng quy tắc bên dưới.
+2. Biên soạn một bài viết quảng cáo đăng bán (desc) chuẩn mực theo đúng quy tắc bên dưới.
 
 Yêu cầu bóc tách các thông số cụ thể:
-- Tiêu đề (title): Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn mạnh nhất của bất động sản (VD: LOẠI HÌNH – VỊ TRÍ – DIỆN TÍCH – GIÁ).
-- Số nhà (houseNumber): Số nhà/số căn (nếu có nhắc tới trong dữ liệu thô, nếu không có thì để trống "").
-- Tên đường (street): Tên đường phố, hẻm chính (nếu có nhắc tới trong dữ liệu thô, nếu không thì ghi tên đường chính gần nhất hoặc bỏ trống).
+- Tiêu đề (title): Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn (Loại hình – Vị trí – Diện tích – Giá).
+- Số nhà (houseNumber): Số nhà/số căn (nếu nhắc tới trong dữ liệu thô, nếu không thì để trống "").
+- Tên đường (street): Tên đường phố, hẻm chính (nếu nhắc tới, không thì bỏ trống).
 - Phường/xã (ward): Tên phường tại TP. Thủ Đức (VD: Trường Thạnh, Long Phước, Hiệp Phú, Thạnh Mỹ Lợi, Cát Lái...). Nếu không nhắc tới phường nhưng có tên đường, hãy suy đoán phường tương ứng hoặc ghi "Thủ Đức".
-- Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên (VD: 51).
-- Ngang (width): Chiều ngang (m), số thực (VD: 4.2). Nếu không có ghi nhận trong dữ liệu thô, hãy để mặc định là 4.
+- Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên.
+- Ngang (width): Chiều ngang (m), số thực. Nếu không có, mặc định là 4.
 - Giá bán (price): Giá chào bán quy đổi thành số thực đơn vị TỶ ĐỒNG (VD: 2.5 hoặc 3.6). Nếu không có, gán mặc định là 0.
-- Số phòng ngủ (bedrooms): Số phòng ngủ, là số nguyên (nếu đất trống ghi 0, nếu là nhà phố nhưng dữ liệu thô không nhắc tới thì ghi 3 làm mặc định).
-- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên (nếu đất trống ghi 0, nếu là nhà phố không nhắc thì ghi 3 làm mặc định).
-- Số tầng (floors): Số tầng kết cấu, nguyên (đất trống ghi 1, nhà cấp 4 ghi 1, nhà lầu ghi số tầng thực tế, hoặc mặc định 3 nếu không nêu rõ).
-- Hướng nhà (direction): Một trong các hướng chuẩn có sẵn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu dữ liệu thô không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định" (tuyệt đối không tự suy diễn hướng).
-- Pháp lý (legal): Ghi nhận tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
+- Số phòng ngủ (bedrooms): Số phòng ngủ, nguyên. Nếu không có, mặc định là 3.
+- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên. Nếu không có, mặc định là 3.
+- Số tầng (floors): Số tầng kết cấu, nguyên. Nếu không có, mặc định là 3.
+- Hướng nhà (direction): Một trong các hướng chuẩn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định".
+- Pháp lý (legal): Tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
 - Nhãn nổi bật (badge): Một nhãn ngắn như "Sổ Hồng Riêng", "Hẻm Xe Hơi", "Mặt Tiền Kinh Doanh", "Sát Đại Học", "Giá Đầu Tư".
 
 Yêu cầu biên soạn bài viết quảng cáo (desc):
 Bạn phải tuân thủ nghiêm ngặt các quy tắc sau:
-* Cấu trúc bài viết:
-- Tiêu đề: Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn mạnh nhất của bất động sản (VD: LOẠI HÌNH – VỊ TRÍ – DIỆN TÍCH – GIÁ).
-- Mục 1: THÔNG SỐ & GIÁ BÁN: Liệt kê các thông tin: Vị trí (phường/quận), Diện tích, Kết cấu (nếu là nhà), Hướng (nếu có), Giá bán (ghi rõ mức giá hoặc 'Liên hệ' nếu cần).
-- Mục 2: HIỆN TRẠNG & TIỀN NĂNG BỨT PHÁ: Sử dụng gạch đầu dòng để làm nổi bật các điểm mạnh: Thiết kế, nội thất, tiện ích xung quanh, tiềm năng tăng giá, giao thông, pháp lý.
-- Kết bài: Một câu kêu gọi hành động (Call-to-action) lịch sự, ngắn gọn: 'Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.'
 
-* Nguyên tắc trình bày:
-- Trình bày liền mạch, hoàn toàn KHÔNG CÓ KHOẢNG CÁCH DÒNG TRỐNG (tất cả các dòng phải nằm cạnh nhau liền dải văn bản, không dùng ký tự xuống dòng kép \\n\\n, hãy dùng \\n đơn lẻ và không để trống dòng).
-- Tuyệt đối KHÔNG SỬ DỤNG tiêu đề 'Ưu điểm' trong bất kỳ trường hợp nào.
-- KHÔNG LIỆT KÊ số nhà cụ thể hoặc tên hẻm cụ thể trong bài đăng quảng cáo (VD: hẻm 383 Long Phước hay số nhà 45 -> hãy ghi ẩn đi thành hẻm ô tô Long Phước hoặc khu vực Long Phước).
-- Tuyệt đối KHÔNG ĐỀ CẬP đến các yếu tố tiêu cực như 'ngập lụt', 'ngập nước' kể cả khi thông tin thô có nhắc tới. Thay vào đó tập trung vào hạ tầng hoàn thiện, vị trí đẹp, tiện ích xung quanh.
-- TUYỆT ĐỐI CẤM SỬ DỤNG CÁC TỪ NGỮ QUẢNG CÁO TỰ PHONG, KHẲNG ĐỊNH THỨ HẠNG HOẶC ĐỘC QUYỀN TRONG TIÊU ĐỀ HOẶC NỘI DUNG (BIÊN SOẠN KHÁCH QUAN, TUÂN THỦ LUẬT QUẢNG CÁO):
-  + KHÔNG DÙNG từ khẳng định thứ hạng/chất lượng: "Số 1", "No.1", "Top 1", "Nhất", "Tốt nhất", "Uy tín nhất", "Hiệu quả nhất", "Chất lượng nhất", "Dẫn đầu", "Hàng đầu" hoặc các biến thể so sánh nhất.
-  + KHÔNG DÙNG từ khẳng định độc quyền: "Duy nhất", "Độc nhất", "Chỉ có tại...".
-  + KHÔNG DÙNG từ khẳng định quá đà, cam kết vô căn cứ về Bất động sản: "Đẹp nhất khu vực", "Vị trí đắc địa nhất", "Giá tốt nhất thị trường", "Cam kết sinh lờii cao nhất", "Sinh lời tốt nhất".
-  + Hãy thay bằng các từ ngữ chuyên nghiệp và khách quan như: "tiềm năng tốt", "vị trí cực kỳ thuận tiện", "giá hết sức cạnh tranh", "không gian thoáng đãng sạch sẽ", "thiết kế hiện đại", "giao thông kết nối nhanh chóng".
-- Sử dụng ngôn ngữ trung thực, chuyên nghiệp, không gây phiền.
+1. CẤU TRÚC BÀI VIẾT (BẮT BUỘC SỬ DỤNG KÝ TỰ XUỐNG DÒNG '\n' ĐỂ CHIA DÒNG CỤ THỂ):
+Bạn bắt buộc phải trình bày nội dung bài viết dưới dạng có xuống dòng rõ ràng bằng ký tự '\n' cho từng dòng y hệt như cấu trúc dưới đây. Mỗi ý, mỗi thông tin hoặc mỗi gạch đầu dòng phải nằm trên một dòng riêng biệt. KHÔNG được gộp tất cả các dòng thành một đoạn văn duy nhất liền dòng.
+- Tiêu đề: VIẾT HOA TOÀN BỘ, bắt đầu bằng icon (🔥), tóm tắt điểm nhấn (như loại hình, vị trí, diện tích, giá).
+- Mục 1: THÔNG SỐ & GIÁ BÁN:
+  + Dòng chữ: THÔNG SỐ & GIÁ BÁN:
+  + Dòng tiếp theo: Vị trí tại phường [Tên Phường, ví dụ: Long Phước], TP. Thủ Đức.
+  + Dòng tiếp theo: - Diện tích đất [Diện tích]m2.
+  + Dòng tiếp theo: - Kết cấu gồm [Số tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.
+  + Dòng tiếp theo: - Hướng nhà: [Hướng nhà]. Giá bán: [Giá] tỷ đồng.
+- Mục 2: HIỆN TRẠNG:
+  + Dòng chữ: HIỆN TRẠNG:
+  + Sử dụng các dòng tiếp theo, mỗi dòng bắt đầu bằng dấu trừ '-' để liệt kê: thiết kế, nội thất, hạ tầng giao thông đường xá, pháp lý minh bạch...
+- Kết bài: Dòng tiếp theo: Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.
+👉 CHÚ Ý QUAN TRỌNG: Tuyệt đối KHÔNG ĐƯỢC ghi thêm bất kỳ thông tin liên hệ, số điện thoại, zalo, email, hoặc địa chỉ văn phòng của Thanh Trà BĐS ở cuối bài viết. Hãy kết thúc chính xác ở câu kêu gọi hành động phía trên.
 
-* Phong cách viết:
-- Ngắn gọn, súc tích, đánh mạnh vào giá trị đầu tư và công năng sử dụng.
-- Tập trung vào sự uy tín và minh bạch về pháp lý (sổ hồng, hoàn công).
-- Nếu thông tin thiếu (như giá hoặc diện tích), hãy viết bài dựa trên thông tin hiện có và giữ nguyên phần kêu gọi liên hệ để biết chi tiết.
-- Luôn ưu tiên trình bày đẹp mắt, dễ đọc trên thiết bị di động.
+2. QUY ĐỊNH VỀ NGÔN NGỮ VÀ TRÌNH BÀY (TUÂN THỦ PHÁP LUẬT):
+- CẤM: Tuyệt đối không dùng các từ ngữ khẳng định tuyệt đối hoặc mang tính cường điệu như: "tốt nhất", "đẹp nhất", "hiếm nhất", "số 1", "đỉnh nhất", "duy nhất", "hoàn hảo", "đẳng cấp nhất", "siêu phẩm".
+- KHUYẾN KHÍCH: Sử dụng từ ngữ trung lập, khách quan như: "đắc địa", "tiềm năng", "hiện đại", "thuận tiện", "thông thoáng", "nổi bật", "phù hợp cho nhu cầu ở hoặc kinh doanh", "thiết kế chỉn chu".
+- TRÌNH BÀY HÌNH THỨC:
+  + BẮT BUỘC xuống dòng bằng kí tự '\n' cho từng thông số, từng dòng như hướng dẫn ở trên để bài viết đẹp mắt, dễ đọc.
+  + Tuyệt đối KHÔNG dùng ký tự xuống dòng kép (\n\n) để tạo khoảng trống dòng trống giữa các dòng. Hãy dùng đúng một ký tự '\n' duy nhất để xuống dòng viết tiếp ngay dòng dưới để các dòng nằm khít nhau nhưng vẫn xuống dòng đẹp đẽ.
+  + TUYỆT ĐỐI KHÔNG sử dụng hay chèn thẻ HTML '<br>' hoặc bất kỳ thẻ HTML nào trong nội dung "desc" mà bạn biên soạn. Hãy chỉ dùng ký tự xuống dòng thực tế '\n' thông thường để đổi dòng.
+  + Không được đưa số nhà cụ thể hay số hẻm riêng tư chi tiết vào nội dung bài viết quảng cáo (trừ khi có yêu cầu riêng). Chỉ đăng thông tin chung về khu vực/đường phố.
+  + Không sử dụng tiêu đề "Ưu điểm" hay "Ưu điểm nổi bật". Thay vào đó hãy đặt tên phần là "HIỆN TRẠNG" đúng theo yêu cầu.
+
+3. PHONG CÁCH VIẾT:
+Ngắn gọn, súc tích, tập trung vào công năng sử dụng và tính pháp lý minh bạch (Sổ hồng, hoàn công đầy đủ).
+Ngôn ngữ chuyên nghiệp, rõ ràng, phù hợp để người dùng đọc nhanh trên thiết bị di động.
+
+4. CƠ CHẾ XỬ LÝ DỮ LIỆU:
+Khi người dùng cung cấp thông tin thô, hãy lọc bỏ các từ ngữ vi phạm quy định ở mục 2 và áp dụng cấu trúc ở mục 1.
+Nếu thông tin thiếu (như giá hoặc diện tích), hãy trình bày dựa trên những gì có sẵn và giữ nguyên câu kết bài.
 
 Hãy trả về kết quả hoàn chỉnh dưới định dạng JSON duy nhất. KHÔNG bao quanh bằng bất cứ văn bản dẫn dắt hay markdown nhãn ngoại trừ cấu trúc JSON hợp lệ sau:
 {
@@ -316,11 +329,11 @@ Hãy trả về kết quả hoàn chỉnh dưới định dạng JSON duy nhất
   "direction": "...",
   "legal": "...",
   "badge": "...",
-  "desc": "Bài viết chuẩn liền dòng theo yêu cầu..."
+  "desc": "THÔNG SỐ & GIÁ BÁN:\nVị trí tại phường [Tên Phường], TP. Thủ Đức.\n- Diện tích đất [Diện Tích]m2.\n- Kết cấu gồm [Số Tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.\n- Hướng nhà: [Hướng Nhà]. Giá bán: [Giá] tỷ đồng.\nHIỆN TRẠNG:\n- [Ý hiện trạng 1]\n- [Ý hiện trạng 2]\n- [Ý hiện trạng 3]\n- [Ý hiện trạng 4]\n- [Ý hiện trạng 5]\nQuý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất."
 }
 
 DỮ LIỆU THÔ CẦN PHÂN TÍCH:
-"${rawInput}"`;
+"${sanitizedRawInput}"`;
 
       const response = await generateContentWithRetry(ai, {
         model: "gemini-3.5-flash",
@@ -330,8 +343,15 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
         }
       });
 
-      const reply = response.text || "";
-      res.json(JSON.parse(reply));
+      let reply = response.text || "";
+      // Strip any accidental <br> tags injected by the model
+      reply = reply.replace(/<br\s*\/?>/gi, '\n');
+      
+      const parsed = JSON.parse(reply);
+      if (parsed.desc) {
+         parsed.desc = parsed.desc.replace(/<br\s*\/?>/gi, '\n');
+      }
+      res.json(parsed);
     } catch (apiError: any) {
       console.log("[Info] Analyze proxy call completed with exception.");
       const errMsg = apiError?.message || String(apiError);
