@@ -3008,19 +3008,19 @@
     </div>
 
     <!-- MODAL XÁC NHẬN XÓA TỰ CHẾ ĐẸP MẮT (CUSTOM CONFIRM MODAL) -->
-    <div id="customConfirmModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.25s ease;">
-      <div style="background: #ffffff; border-radius: 20px; width: 95%; max-width: 400px; padding: 28px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid rgba(0, 0, 0, 0.05); transform: scale(0.9); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); display: block;">
+    <div id="customConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;">
+      <div style="background: #ffffff; border-radius: 20px; width: 95%; max-width: 400px; padding: 28px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid rgba(0, 0, 0, 0.05); transform: scale(0.9); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); display: block; pointer-events: auto;">
         <div style="width: 64px; height: 64px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 2px solid #fee2e2;">
           <span style="font-size: 30px;">⚠️</span>
         </div>
         <h3 id="customConfirmTitle" style="font-family: var(--font-sans); font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 12px; line-height: 1.3;">Xác Nhận Xóa?</h3>
         <p id="customConfirmMessage" style="font-size: 14px; color: #475569; line-height: 1.5; margin-bottom: 24px; padding: 0 12px;">Bạn có chắc chắn muốn thực hiện thao tác này không?</p>
         
-        <div style="display: flex; gap: 12px; justify-content: center;">
-          <button id="btnConfirmCancel" style="flex: 1; padding: 11px 18px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+        <div style="display: flex; gap: 12px; justify-content: center; pointer-events: auto;">
+          <button id="btnConfirmCancel" style="flex: 1; padding: 11px 18px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; pointer-events: auto;">
             Hủy bỏ
           </button>
-          <button id="btnConfirmProceed" style="flex: 1; padding: 11px 18px; background: #ef4444; color: #ffffff; border: none; border-radius: 10px; font-size: 14px; font-weight: 750; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);">
+          <button id="btnConfirmProceed" style="flex: 1; padding: 11px 18px; background: #ef4444; color: #ffffff; border: none; border-radius: 10px; font-size: 14px; font-weight: 750; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2); pointer-events: auto;">
             Đồng ý xóa
           </button>
         </div>
@@ -4045,6 +4045,7 @@
         return new Promise((resolve) => {
           const modal = document.getElementById('customConfirmModal');
           if (!modal) {
+            console.warn("customConfirmModal not found, resolving true");
             resolve(true);
             return;
           }
@@ -4056,16 +4057,18 @@
           if (titleEl) titleEl.textContent = title;
           if (msgEl) msgEl.textContent = message;
           
+          console.log("Opening custom confirm modal...");
           modal.style.display = 'flex';
-          modal.classList.add('open');
+          modal.style.pointerEvents = 'auto'; // Kích hoạt sự kiện click tuyệt đối trực tiếp bằng JS
           modal.offsetHeight; // trigger reflow
           modal.style.opacity = '1';
           const childDiv = modal.querySelector('div');
           if (childDiv) childDiv.style.transform = 'scale(1)';
           
           const cleanup = (value) => {
+            console.log("Cleaning up custom confirm. Value selected: " + value);
             modal.style.opacity = '0';
-            modal.classList.remove('open');
+            modal.style.pointerEvents = 'none'; // Vô hiệu hóa click khi đóng modal
             if (childDiv) childDiv.style.transform = 'scale(0.9)';
             if (btnCancel) btnCancel.onclick = null;
             if (btnProceed) btnProceed.onclick = null;
@@ -4075,8 +4078,24 @@
             }, 250);
           };
           
-          if (btnCancel) btnCancel.onclick = () => cleanup(false);
-          if (btnProceed) btnProceed.onclick = () => cleanup(true);
+          if (btnCancel) {
+            btnCancel.onclick = (e) => {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              cleanup(false);
+            };
+          }
+          if (btnProceed) {
+            btnProceed.onclick = (e) => {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              cleanup(true);
+            };
+          }
         });
       }
       window.showCustomConfirm = showCustomConfirm;
