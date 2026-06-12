@@ -2328,6 +2328,10 @@
         background-color: #ef4444; /* Đỏ cam */
         color: #ffffff;
       }
+      .card-badge-discount {
+        background-color: #16a34a; /* Xanh lá giảm giá */
+        color: #ffffff;
+      }
       .card-badge-views {
         background-color: #4b5563; /* Xám đậm */
         color: #ffffff;
@@ -3025,118 +3029,332 @@
             Đăng xuất Admin
         </div>
 
-        <!-- KHU VỰC THIẾT LẬP KẾT NỐI SUPABASE CLOUD TRỰC TIẾP - ĐÃ ĐƯỢC TỰ ĐỘNG HÓA VÀ ẨN ĐI ĐỂ TẬP TRUNG GIAO DIỆN -->
-        <div class="supabase-config-card" style="display: none !important; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px; margin-bottom: 24px; box-shadow: var(--shadow);">
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 24px;">☁️</span>
+        <!-- HÀNG ĐIỀU HƯỚNG TABS ADMIN -->
+        <div class="admin-tab-navigation" style="display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 24px; padding-bottom: 2px; flex-wrap: wrap;">
+          <button id="adminTabBtnProducts" class="admin-tab-btn active" onclick="switchAdminTab('products')" style="padding: 12px 20px; font-weight: 700; font-size: 14px; border: none; background: transparent; border-bottom: 3px solid var(--accent); color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            🗂️ Quản Lý Tin Đăng BĐS
+          </button>
+          <button id="adminTabBtnReports" class="admin-tab-btn" onclick="switchAdminTab('reports')" style="padding: 12px 20px; font-weight: 700; font-size: 14px; border: none; background: transparent; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            📊 Báo Cáo & Quản Trị Hệ Thống
+          </button>
+          <button id="adminTabBtnInbox" class="admin-tab-btn" onclick="switchAdminTab('inbox')" style="padding: 12px 20px; font-weight: 700; font-size: 14px; border: none; background: transparent; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; position: relative;">
+            📥 Hộp Thư Tư Vấn 
+            <span id="adminInboxUnreadBadge" style="background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; border: 1px solid #fff;">0</span>
+          </button>
+        </div>
+
+        <!-- ==================== TAB 1: QUẢN LÝ SẢN PHẨM ==================== -->
+        <div id="adminTabContentProducts" class="admin-tab-content-block">
+          <!-- KHU VỰC THIẾT LẬP KẾT NỐI SUPABASE CLOUD TRỰC TIẾP - ĐÃ ĐƯỢC TỰ ĐỘNG HÓA VÀ ẨN ĐI ĐỂ TẬP TRUNG GIAO DIỆN -->
+          <div class="supabase-config-card" style="display: none !important; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px; margin-bottom: 24px; box-shadow: var(--shadow);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">☁️</span>
+                <div>
+                  <h4 style="font-weight: 700; color: var(--primary); font-size: 15px; margin: 0; text-transform: uppercase;">Đồng bộ dữ liệu Cloud - Supabase Database</h4>
+                  <p style="font-size: 12.5px; color: var(--text-muted); margin: 2px 0 0 0;">Lưu trữ và đồng bộ hóa trực tiếp rổ hàng bất động sản lên đám mây bảo mật của Supabase.</p>
+                </div>
+              </div>
+              <div id="supabaseConnectionBadge" style="font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 99px; background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; text-transform: uppercase; letter-spacing: 0.5px;">Chế độ Offline</div>
+            </div>
+
+            <div id="supabaseConfigForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
               <div>
-                <h4 style="font-weight: 700; color: var(--primary); font-size: 15px; margin: 0; text-transform: uppercase; tracking: tight;">Đồng bộ dữ liệu Cloud - Supabase Database</h4>
-                <p style="font-size: 12.5px; color: var(--text-muted); margin: 2px 0 0 0;">Lưu trữ và đồng bộ hóa trực tiếp rổ hàng bất động sản lên đám mây bảo mật của Supabase.</p>
+                <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabas<span style="display:none">_</span>e UR<span style="display:none">_</span>L *</label>
+                <input type="text" id="sb_ur_fld" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="..." autocomplete="off" data-lpignore="true" onkeydown="if(event.key === 'Enter') saveSupabaseSettings(event)">
+              </div>
+              <div>
+                <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabas<span style="display:none">_</span>e An<span style="display:none">_</span>on Ke<span style="display:none">_</span>y *</label>
+                <input type="text" id="sb_ky_fld" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; -webkit-text-security: disc; text-security: disc;" placeholder="••••••••" autocomplete="off" data-lpignore="true" onkeydown="if(event.key === 'Enter') saveSupabaseSettings(event)">
+              </div>
+              <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; align-items: center; flex-wrap: wrap;">
+                <span id="supabaseSyncStatusText" style="font-size: 12px; color: var(--text-muted); margin-right: auto; font-style: italic;">Đang dùng bộ nhớ cục bộ (LocalStorage) làm nguồn lưu trữ.</span>
+                <button id="btnTestSupabase" type="button" onclick="testSupabaseConnection()" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text-dark); hover:bg-gray-50;">⚡ Kiểm tra kết nối</button>
+                <button type="button" onclick="saveSupabaseSettings(event)" style="padding: 10px 22px; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; font-size: 12.5px; font-weight: 700;">Lưu & Đồng bộ Cloud</button>
               </div>
             </div>
-            <div id="supabaseConnectionBadge" style="font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 99px; background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; text-transform: uppercase; letter-spacing: 0.5px;">Chế độ Offline</div>
+
+            <!-- HƯỚNG DẪN SQL CHẠY LẦN ĐẦU Collapsible -->
+            <details style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; transition: all 0.2s;">
+              <summary style="font-size: 13px; font-weight: 700; color: var(--primary); list-style: inside; cursor: pointer; user-select: none;">📜 Các bước thiết lập Database SQL & Tạo bảng (Xem hướng dẫn)</summary>
+              <div style="margin-top: 12px; cursor: default; font-size: 13px; line-height: 1.65; color: var(--text-dark); border-top: 1px dashed var(--border); padding-top: 12px;">
+                <p style="margin-bottom: 6px;"><strong>Bước 1:</strong> Đăng nhập vào <a href="https://supabase.com" target="_blank" style="color: var(--accent); font-weight: 700; text-decoration: underline;">Supabase Dashboard</a> và mở Project của bạn.</p>
+                <p style="margin-bottom: 6px;"><strong>Bước 2:</strong> Mở mục <strong>SQL Editor</strong> ở thanh bên trái -> Bấm nút <strong>New Query</strong>.</p>
+                <p style="margin-bottom: 10px;"><strong>Bước 3:</strong> Sao chép đoạn mã SQL khởi tạo dưới đây và dán vào, sau đó bấm nút <strong>Run</strong> để tạo bảng và mở chính sách bảo mật cho lưu đọc dữ liệu tự do:</p>
+                <div style="position: relative; margin-top: 8px;">
+                  <textarea readonly style="width:100%; height: 190px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: #1e293b; color: #f8fafc; line-height: 1.45; resize: none;" id="supabaseSqlCopyText">CREATE TABLE IF NOT EXISTS properties_hometea (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    price NUMERIC NOT NULL,
+    price_text TEXT,
+    ward TEXT,
+    direction TEXT,
+    floors INT,
+    badge TEXT,
+    address TEXT,
+    img TEXT,
+    img_list JSONB,
+    "desc" TEXT,
+    area INT,
+    house_number TEXT,
+    street TEXT,
+    width NUMERIC,
+    bedrooms INT,
+    bathrooms INT,
+    legal TEXT,
+    views INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- Nếu bảng đã tồn tại sẵn, chạy lệnh này để thêm trường đếm lượt xem:
+  ALTER TABLE properties_hometea ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
+
+  -- Bật phân quyền truy cập thuận tiện trực tiếp từ Client app
+  ALTER TABLE properties_hometea ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Cho phép tất cả đọc" ON properties_hometea FOR SELECT USING (true);
+  CREATE POLICY "Cho phép tất cả thêm" ON properties_hometea FOR INSERT WITH CHECK (true);
+  CREATE POLICY "Cho phép tất cả sửa" ON properties_hometea FOR UPDATE USING (true);
+  CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING (true);</textarea>
+                  <button type="button" onclick="copySupabaseSql()" style="position: absolute; top: 12px; right: 12px; background: var(--accent); color: var(--primary); border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">Sao chép đoạn mã</button>
+                </div>
+              </div>
+            </details>
           </div>
 
-          <div id="supabaseConfigForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
-            <div>
-              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabas<span style="display:none">_</span>e UR<span style="display:none">_</span>L *</label>
-              <input type="text" id="sb_ur_fld" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;" placeholder="..." autocomplete="off" data-lpignore="true" onkeydown="if(event.key === 'Enter') saveSupabaseSettings(event)">
-            </div>
-            <div>
-              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-dark);">Supabas<span style="display:none">_</span>e An<span style="display:none">_</span>on Ke<span style="display:none">_</span>y *</label>
-              <input type="text" id="sb_ky_fld" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; -webkit-text-security: disc; text-security: disc;" placeholder="••••••••" autocomplete="off" data-lpignore="true" onkeydown="if(event.key === 'Enter') saveSupabaseSettings(event)">
-            </div>
-            <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; align-items: center; flex-wrap: wrap;">
-              <span id="supabaseSyncStatusText" style="font-size: 12px; color: var(--text-muted); margin-right: auto; font-style: italic;">Đang dùng bộ nhớ cục bộ (LocalStorage) làm nguồn lưu trữ.</span>
-              <button id="btnTestSupabase" type="button" onclick="testSupabaseConnection()" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text-dark); hover:bg-gray-50;">⚡ Kiểm tra kết nối</button>
-              <button type="button" onclick="saveSupabaseSettings(event)" style="padding: 10px 22px; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; font-size: 12.5px; font-weight: 700;">Lưu & Đồng bộ Cloud</button>
+          <div class="admin-table-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div style="font-weight: 700; font-size: 16px; color: var(--primary);">Danh sách tin sản phẩm hiện thời</div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn-admin-bulk" onclick="showAdminBulkForm()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563eb, #1D4ED8); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(37,99,235,0.2); cursor: pointer; border: none; transition: var(--transition);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                ⚡ Đăng tin nhanh từ Thư mục
+              </button>
+              <button class="btn-admin-add" onclick="showAdminForm(null)" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(249,115,22,0.25); cursor: pointer; border: none;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Đăng tin mới ngay
+              </button>
             </div>
           </div>
 
-          <!-- HƯỚNG DẪN SQL CHẠY LẦN ĐẦU Collapsible -->
-          <details style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; transition: all 0.2s;">
-            <summary style="font-size: 13px; font-weight: 700; color: var(--primary); list-style: inside; cursor: pointer; user-select: none;">📜 Các bước thiết lập Database SQL & Tạo bảng (Xem hướng dẫn)</summary>
-            <div style="margin-top: 12px; cursor: default; font-size: 13px; line-height: 1.65; color: var(--text-dark); border-top: 1px dashed var(--border); padding-top: 12px;">
-              <p style="margin-bottom: 6px;"><strong>Bước 1:</strong> Đăng nhập vào <a href="https://supabase.com" target="_blank" style="color: var(--accent); font-weight: 700; text-decoration: underline;">Supabase Dashboard</a> và mở Project của bạn.</p>
-              <p style="margin-bottom: 6px;"><strong>Bước 2:</strong> Mở mục <strong>SQL Editor</strong> ở thanh bên trái -> Bấm nút <strong>New Query</strong>.</p>
-              <p style="margin-bottom: 10px;"><strong>Bước 3:</strong> Sao chép đoạn mã SQL khởi tạo dưới đây và dán vào, sau đó bấm nút <strong>Run</strong> để tạo bảng và mở chính sách bảo mật cho lưu đọc dữ liệu tự do:</p>
-              <div style="position: relative; margin-top: 8px;">
-                <textarea readonly style="width:100%; height: 190px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: #1e293b; color: #f8fafc; line-height: 1.45; resize: none;" id="supabaseSqlCopyText">CREATE TABLE IF NOT EXISTS properties_hometea (
-  id SERIAL PRIMARY KEY,
-  title TEXT NOT NULL,
-  price NUMERIC NOT NULL,
-  price_text TEXT,
-  ward TEXT,
-  direction TEXT,
-  floors INT,
-  badge TEXT,
-  address TEXT,
-  img TEXT,
-  img_list JSONB,
-  "desc" TEXT,
-  area INT,
-  house_number TEXT,
-  street TEXT,
-  width NUMERIC,
-  bedrooms INT,
-  bathrooms INT,
-  legal TEXT,
-  views INT DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Nếu bảng đã tồn tại sẵn, chạy lệnh này để thêm trường đếm lượt xem:
-ALTER TABLE properties_hometea ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
-
--- Bật phân quyền truy cập thuận tiện trực tiếp từ Client app
-ALTER TABLE properties_hometea ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Cho phép tất cả đọc" ON properties_hometea FOR SELECT USING (true);
-CREATE POLICY "Cho phép tất cả thêm" ON properties_hometea FOR INSERT WITH CHECK (true);
-CREATE POLICY "Cho phép tất cả sửa" ON properties_hometea FOR UPDATE USING (true);
-CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING (true);</textarea>
-                <button type="button" onclick="copySupabaseSql()" style="position: absolute; top: 12px; right: 12px; background: var(--accent); color: var(--primary); border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">Sao chép đoạn mã</button>
+          <!-- Bộ lọc tìm kiếm & Sắp xếp trong Admin để dễ dàng quản lý số lượng sản phẩm lớn -->
+          <div class="admin-search-filter-bar" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; flex: 1; align-items: center;">
+              <div style="flex: 1; min-width: 250px; position: relative;">
+                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px;">🔍</span>
+                <input type="text" id="adminSearchQuery" placeholder="Tìm theo tiêu đề, ID, đường phố, mô tả..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: var(--bg-light); color: var(--text-dark);" oninput="renderAdminTable()">
+              </div>
+              <div style="width: 180px; min-width: 150px;">
+                <select id="adminFilterWard" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: #fff; color: var(--text-dark);" onchange="renderAdminTable()">
+                  <option value="">Tất cả Phường</option>
+                  <option value="Long Trường">Long Trường</option>
+                  <option value="Trường Thạnh">Trường Thạnh</option>
+                  <option value="Tăng Nhơn Phú A">Tăng Nhơn Phú A</option>
+                  <option value="Tăng Nhơn Phú B">Tăng Nhơn Phú B</option>
+                  <option value="Long Thạnh Mỹ">Long Thạnh Mỹ</option>
+                  <option value="Phú Hữu">Phú Hữu</option>
+                  <option value="Long Phước">Long Phước</option>
+                  <option value="Long Bình">Long Bình</option>
+                  <option value="Phước Long A">Phước Long A</option>
+                  <option value="Phước Long B">Phước Long B</option>
+                  <option value="Hiệp Phú">Hiệp Phú</option>
+                  <option value="Tân Phú">Tân Phú</option>
+                  <option value="Thảo Điền">Thảo Điền</option>
+                  <option value="An Phú">An Phú</option>
+                  <option value="Bình An">Bình An</option>
+                  <option value="An Khánh">An Khánh</option>
+                  <option value="Thủ Thiêm">Thủ Thiêm</option>
+                  <option value="An Lợi Đông">An Lợi Đông</option>
+                  <option value="Bình Khánh">Bình Khánh</option>
+                  <option value="Bình Trưng Tây">Bình Trưng Tây</option>
+                  <option value="Bình Trưng Đông">Bình Trưng Đông</option>
+                  <option value="Cát Lái">Cát Lái</option>
+                  <option value="Thạnh Mỹ Lợi">Thạnh Mỹ Lợi</option>
+                  <option value="Hiệp Bình Chánh">Hiệp Bình Chánh</option>
+                  <option value="Hiệp Bình Phước">Hiệp Bình Phước</option>
+                  <option value="Tam Bình">Tam Bình</option>
+                  <option value="Tam Phú">Tam Phú</option>
+                  <option value="Linh Đông">Linh Đông</option>
+                  <option value="Linh Tây">Linh Tây</option>
+                  <option value="Linh Chiểu">Linh Chiểu</option>
+                  <option value="Linh Trung">Linh Trung</option>
+                  <option value="Linh Xuân">Linh Xuân</option>
+                  <option value="Bình Chiểu">Bình Chiểu</option>
+                  <option value="Bình Thọ">Bình Thọ</option>
+                  <option value="Trường Thọ">Trường Thọ</option>
+                </select>
+              </div>
+              <div style="width: 180px; min-width: 150px;">
+                <select id="adminFilterSort" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: #fff; color: var(--text-dark);" onchange="renderAdminTable()">
+                  <option value="newest">Mới nhất (ID giảm)</option>
+                  <option value="oldest">Cũ nhất (ID tăng)</option>
+                  <option value="price_asc">Giá tăng dần</option>
+                  <option value="price_desc">Giá giảm dần</option>
+                  <option value="area_desc">Diện tích lớn nhất</option>
+                  <option value="discount">Có tag giảm giá</option>
+                </select>
               </div>
             </div>
-          </details>
-        </div>
+            <div style="font-size: 13.5px; color: var(--text-muted); font-weight: 700; background: var(--bg-light); padding: 8px 14px; border-radius: 6px;" id="adminFilteredCount">
+              Đang hiển thị 0 sản phẩm
+            </div>
+          </div>
 
-        <div class="admin-table-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-          <div style="font-weight: 700; font-size: 16px; color: var(--primary);">Danh sách tin sản phẩm hiện thời</div>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn-admin-bulk" onclick="showAdminBulkForm()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563eb, #1D4ED8); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(37,99,235,0.2); cursor: pointer; border: none; transition: var(--transition);">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              ⚡ Đăng tin nhanh từ Thư mục
-            </button>
-            <button class="btn-admin-add" onclick="showAdminForm(null)" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--primary); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(249,115,22,0.25); cursor: pointer; border: none;">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              Đăng tin mới ngay
-            </button>
+          <div class="admin-table-container" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; box-shadow: var(--shadow); margin-bottom: 24px;">
+            <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="background-color: var(--bg-light); border-bottom: 1px solid var(--border);">
+                  <th style="padding: 16px; width: 100px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Ảnh</th>
+                  <th style="padding: 16px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Thông tin sản phẩm</th>
+                  <th style="padding: 16px; width: 120px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Giá</th>
+                  <th style="padding: 16px; width: 150px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Khu vực</th>
+                  <th style="padding: 16px; width: 180px; text-align: center; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody">
+                <!-- JS dynamic render -->
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div class="admin-table-container" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; box-shadow: var(--shadow);">
-          <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left;">
-            <thead>
-              <tr style="background-color: var(--bg-light); border-bottom: 1px solid var(--border);">
-                <th style="padding: 16px; width: 100px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Ảnh</th>
-                <th style="padding: 16px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Thông tin sản phẩm</th>
-                <th style="padding: 16px; width: 120px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Giá</th>
-                <th style="padding: 16px; width: 150px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Khu vực</th>
-                <th style="padding: 16px; width: 180px; text-align: center; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase;">Hành động</th>
-              </tr>
-            </thead>
-            <tbody id="adminTableBody">
-              <!-- JS dynamic render -->
-            </tbody>
-          </table>
+        <!-- ==================== TAB 2: BÁO CÁO & QUẢN TRỊ HỆ THỐNG ==================== -->
+        <div id="adminTabContentReports" class="admin-tab-content-block" style="display: none;">
+          <!-- Header Báo Cáo y hệt như hình ảnh -->
+          <div style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <h4 style="font-family: var(--font-serif); font-size: 24px; font-weight: 800; color: var(--primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                  📊 Báo Cáo & Quản Trị Hệ Thống
+                </h4>
+                <span style="font-size: 11px; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 10px; border-radius: 99px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Thời gian thực</span>
+              </div>
+              <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px; margin-bottom: 0;">Theo dõi lưu lượng truy cập, tỷ lệ chuyển đổi khách hàng tiềm năng và mức độ tin cậy chia sẻ xã hội.</p>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark); background: var(--bg-light); padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
+              <span>🕒 Cập nhật lúc:</span> <span id="adminReportClock" style="font-family: var(--font-mono); color: var(--accent);">09:49:55</span>
+            </div>
+          </div>
+
+          <!-- Grid của 4 thẻ KPI -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <!-- KPI 1: Lượt Xem -->
+            <div style="background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: flex-start; transition: var(--transition);">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font-size: 13.5px; color: var(--text-muted); font-weight: 600;">Lượt Xem Website</span>
+                <span id="kpiValueViews" style="font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1;">58</span>
+                <span style="font-size: 11.5px; color: #16a34a; font-weight: 600; display: flex; align-items: center; gap: 2px; margin-top: 4px;">
+                  📈 +15.4% so với hôm qua
+                </span>
+              </div>
+              <div style="background: #fff7ed; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #f97316; font-size: 18px; border: 1px solid #fed7aa;">
+                👁️
+              </div>
+            </div>
+
+            <!-- KPI 2: Lượt Chia Sẻ -->
+            <div style="background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: flex-start; transition: var(--transition);">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font-size: 13.5px; color: var(--text-muted); font-weight: 600;">Lượt Chia Sẻ</span>
+                <span id="kpiValueShares" style="font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1;">4</span>
+                <span id="kpiValueSharesBreakdown" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px; font-family: var(--font-mono);">
+                  FB: 0 | Zalo: 0 | Copy: 4
+                </span>
+              </div>
+              <div style="background: #eff6ff; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 18px; border: 1px solid #bfdbfe;">
+                🔗
+              </div>
+            </div>
+
+            <!-- KPI 3: Khách Tiềm Năng (Leads) -->
+            <div style="background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: flex-start; transition: var(--transition);">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font-size: 13.5px; color: var(--text-muted); font-weight: 600;">Khách Tiềm Năng (Leads)</span>
+                <span id="kpiValueLeads" style="font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1;">0</span>
+                <span id="kpiValueLeadsBreakdown" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">
+                  Mới: <span style="color: #ea580c; font-weight: 700;">0</span> • Đã xử lý: <span style="color: #16a34a; font-weight: 700;">0</span>
+                </span>
+              </div>
+              <div style="background: #fef1f2; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 18px; border: 1px solid #fecdd3;">
+                👥
+              </div>
+            </div>
+
+            <!-- KPI 4: Tỷ lệ chuyển đổi -->
+            <div style="background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: flex-start; transition: var(--transition);">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font-size: 13.5px; color: var(--text-muted); font-weight: 600;">Tỷ Lệ Chuyển Đổi</span>
+                <span id="kpiValueConversion" style="font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1;">0.0%</span>
+                <span style="font-size: 11.5px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">
+                  Lượt đăng ký / Lượt vào trang
+                </span>
+              </div>
+              <div style="background: #f0fdf4; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #16a34a; font-size: 18px; border: 1px solid #bbf7d0;">
+                📈
+              </div>
+            </div>
+          </div>
+
+          <!-- Hai bảng phân tích y hệt như hình ảnh thứ hai -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <!-- Cột trái: Phân Bổ BĐS Theo Phường -->
+            <div style="background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column;">
+              <h5 style="margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                🗺️ Phân Bổ BĐS Theo Phường TP. Thủ Đức
+              </h5>
+              <div id="adminReportWardsContainer" style="display: flex; flex-direction: column; gap: 16px; max-height: 380px; overflow-y: auto; padding-right: 4px;">
+                <!-- JS dynamic injection of progress bars -->
+              </div>
+            </div>
+
+            <!-- Cột phải: Nhật ký hoạt động hệ thống -->
+            <div style="background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                  ⚡ Nhật Ký Hoạt Động Thời Gian Thực
+                </h5>
+                <button onclick="clearSystemLogs()" style="border: none; background: transparent; color: #ef4444; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                  🗑️ Xóa nhật ký
+                </button>
+              </div>
+              <div id="adminSystemLogsContainer" style="display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 4px; font-family: var(--font-sans); font-size: 13px;">
+                <!-- JS dynamic injection of real-time logs -->
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <!-- ==================== TAB 3: HỘP THƯ TƯ VẤN ==================== -->
+        <div id="adminTabContentInbox" class="admin-tab-content-block" style="display: none;">
+          <div style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <h4 style="font-family: var(--font-serif); font-size: 24px; font-weight: 800; color: var(--primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                📥 Hộp Thư Đăng Ký Tư Vấn
+              </h4>
+              <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px; margin-bottom: 0;">Nơi ghi nhận toàn bộ yêu cầu, thông tin đăng ký tư vấn miễn phí của khách hàng qua trang chủ.</p>
+            </div>
+            
+            <!-- Bộ lọc hộp thư -->
+            <div style="display: flex; gap: 6px; background: var(--bg-light); padding: 4px; border-radius: 8px; border: 1px solid var(--border);">
+              <button id="inboxFilterAll" onclick="filterInbox('all')" style="padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; background: var(--primary); color: #fff; transition: all 0.15s;">
+                Tất cả
+              </button>
+              <button id="inboxFilterNew" onclick="filterInbox('new')" style="padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-dark); transition: all 0.15s;">
+                Chưa xử lý
+              </button>
+              <button id="inboxFilterContacted" onclick="filterInbox('contacted')" style="padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-dark); transition: all 0.15s;">
+                Đã liên hệ
+              </button>
+            </div>
+          </div>
+
+          <div id="adminInboxContainer" style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px;">
+            <!-- JS dynamic render of customer messages -->
+          </div>
+        </div>
 
       <!-- SUB-VIEW 2: TRANG ĐĂNG TIN / CHỈNH SỬA TIN (FORM THEO MẪU DANG TIN CẢI TIẾN) -->
       <div id="adminFormSection" style="display: none; max-width: 800px; margin: 0 auto;">
@@ -3848,9 +4066,13 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       });
       
       const startLocalViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
+      const startPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
       propertyData.forEach(p => {
         if (p && p.id && startLocalViews[p.id]) {
           p.views = Math.max(p.views || 0, startLocalViews[p.id]);
+        }
+        if (p && p.id && startPriceReductions[p.id]) {
+          p.priceReducedAt = startPriceReductions[p.id];
         }
       });
       let lastSavedPropertyId = null;
@@ -4022,6 +4244,19 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
       function copyShareLink(id) {
         try {
           const shareUrl = window.location.origin + window.location.pathname + '?id=' + id;
+          
+          // Ghi nhận lượt chia sẻ
+          try {
+            const shares = JSON.parse(localStorage.getItem('local_shares') || '{"fb":0,"zalo":0,"copy":4}');
+            shares.copy = (shares.copy || 0) + 1;
+            localStorage.setItem('local_shares', JSON.stringify(shares));
+            const p = propertyData.find(item => String(item.id) === String(id));
+            const nameStr = p ? p.title : `ID: ${id}`;
+            logSystemActivity('SHARE', `Người dùng sao chép liên kết chia sẻ nhà phố: "${nameStr.substring(0, 30)}..."`);
+          } catch (errShare) {
+            console.error("Lỗi ghi nhận share:", errShare);
+          }
+
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast('Đã sao chép liên kết chia sẻ của căn này!', true);
@@ -4059,13 +4294,23 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         if (resetPagination) {
           displayedProductLimit = 12;
         }
-        currentFilteredProducts = products;
+
+        // Sắp xếp các sản phẩm có tag "Giảm giá" hiển thị lên đầu
+        const sortedProducts = [...products].sort((a, b) => {
+          const aReduced = a.priceReducedAt && (Date.now() - a.priceReducedAt) <= 2 * 24 * 60 * 60 * 1000 && (Date.now() - a.priceReducedAt) >= 0;
+          const bReduced = b.priceReducedAt && (Date.now() - b.priceReducedAt) <= 2 * 24 * 60 * 60 * 1000 && (Date.now() - b.priceReducedAt) >= 0;
+          if (aReduced && !bReduced) return -1;
+          if (!aReduced && bReduced) return 1;
+          return 0;
+        });
+
+        currentFilteredProducts = sortedProducts;
         productsGrid.innerHTML = '';
         
         // Cập nhật số lượng sản phẩm đang lọc được ngay trên thanh filter
         const filterResultCountText = document.getElementById('filterResultCountText');
         if (filterResultCountText) {
-          filterResultCountText.textContent = products.length;
+          filterResultCountText.textContent = sortedProducts.length;
         }
 
         // Tính toán lượt xem cao nhất để gắn nhãn "Xem nhiều nhất"
@@ -4075,7 +4320,7 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
         
         const btnLoadMore = document.getElementById('btnLoadMore');
         
-        if (products.length === 0) {
+        if (sortedProducts.length === 0) {
           productsGrid.innerHTML = `
             <div class="empty-state">
               <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--text-muted); margin-bottom: 12px; display: inline-block;">
@@ -4092,14 +4337,14 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           return;
         }
 
-        const visibleProducts = products.slice(0, displayedProductLimit);
+        const visibleProducts = sortedProducts.slice(0, displayedProductLimit);
 
         if (statCountText) {
-          statCountText.textContent = `Hiển thị 1-${visibleProducts.length} trong tổng số ${products.length} sản phẩm (Tổng kho: ${propertyData.length})`;
+          statCountText.textContent = `Hiển thị 1-${visibleProducts.length} trong tổng số ${sortedProducts.length} sản phẩm (Tổng kho: ${propertyData.length})`;
         }
 
         if (btnLoadMore) {
-          if (products.length > displayedProductLimit) {
+          if (sortedProducts.length > displayedProductLimit) {
             btnLoadMore.style.display = 'inline-flex';
           } else {
             btnLoadMore.style.display = 'none';
@@ -4138,8 +4383,18 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
             shortAddress = shortAddress.substring(0, 24) + "...";
           }
 
-          // Thiết lập số lượt xem (như trong ảnh hiển thị "0 lượt xem")
+           // Thiết lập số lượt xem (như trong ảnh hiển thị "0 lượt xem")
           const viewsCount = p.views !== undefined ? p.views : 0;
+
+          // Tính toán để hiển thị tag "Mới đăng" trong vòng 3 ngày kể từ khi tạo
+          const createdTime = p.id ? p.id * 1000 : Date.now();
+          const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+          const isNew = (Date.now() - createdTime) <= threeDaysMs && (Date.now() - createdTime) >= 0;
+
+          // Tính toán để hiển thị tag "Giảm giá" trong vòng 2 ngày kể từ khi hạ giá
+          const priceReducedAt = p.priceReducedAt;
+          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+          const isReduced = priceReducedAt && (Date.now() - priceReducedAt) <= twoDaysMs && (Date.now() - priceReducedAt) >= 0;
 
           const cardHtml = `
             <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal('${p.id}')">
@@ -4153,7 +4408,8 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
               <div class="product-body" style="padding: 12px;">
                 <!-- Hàng Badge mới: Mới đăng và Lượt xem giống hệt như ảnh -->
                 <div class="card-badges-row">
-                  <span class="card-badge-item card-badge-new">🔥 Mới đăng</span>
+                  ${isNew ? '<span class="card-badge-item card-badge-new">🔥 Mới đăng</span>' : ''}
+                  ${isReduced ? '<span class="card-badge-item card-badge-discount">📉 Giảm giá</span>' : ''}
                   <span class="card-badge-item card-badge-views">👁️ ${viewsCount} lượt xem</span>
                   ${viewsCount > 0 && viewsCount === maxViewsVal ? '<span class="card-badge-item card-badge-popular">👑 Xem nhiều nhất</span>' : ''}
                 </div>
@@ -5032,8 +5288,35 @@ CREATE POLICY "Cho phép tất cả xóa" ON properties_hometea FOR DELETE USING
           return;
         }
 
-        // Ghi nhận trực tiếp dữ liệu đăng ký (Sau này dễ dàng thay thế bằng API)
-        console.log("=== ĐĂNG KÝ ĐÃ GỬI ===", { name, phone, note, time: new Date().toISOString() });
+        // Ghi nhận trực tiếp dữ liệu đăng ký vào danh sách lead local
+        try {
+          const leads = JSON.parse(localStorage.getItem('local_leads') || '[]');
+          const newLead = {
+            id: Date.now(),
+            name: name,
+            phone: phone,
+            note: note,
+            time: new Date().toISOString(),
+            status: 'new'
+          };
+          leads.push(newLead);
+          localStorage.setItem('local_leads', JSON.stringify(leads));
+
+          // Ghi nhật ký vào Hệ thống quản trị
+          if (typeof logSystemActivity === 'function') {
+            logSystemActivity('LEAD', `Khách hàng mới ${name} (${phone}) đăng ký tư vấn trực tuyến.`);
+          }
+          
+          // Vẽ lại luồng inbox nếu đang xem màn hình admin
+          if (typeof renderAdminInbox === 'function') {
+            renderAdminInbox();
+          }
+          if (typeof renderAdminReports === 'function') {
+            renderAdminReports();
+          }
+        } catch (e) {
+          console.error("Lỗi ghi nhận lead đăng ký tư vấn:", e);
+        }
 
         if (contactForm && typeof contactForm.reset === 'function') {
           contactForm.reset();
@@ -5651,12 +5934,506 @@ Nguyên tắc trả lời:
         sessionStorage.removeItem('admin_logged_in');
         switchToPage('home');
         showToast("Đăng xuất quyền quản trị thành công.", true);
+        if (typeof logSystemActivity === 'function') {
+          logSystemActivity('SYS', "Quản trị viên đăng xuất.");
+        }
       }
 
+      // =========================================================================
+      // --- CÁC HÀM XỬ LÝ QUẢN TRỊ ADMIN (TABS, BÁO CÁO, NHẬT KÝ, HỘP THƯ) ---
+      // =========================================================================
+      
+      let activeInboxFilter = 'all';
+
+      function initAdminStats() {
+        try {
+          // Khởi tạo lượt xem trang mặc định
+          if (!localStorage.getItem('local_page_views')) {
+            localStorage.setItem('local_page_views', '58');
+          } else {
+            const currentViews = parseInt(localStorage.getItem('local_page_views') || '58', 10);
+            localStorage.setItem('local_page_views', String(currentViews + 1));
+          }
+
+          // Khởi tạo lượt chia sẻ
+          if (!localStorage.getItem('local_shares')) {
+            localStorage.setItem('local_shares', JSON.stringify({ fb: 0, zalo: 0, copy: 4 }));
+          }
+
+          // Khởi tạo Khách hàng tiềm năng (Leads) mẫu ban đầu nếu rỗng
+          if (!localStorage.getItem('local_leads')) {
+            const seedLeads = [
+              {
+                id: Date.now() - 3600000 * 24 * 3, // 3 ngày trước
+                name: "Nguyễn Văn Minh",
+                phone: "0901234567",
+                note: "Tôi muốn đặt lịch hẹn đi xem thực tế căn nhà góc 3 tầng đường Lò Lu vào chiều thứ 7 này.",
+                time: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
+                status: "new"
+              },
+              {
+                id: Date.now() - 3600000 * 24 * 1.5, // 1.5 ngày trước
+                name: "Phạm Thị Tuyết",
+                phone: "0918765432",
+                note: "Cần tư vấn thêm pháp lý sổ hồng riêng và quy hoạch đường Trường Thạnh.",
+                time: new Date(Date.now() - 3600000 * 24 * 1.5).toISOString(),
+                status: "contacted"
+              },
+              {
+                id: Date.now() - 1000 * 60 * 45, // 45 phút trước
+                name: "Trần Minh Quân",
+                phone: "0934567890",
+                note: "Tôi đang rất quan tâm căn nhà cấp 4 ở Long Phước, xin vui lòng gửi thêm sơ đồ thửa đất kế cận.",
+                time: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+                status: "new"
+              }
+            ];
+            localStorage.setItem('local_leads', JSON.stringify(seedLeads));
+          }
+
+          // Khởi tạo Nhật ký logs nếu rỗng
+          if (!localStorage.getItem('local_activity_logs')) {
+            const seedLogs = [
+              { time: new Date(Date.now() - 3600000).toLocaleTimeString('vi-VN', {hour12:false}), level: "SUCCESS", message: "Khởi động và tải dữ liệu rổ hàng nhà phố Thủ Đức thành công." },
+              { time: new Date(Date.now() - 1800000).toLocaleTimeString('vi-VN', {hour12:false}), level: "LEAD", message: "Yêu cầu tư vấn mới từ khách hàng Trần Minh Quân." },
+              { time: new Date(Date.now() - 600000).toLocaleTimeString('vi-VN', {hour12:false}), level: "SYS", message: "Mở giao diện báo cáo tổng hợp & phân bổ khu vực." }
+            ];
+            localStorage.setItem('local_activity_logs', JSON.stringify(seedLogs));
+          }
+
+          // Kích hoạt đồng hồ ticking real-time báo cáo
+          setInterval(() => {
+            const clockEl = document.getElementById('adminReportClock');
+            if (clockEl) {
+              clockEl.textContent = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+            }
+          }, 1000);
+
+        } catch (e) {
+          console.error("Lỗi trong initAdminStats:", e);
+        }
+      }
+
+      function switchAdminTab(tabName) {
+        // Ẩn toàn bộ tab contents
+        document.querySelectorAll('.admin-tab-content-block').forEach(el => {
+          el.style.display = 'none';
+        });
+        
+        // Hoàn dọn trạng thái active trên các tab btn
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+          btn.classList.remove('active');
+          btn.style.borderBottomColor = 'transparent';
+          btn.style.color = 'var(--text-muted)';
+        });
+
+        // Thiết lập tab được chọn
+        if (tabName === 'products') {
+          const content = document.getElementById('adminTabContentProducts');
+          if (content) content.style.display = 'block';
+          const btn = document.getElementById('adminTabBtnProducts');
+          if (btn) {
+            btn.classList.add('active');
+            btn.style.borderBottomColor = 'var(--accent)';
+            btn.style.color = 'var(--primary)';
+          }
+          logSystemActivity('NAV', "Click mục Quản lý tin đăng.");
+          renderAdminTable();
+        } else if (tabName === 'reports') {
+          const content = document.getElementById('adminTabContentReports');
+          if (content) content.style.display = 'block';
+          const btn = document.getElementById('adminTabBtnReports');
+          if (btn) {
+            btn.classList.add('active');
+            btn.style.borderBottomColor = 'var(--accent)';
+            btn.style.color = 'var(--primary)';
+          }
+          logSystemActivity('NAV', "Click mục Báo cáo & Quản trị.");
+          renderAdminReports();
+        } else if (tabName === 'inbox') {
+          const content = document.getElementById('adminTabContentInbox');
+          if (content) content.style.display = 'block';
+          const btn = document.getElementById('adminTabBtnInbox');
+          if (btn) {
+            btn.classList.add('active');
+            btn.style.borderBottomColor = 'var(--accent)';
+            btn.style.color = 'var(--primary)';
+          }
+          logSystemActivity('NAV', "Click mục Hộp thư tư vấn.");
+          renderAdminInbox();
+        }
+      }
+
+      function logSystemActivity(level, message) {
+        try {
+          const logs = JSON.parse(localStorage.getItem('local_activity_logs') || '[]');
+          const newLog = {
+            time: new Date().toLocaleTimeString('vi-VN', { hour12: false }),
+            level: level.toUpperCase(),
+            message: message
+          };
+          logs.unshift(newLog);
+          if (logs.length > 50) logs.pop();
+          localStorage.setItem('local_activity_logs', JSON.stringify(logs));
+          
+          // Vẽ lại báo cáo nếu tab đang hiển thị
+          const reportsTab = document.getElementById('adminTabContentReports');
+          if (reportsTab && reportsTab.style.display !== 'none') {
+            renderAdminReports();
+          }
+        } catch (e) {
+          console.error("Lỗi logSystemActivity:", e);
+        }
+      }
+
+      function clearSystemLogs() {
+        if (confirm("Bạn có chắc chắn muốn dọn sạch nhật ký hệ thống không?")) {
+          localStorage.setItem('local_activity_logs', JSON.stringify([]));
+          logSystemActivity('SYS', "Dọn sạch nhật ký hệ thống.");
+          renderAdminReports();
+        }
+      }
+
+      function renderAdminReports() {
+        try {
+          // 1. KPI Lượt xem
+          const prodViewsSum = propertyData.reduce((sum, p) => sum + (p.views || 0), 0);
+          const pageViewsVal = parseInt(localStorage.getItem('local_page_views') || '58', 10);
+          const totalViews = prodViewsSum + pageViewsVal;
+          
+          const viewsEl = document.getElementById('kpiValueViews');
+          if (viewsEl) viewsEl.textContent = String(totalViews);
+
+          // 2. KPI Lượt Chia Sẻ
+          const sharesObj = JSON.parse(localStorage.getItem('local_shares') || '{"fb":0,"zalo":0,"copy":4}');
+          const totalShares = (sharesObj.fb || 0) + (sharesObj.zalo || 0) + (sharesObj.copy || 0);
+          const sharesEl = document.getElementById('kpiValueShares');
+          if (sharesEl) sharesEl.textContent = String(totalShares);
+          
+          const breakdownEl = document.getElementById('kpiValueSharesBreakdown');
+          if (breakdownEl) {
+            breakdownEl.textContent = `FB: ${sharesObj.fb || 0} | Zalo: ${sharesObj.zalo || 0} | Copy: ${sharesObj.copy || 4}`;
+          }
+
+          // 3. KPI Khách Tiềm Năng (Leads)
+          const leads = JSON.parse(localStorage.getItem('local_leads') || '[]');
+          const totalLeads = leads.length;
+          const newLeadsCount = leads.filter(l => l.status === 'new').length;
+          const contactedCount = leads.filter(l => l.status === 'contacted').length;
+
+          const leadsEl = document.getElementById('kpiValueLeads');
+          if (leadsEl) leadsEl.textContent = String(totalLeads);
+
+          const leadsBreakdownEl = document.getElementById('kpiValueLeadsBreakdown');
+          if (leadsBreakdownEl) {
+            leadsBreakdownEl.innerHTML = `Mới: <span style="color: #ea580c; font-weight: 700;">${newLeadsCount}</span> • Đã xử lý: <span style="color: #16a34a; font-weight: 700;">${contactedCount}</span>`;
+          }
+
+          // Đồng bộ unread badge chính trên tab điều hướng
+          const tabBadge = document.getElementById('adminInboxUnreadBadge');
+          if (tabBadge) {
+            if (newLeadsCount > 0) {
+              tabBadge.textContent = String(newLeadsCount);
+              tabBadge.style.display = 'inline-flex';
+            } else {
+              tabBadge.style.display = 'none';
+            }
+          }
+
+          // 4. KPI Tỷ Lệ Chuyển Đổi
+          const convEl = document.getElementById('kpiValueConversion');
+          if (convEl) {
+            if (totalViews > 0) {
+              const rate = ((totalLeads / totalViews) * 100).toFixed(1);
+              convEl.textContent = `${rate}%`;
+            } else {
+              convEl.textContent = '0.0%';
+            }
+          }
+
+          // 5. Biểu đồ phân bổ BĐS
+          const wardsContainer = document.getElementById('adminReportWardsContainer');
+          if (wardsContainer) {
+            wardsContainer.innerHTML = '';
+            
+            const wardCounts = {};
+            propertyData.forEach(p => {
+              if (p && p.ward) {
+                const w = p.ward.trim();
+                if (w) {
+                  wardCounts[w] = (wardCounts[w] || 0) + 1;
+                }
+              }
+            });
+
+            const sortedWards = Object.keys(wardCounts).map(w => ({
+              name: w,
+              count: wardCounts[w]
+            })).sort((a, b) => b.count - a.count);
+
+            const totalProdCount = propertyData.length || 1;
+
+            if (sortedWards.length === 0) {
+              wardsContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 13.5px; text-align: center; padding: 24px 0;">Không có dữ liệu bất động sản rổ hàng.</div>';
+            } else {
+              sortedWards.forEach(item => {
+                const percent = Math.round((item.count / totalProdCount) * 100);
+                const itemHtml = `
+                  <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; color: var(--primary);">
+                      <span style="font-size: 13px;">📌 Phường ${item.name}</span>
+                      <span>${item.count} căn (${percent}%)</span>
+                    </div>
+                    <div style="width: 100%; border: 1px solid var(--border); border-radius: 99px; height: 10px; overflow: hidden; background: #f1f5f9;">
+                      <div style="height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-hover)); width: ${percent}%;"></div>
+                    </div>
+                  </div>
+                `;
+                wardsContainer.insertAdjacentHTML('beforeend', itemHtml);
+              });
+            }
+          }
+
+          // 6. Hoạt động Logs thời gian thực
+          const logsContainer = document.getElementById('adminSystemLogsContainer');
+          if (logsContainer) {
+            logsContainer.innerHTML = '';
+            const logs = JSON.parse(localStorage.getItem('local_activity_logs') || '[]');
+            
+            if (logs.length === 0) {
+              logsContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 13.5px; text-align: center; padding: 24px 0;">Nhật ký rỗng.</div>';
+            } else {
+              logs.forEach(log => {
+                let badgeStyle = "background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;";
+                if (log.level === 'SUCCESS' || log.level === 'SYS') {
+                  badgeStyle = "background: #dcfce7; color: #15803d; border: 1px solid #86efac;";
+                } else if (log.level === 'LEAD') {
+                  badgeStyle = "background: #fef3c7; color: #b45309; border: 1px solid #fde68a;";
+                } else if (log.level === 'EDIT' || log.level === 'ADD') {
+                  badgeStyle = "background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd;";
+                } else if (log.level === 'DELETE') {
+                  badgeStyle = "background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;";
+                } else if (log.level === 'NAV') {
+                  badgeStyle = "background: #faf5ff; color: #6b21a8; border: 1px solid #e9d5ff;";
+                } else if (log.level === 'SHARE') {
+                  badgeStyle = "background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe;";
+                }
+
+                const logHtml = `
+                  <div style="display: flex; gap: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); align-items: flex-start;">
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); padding-top: 2px;">[${log.time}]</span>
+                    <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; ${badgeStyle}">${log.level}</span>
+                    <span style="color: var(--text-dark); flex: 1; word-break: break-word; line-height: 1.4;">${log.message}</span>
+                  </div>
+                `;
+                logsContainer.insertAdjacentHTML('beforeend', logHtml);
+              });
+            }
+          }
+
+        } catch (e) {
+          console.error("Lỗi vẽ báo cáo admin:", e);
+        }
+      }
+
+      function renderAdminInbox() {
+        try {
+          const container = document.getElementById('adminInboxContainer');
+          if (!container) return;
+          container.innerHTML = '';
+
+          const leads = JSON.parse(localStorage.getItem('local_leads') || '[]');
+          
+          let filteredLeads = [...leads];
+          if (activeInboxFilter === 'new') {
+            filteredLeads = filteredLeads.filter(l => l.status === 'new');
+          } else if (activeInboxFilter === 'contacted') {
+            filteredLeads = filteredLeads.filter(l => l.status === 'contacted');
+          }
+
+          // Mới nhất lên đầu
+          filteredLeads.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+          // Chọn style cho các nút điều hướng lọc
+          const btnAll = document.getElementById('inboxFilterAll');
+          const btnNew = document.getElementById('inboxFilterNew');
+          const btnContacted = document.getElementById('inboxFilterContacted');
+          
+          if (btnAll) { btnAll.style.background = 'transparent'; btnAll.style.color = 'var(--text-dark)'; }
+          if (btnNew) { btnNew.style.background = 'transparent'; btnNew.style.color = 'var(--text-dark)'; }
+          if (btnContacted) { btnContacted.style.background = 'transparent'; btnContacted.style.color = 'var(--text-dark)'; }
+
+          if (activeInboxFilter === 'all' && btnAll) {
+            btnAll.style.background = 'var(--primary)';
+            btnAll.style.color = '#fff';
+          } else if (activeInboxFilter === 'new' && btnNew) {
+            btnNew.style.background = 'var(--primary)';
+            btnNew.style.color = '#fff';
+          } else if (activeInboxFilter === 'contacted' && btnContacted) {
+            btnContacted.style.background = 'var(--primary)';
+            btnContacted.style.color = '#fff';
+          }
+
+          // Cập nhật số unread count tab
+          const newLeadsCount = leads.filter(l => l.status === 'new').length;
+          const tabBadge = document.getElementById('adminInboxUnreadBadge');
+          if (tabBadge) {
+            if (newLeadsCount > 0) {
+              tabBadge.textContent = String(newLeadsCount);
+              tabBadge.style.display = 'inline-flex';
+            } else {
+              tabBadge.style.display = 'none';
+            }
+          }
+
+          if (filteredLeads.length === 0) {
+            container.innerHTML = `
+              <div style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 48px; text-align: center; box-shadow: var(--shadow);">
+                <div style="font-size: 44px; margin-bottom: 12px;">📬</div>
+                <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--primary);">Hộp thư trống</h5>
+                <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px; margin-bottom: 0;">Không tìm thấy yêu cầu tư vấn nào phù hợp với điều kiện này.</p>
+              </div>
+            `;
+            return;
+          }
+
+          filteredLeads.forEach(lead => {
+            const timeFormatted = new Date(lead.time).toLocaleString('vi-VN', {
+              day: '2-digit', month: '2-digit', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            });
+
+            const isNew = lead.status === 'new';
+            const cardBg = isNew ? "rgba(249, 115, 22, 0.04)" : "#fff";
+            const cardBorder = isNew ? "1px solid rgba(249, 115, 22, 0.25)" : "1px solid var(--border)";
+            const statusBadge = isNew 
+              ? `<span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; text-transform: uppercase;">🔴 Chờ tư vấn</span>`
+              : `<span style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; text-transform: uppercase;">💚 Đã liên hệ</span>`;
+
+            const actionBtn = isNew
+              ? `<button onclick="markLeadContacted(${lead.id})" style="display: inline-flex; align-items: center; gap: 4px; background: #16a34a; color: #fff; padding: 8px 14px; border: none; border-radius: 6px; font-size: 12.5px; font-weight: 700; cursor: pointer;">✔️ Đánh dấu đã tư vấn</button>`
+              : `<button onclick="restoreLeadNew(${lead.id})" style="display: inline-flex; align-items: center; gap: 4px; background: #4b5563; color: #fff; padding: 8px 14px; border: none; border-radius: 6px; font-size: 12.5px; font-weight: 700; cursor: pointer;">🔄 Khôi phục tin chờ</button>`;
+
+            const leadHtml = `
+              <div class="lead-card" style="background: ${cardBg}; border: ${cardBorder}; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); transition: var(--transition); display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--accent); background: #fff;">
+                      👤
+                    </div>
+                    <div>
+                      <h6 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--primary);">${lead.name}</h6>
+                      <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${timeFormatted}</span>
+                    </div>
+                  </div>
+                  <div>
+                    ${statusBadge}
+                  </div>
+                </div>
+
+                <div style="font-size: 13.5px; color: var(--text-dark); background: #fff; border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; line-height: 1.5;">
+                  <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap;">
+                    <strong style="color: var(--primary);">📞 Số điện thoại:</strong> 
+                    <a href="tel:${lead.phone}" style="color: var(--accent); font-weight: 800; font-family: var(--font-mono); text-decoration: underline; font-size: 14px;">${lead.phone}</a>
+                    <button onclick="navigator.clipboard.writeText('${lead.phone}'); showToast('Đã sao chép Hotline!', true);" style="background: var(--bg-light); border: 1px solid var(--border); cursor: pointer; padding: 2px 6px; font-size: 11px; font-weight: 700; color: var(--text-dark); border-radius: 4px;">📋 Copy</button>
+                    <a href="tel:${lead.phone}" style="background: #2563eb; color: #fff; text-decoration: none; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">📞 Gọi ngay</a>
+                  </div>
+                  <div style="white-space: pre-line; color: var(--text-dark); margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px;">
+                    <strong style="color: var(--primary);">💬 Yêu cầu nhận tư vấn:</strong><br>
+                    <span style="display: inline-block; margin-top: 4px; line-height: 1.5;">${lead.note ? lead.note : '<em style="color: var(--text-muted);">Không ghi chú nội dung thêm.</em>'}</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px dashed var(--border); padding-top: 12px; flex-wrap: wrap;">
+                  ${actionBtn}
+                  <button onclick="deleteLead(${lead.id})" style="display: inline-flex; align-items: center; gap: 4px; background: transparent; border: 1px solid #fca5a5; color: #dc2626; padding: 8px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 700; cursor: pointer; hover:bg-red-50;">🗑️ Xóa yêu cầu</button>
+                </div>
+              </div>
+            `;
+            container.insertAdjacentHTML('beforeend', leadHtml);
+          });
+        } catch (e) {
+          console.error("Lỗi render danh sách hộp thư:", e);
+        }
+      }
+
+      function filterInbox(status) {
+        activeInboxFilter = status;
+        renderAdminInbox();
+      }
+
+      function markLeadContacted(leadId) {
+        try {
+          const leads = JSON.parse(localStorage.getItem('local_leads') || '[]');
+          const idx = leads.findIndex(l => l.id === leadId);
+          if (idx !== -1) {
+            leads[idx].status = 'contacted';
+            localStorage.setItem('local_leads', JSON.stringify(leads));
+            logSystemActivity('INFO', `Yêu cầu tư vấn của [${leads[idx].name}] được chuyển thành "Đã liên hệ".`);
+            renderAdminInbox();
+            renderAdminReports();
+            showToast("Đã chuyển trạng thái Đã liên hệ thành công!", true);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function restoreLeadNew(leadId) {
+        try {
+          const leads = JSON.parse(localStorage.getItem('local_leads') || '[]');
+          const idx = leads.findIndex(l => l.id === leadId);
+          if (idx !== -1) {
+            leads[idx].status = 'new';
+            localStorage.setItem('local_leads', JSON.stringify(leads));
+            logSystemActivity('INFO', `Đặt lại yêu cầu tư vấn của [${leads[idx].name}] về trạng thái "Chờ xử lý".`);
+            renderAdminInbox();
+            renderAdminReports();
+            showToast("Đã khôi phục về danh mục chờ tư vấn thành công!", true);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function deleteLead(leadId) {
+        if (!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn yêu cầu nhận liên hệ này không?")) return;
+        try {
+          const leads = JSON.parse(localStorage.getItem('local_leads') || '[]');
+          const idx = leads.findIndex(l => l.id === leadId);
+          if (idx !== -1) {
+            const tempName = leads[idx].name;
+            leads.splice(idx, 1);
+            localStorage.setItem('local_leads', JSON.stringify(leads));
+            logSystemActivity('DELETE', `Đã xóa vĩnh viễn khách hàng đăng ký: [${tempName}].`);
+            renderAdminInbox();
+            renderAdminReports();
+            showToast("Đã xóa vĩnh viễn biểu ghi thành công.", true);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Expose to window for inline onclick execution
+      window.switchAdminTab = switchAdminTab;
+      window.clearSystemLogs = clearSystemLogs;
+      window.filterInbox = filterInbox;
+      window.markLeadContacted = markLeadContacted;
+      window.restoreLeadNew = restoreLeadNew;
+      window.deleteLead = deleteLead;
+      window.logSystemActivity = logSystemActivity;
+
       function checkAdminSession() {
+        // Tải khởi dựng số liệu thống kê & Hộp thư mẫu cục bộ
+        initAdminStats();
+        
         // Tự động điều hướng nếu tải lại trang mà admin còn giữ phiên hoạt động
         if (isAdminLoggedIn) {
           switchToPage('admin');
+          switchAdminTab('products');
+          renderAdminReports();
+          renderAdminInbox();
         } else {
           switchToPage('home');
         }
@@ -5666,16 +6443,84 @@ Nguyên tắc trả lời:
         if (!adminTableBody) return;
         adminTableBody.innerHTML = '';
         
-        propertyData.forEach(p => {
+        const qInput = document.getElementById('adminSearchQuery');
+        const q = qInput ? qInput.value.trim().toLowerCase() : "";
+        
+        const wSelect = document.getElementById('adminFilterWard');
+        const ward = wSelect ? wSelect.value : "";
+        
+        const sSelect = document.getElementById('adminFilterSort');
+        const sortVal = sSelect ? sSelect.value : "newest";
+
+        let filtered = [...propertyData];
+
+        // 1. Lọc theo chuỗi tìm kiếm
+        if (q) {
+          filtered = filtered.filter(p => {
+            const idMatch = String(p.id).includes(q);
+            const titleMatch = p.title && p.title.toLowerCase().includes(q);
+            const descMatch = p.desc && p.desc.toLowerCase().includes(q);
+            const addressMatch = p.address && p.address.toLowerCase().includes(q);
+            const wardMatch = p.ward && p.ward.toLowerCase().includes(q);
+            const badgeMatch = p.badge && p.badge.toLowerCase().includes(q);
+            return idMatch || titleMatch || descMatch || addressMatch || wardMatch || badgeMatch;
+          });
+        }
+
+        // 2. Lọc theo Phường
+        if (ward) {
+          filtered = filtered.filter(p => p.ward === ward);
+        }
+
+        // 3. Sắp xếp kết quả
+        if (sortVal === "newest") {
+          filtered.sort((a, b) => b.id - a.id);
+        } else if (sortVal === "oldest") {
+          filtered.sort((a, b) => a.id - b.id);
+        } else if (sortVal === "price_asc") {
+          filtered.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
+        } else if (sortVal === "price_desc") {
+          filtered.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
+        } else if (sortVal === "area_desc") {
+          filtered.sort((a, b) => (parseInt(b.area) || 0) - (parseInt(a.area) || 0));
+        } else if (sortVal === "discount") {
+          filtered = filtered.filter(p => p.priceReducedAt && (Date.now() - p.priceReducedAt) <= 2 * 24 * 60 * 60 * 1000 && (Date.now() - p.priceReducedAt) >= 0);
+        }
+
+        // Cập nhật số lượng đếm hiển thị
+        const filteredCountEl = document.getElementById('adminFilteredCount');
+        if (filteredCountEl) {
+          filteredCountEl.textContent = `Đang hiển thị ${filtered.length} / ${propertyData.length} sản phẩm`;
+        }
+
+        filtered.forEach(p => {
           const tr = document.createElement('tr');
           tr.style.borderBottom = '1px solid var(--border)';
           const adminImgSrc = getOptimizedCloudinaryUrl(p.img, 100, 75);
+
+          // Tính toán nhãn Mới đăng & Giảm giá
+          const createdTime = p.id ? p.id * 1000 : Date.now();
+          const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+          const isNew = (Date.now() - createdTime) <= threeDaysMs && (Date.now() - createdTime) >= 0;
+
+          const priceReducedAt = p.priceReducedAt;
+          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+          const isReduced = priceReducedAt && (Date.now() - priceReducedAt) <= twoDaysMs && (Date.now() - priceReducedAt) >= 0;
+
+          let badgeHtml = '';
+          if (isNew) {
+            badgeHtml += ' <span style="background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">🔥 Mới</span>';
+          }
+          if (isReduced) {
+            badgeHtml += ' <span style="background: #16a34a; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">📉 Giảm giá</span>';
+          }
+
           tr.innerHTML = `
             <td style="padding: 16px;">
               <img src="${adminImgSrc}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
             </td>
             <td style="padding: 16px;">
-              <div class="admin-prop-title" style="font-weight: 700; color: var(--primary); font-size: 15px;">${p.title}</div>
+              <div class="admin-prop-title" style="font-weight: 700; color: var(--primary); font-size: 15px;">${p.title}${badgeHtml}</div>
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ID: #${p.id} • ${p.area}m² • Đường/Hẻm: ${getPublicDisplayAddress(p)}</div>
             </td>
             <td style="padding: 16px;">
@@ -6026,6 +6871,20 @@ Nguyên tắc trả lời:
           // Chỉnh sửa tin đăng có sẵn
           const item = propertyData.find(p => p.id == idVal);
           if (item) {
+            const oldPrice = parseFloat(item.price) || 0;
+            const newPrice = parseFloat(priceVal) || 0;
+            if (newPrice < oldPrice && oldPrice > 0) {
+              const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
+              localPriceReductions[idVal] = Date.now();
+              localStorage.setItem('local_price_reductions', JSON.stringify(localPriceReductions));
+              item.priceReducedAt = Date.now();
+            } else if (newPrice > oldPrice) {
+              const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
+              delete localPriceReductions[idVal];
+              localStorage.setItem('local_price_reductions', JSON.stringify(localPriceReductions));
+              delete item.priceReducedAt;
+            }
+
             item.title = titleVal;
             item.price = priceVal;
             item.priceText = priceVal + " Tỷ";
@@ -6198,6 +7057,19 @@ Nguyên tắc trả lời:
         savePropertyDataToStorage();
         renderAdminTable();
         applyFilters();
+
+        // Ghi nhật ký vào Hệ thống
+        try {
+          if (typeof logSystemActivity === 'function') {
+            if (idVal) {
+              logSystemActivity('EDIT', `Chỉnh sửa bất động sản ID: ${idVal} - "${titleVal.substring(0, 30)}..."`);
+            } else {
+              logSystemActivity('ADD', `Đăng tin mới rao bán thành công: "${titleVal.substring(0, 30)}..."`);
+            }
+          }
+        } catch (errAct) {
+          console.error(errAct);
+        }
 
         if (success) {
           showToast("Đã lưu trữ tin rao bán bất động sản thành công!", true);
@@ -6846,6 +7718,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
               if (data.length > 0) {
                 // Ánh xạ chuỗi từ snake_case của PostgreSQL về camelCase của React app
                 const localViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
+                const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
                 propertyData = data.map(item => ({
                   id: item.id,
                   title: item.title,
@@ -6878,7 +7751,8 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   bedrooms: (item.bedrooms !== undefined && item.bedrooms !== null && !isNaN(parseInt(item.bedrooms))) ? parseInt(item.bedrooms) : 3,
                   bathrooms: (item.bathrooms !== undefined && item.bathrooms !== null && !isNaN(parseInt(item.bathrooms))) ? parseInt(item.bathrooms) : 3,
                   legal: item.legal || "Sổ hồng riêng",
-                  views: Math.max(parseInt(item.views) || 0, localViews[item.id] || 0)
+                  views: Math.max(parseInt(item.views) || 0, localViews[item.id] || 0),
+                  priceReducedAt: localPriceReductions[item.id] || null
                 }));
                 
                 // Lưu dự phòng cục bộ
@@ -6939,6 +7813,15 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
           }
         }
         
+        // Ghi nhận nhật ký xóa
+        try {
+          if (typeof logSystemActivity === 'function') {
+            logSystemActivity('DELETE', `Đã gỡ bỏ bài đăng bất động sản ID: ${id}`);
+          }
+        } catch (errDel) {
+          console.error(errDel);
+        }
+
         propertyData = propertyData.filter(p => p.id != id);
         savePropertyDataToStorage();
         renderAdminTable();
