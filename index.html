@@ -3355,6 +3355,7 @@
             <!-- JS dynamic render of customer messages -->
           </div>
         </div>
+      </div> <!-- Đóng adminDashboardSection -->
 
       <!-- SUB-VIEW 2: TRANG ĐĂNG TIN / CHỈNH SỬA TIN (FORM THEO MẪU DANG TIN CẢI TIẾN) -->
       <div id="adminFormSection" style="display: none; max-width: 800px; margin: 0 auto;">
@@ -5862,6 +5863,40 @@ Nguyên tắc trả lời:
         }
       }
 
+      let pendingAdminAction = null;
+
+      function onAdminLoginSuccess(message) {
+        isAdminLoggedIn = true;
+        sessionStorage.setItem('admin_logged_in', 'true');
+        closeAdminLoginModal();
+        switchToPage('admin');
+        if (pendingAdminAction === 'create_post') {
+          switchAdminTab('products');
+          showAdminForm(null);
+          pendingAdminAction = null;
+        }
+        showToast(message || "Xác thực quản trị viên thành công!", true);
+      }
+
+      function handleDirectPostClick(e) {
+        if (e) e.preventDefault();
+        const navMenu = document.getElementById('navMenu');
+        const menuToggle = document.getElementById('menuToggle');
+        if (navMenu && navMenu.classList.contains('open')) {
+          navMenu.classList.remove('open');
+          if (menuToggle) menuToggle.classList.remove('open');
+        }
+
+        if (isAdminLoggedIn) {
+          switchToPage('admin');
+          switchAdminTab('products');
+          showAdminForm(null);
+        } else {
+          pendingAdminAction = 'create_post';
+          openAdminLoginModal();
+        }
+      }
+
       async function handleAdminLoginModal(e) {
         if (e) e.preventDefault();
         const pwdField = document.getElementById('ad_pw_fld');
@@ -5892,19 +5927,11 @@ Nguyên tắc trả lời:
           
           const data = await res.json();
           if (res.ok && data.success) {
-            isAdminLoggedIn = true;
-            sessionStorage.setItem('admin_logged_in', 'true');
-            closeAdminLoginModal();
-            switchToPage('admin');
-            showToast(data.message || "Xác thực quản trị viên thành công!", true);
+            onAdminLoginSuccess(data.message);
           } else {
             // Local fallback if server returns incorrect but we match local default admin password
             if (pwd === "123456") {
-              isAdminLoggedIn = true;
-              sessionStorage.setItem('admin_logged_in', 'true');
-              closeAdminLoginModal();
-              switchToPage('admin');
-              showToast("Xác thực thành công (Local Fallback)!", true);
+              onAdminLoginSuccess("Xác thực thành công (Local Fallback)!");
             } else {
               alert(data.error || "Sai mật khẩu hệ thống! Vui lòng thử lại.");
             }
@@ -5918,11 +5945,7 @@ Nguyên tắc trả lời:
           
           // Local fallback when network error/Vercel serverless backend is offline
           if (pwd === "123456") {
-            isAdminLoggedIn = true;
-            sessionStorage.setItem('admin_logged_in', 'true');
-            closeAdminLoginModal();
-            switchToPage('admin');
-            showToast("Xác thực thành công (Offline Fallback)!", true);
+            onAdminLoginSuccess("Xác thực thành công (Offline Fallback)!");
           } else {
             alert("Sai mật khẩu hệ thống hoặc không kết nối được với máy chủ quản trị. Vui lòng kiểm tra lại.");
           }
@@ -8361,7 +8384,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
 
       // Đăng ký cho các đường link trang chủ chuyển hoàn lại màn hình chính diện
       document.querySelectorAll("#navMenu a").forEach(link => {
-        if (link.id !== "navAdminLink") {
+        if (link.id !== "navAdminLink" && link.id !== "navPostLink") {
           link.addEventListener("click", () => {
             switchToPage("home");
           });
@@ -8370,6 +8393,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
 
       // Gắn tất cả các hàm gọi trực tiếp từ thẻ HTML lên đối tượng window toàn cục tránh lỗi mất tầm vực
       window.showAdminSection = showAdminSection;
+      window.handleDirectPostClick = handleDirectPostClick;
       window.openAdminLoginModal = openAdminLoginModal;
       window.closeAdminLoginModal = closeAdminLoginModal;
       window.handleAdminLoginModal = handleAdminLoginModal;
