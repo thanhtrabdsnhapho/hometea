@@ -7661,20 +7661,29 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         supabaseUrl = savedUrl;
         supabaseAnonKey = savedKey;
 
-        // Tự động gán kết nối Cloud thẳng từ biến môi trường Server nếu đang chạy node.js
-        try {
-          const res = await fetch('/api/supabase-config');
-          if (res.ok) {
-            const serverConfig = await res.json();
-            if (serverConfig.supabaseUrl && serverConfig.supabaseAnonKey) {
-              supabaseUrl = serverConfig.supabaseUrl;
-              supabaseAnonKey = serverConfig.supabaseAnonKey;
-              localStorage.setItem('supabase_url', supabaseUrl);
-              localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+        // Đọc thẳng từ Vite env (Vercel build-time) hoặc fallback từ Server
+        const viteUrl = hasBuildUrl ? buildSupabaseUrl : null;
+        const viteKey = hasBuildKey ? buildSupabaseKey : null;
+        if (viteUrl && viteKey) {
+          supabaseUrl = viteUrl;
+          supabaseAnonKey = viteKey;
+          localStorage.setItem('supabase_url', supabaseUrl);
+          localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+        } else {
+          try {
+            const res = await fetch('/api/supabase-config');
+            if (res.ok) {
+              const serverConfig = await res.json();
+              if (serverConfig.supabaseUrl && serverConfig.supabaseAnonKey) {
+                supabaseUrl = serverConfig.supabaseUrl;
+                supabaseAnonKey = serverConfig.supabaseAnonKey;
+                localStorage.setItem('supabase_url', supabaseUrl);
+                localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+              }
             }
+          } catch (e) {
+            console.warn("Could not load server-side Supabase configuration hoặc đang chạy tĩnh trên Vercel:", e);
           }
-        } catch (e) {
-          console.warn("Could not load server-side Supabase configuration hoặc đang chạy tĩnh trên Vercel:", e);
         }
 
         if (urlInput) urlInput.value = supabaseUrl;
