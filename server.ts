@@ -8,8 +8,8 @@ import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL || "https://bywboejxhpvdahbfvote.supabase.co";
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r";
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://bywboejxhpvdahbfvote.supabase.co";
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Cấu hình Multer sử dụng Memory Storage để giữ file đệm trên bộ nhớ RAM trước khi đẩy lên Cloudinary cực nhanh
