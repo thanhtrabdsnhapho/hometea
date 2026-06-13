@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { data: properties, error } = await supabase
       .from('properties_hometea')
-      .select('id, title, updated_at')
+      .select('id')
       .order('id', { ascending: false });
 
     if (error) throw error;
@@ -17,13 +17,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const today = new Date().toISOString().split('T')[0];
 
     const propertyUrls = (properties || []).map(p => {
-      const lastmod = p.updated_at
-        ? new Date(p.updated_at).toISOString().split('T')[0]
-        : today;
       return `
   <url>
     <loc>https://thanhtrabds.vercel.app/?id=${p.id}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`;
