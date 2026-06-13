@@ -8433,37 +8433,50 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
           if (response.ok) {
             parsedData = await response.json();
           } else {
-            // Khởi chạy chế độ gọi trực tiếp Gemini client-side qua nhóm API Keys nếu API Proxy bận
-            const keysList = getGeminiKeysArray();
-            if (keysList.length > 0) {
-              const systemPrompt = `Bạn là trợ lý thông minh cao cấp bóc tách BĐS. Hãy trả về kết quả JSON duy nhất theo đúng cấu trúc. DỮ LIỆU THÔ: "${rawText}"`;
-              for (let i = 0; i < keysList.length; i++) {
-                const currentKey = keysList[i];
-                try {
-                  const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      contents: [{ parts: [{ text: systemPrompt }] }]
-                    })
-                  });
-                  if (directResponse.ok) {
-                    const directJson = await directResponse.json();
-                    const textResult = directJson.candidates[0].content.parts[0].text;
-                    const cleanedResult = textResult.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    parsedData = JSON.parse(cleanedResult);
-                    break;
-                  }
-                  const errInfo = await directResponse.json().catch(() => ({}));
-                  console.error(`Direct fast analysis API Key #${i + 1} error:`, errInfo);
-                } catch (innerError) {
-                  console.error(`Lỗi bóc tách nhanh trực tiếp qua client Key #${i + 1}:`, innerError);
+            console.warn("Proxy local trả về lỗi hoặc không khả dụng. Đang kết nối trực tiếp đến Google Gemini Client-side...");
+            parsedData = await callDirectGeminiFast(rawText);
+          }
+        } catch (err) {
+          console.warn("Lỗi kết nối API local, tiến hành gọi trực tiếp Gemini Client-side:", err);
+          try {
+            parsedData = await callDirectGeminiFast(rawText);
+          } catch (fallbackErr) {
+            console.error("Lỗi AI bóc tách Đăng nhanh cả hai phương án:", fallbackErr);
+          }
+        }
+
+        async function callDirectGeminiFast(textToParse) {
+          const keysList = getGeminiKeysArray();
+          if (keysList.length > 0) {
+            const systemPrompt = `Bạn là trợ lý thông minh cao cấp bóc tách BĐS. Hãy trả về kết quả JSON duy nhất theo đúng cấu trúc. DỮ LIỆU THÔ: "${textToParse}"`;
+            for (let i = 0; i < keysList.length; i++) {
+              const currentKey = keysList[i];
+              try {
+                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents: [{ parts: [{ text: systemPrompt }] }],
+                    generationConfig: {
+                      temperature: 0.1,
+                      responseMimeType: 'application/json'
+                    }
+                  })
+                });
+                if (directResponse.ok) {
+                  const directJson = await directResponse.json();
+                  const textResult = directJson.candidates[0].content.parts[0].text;
+                  const cleanedResult = textResult.replace(/```json/gi, '').replace(/```/g, '').trim();
+                  return JSON.parse(cleanedResult);
                 }
+                const errInfo = await directResponse.json().catch(() => ({}));
+                console.error(`Direct fast analysis API Key #${i + 1} error:`, errInfo);
+              } catch (innerError) {
+                console.error(`Lỗi bóc tách nhanh trực tiếp qua client Key #${i + 1}:`, innerError);
               }
             }
           }
-        } catch (err) {
-          console.error("Lỗi AI bóc tách Đăng nhanh:", err);
+          return null;
         }
 
         // Tạo dữ liệu trống mặc định nếu AI không thể phản hồi đúng định dạng hoặc kết nối bị đứt
