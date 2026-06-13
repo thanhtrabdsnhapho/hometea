@@ -417,8 +417,8 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
     }
   });
  
-  // Phục vụ sơ đồ trang web động chuẩn XML trực tiếp từ server
-  app.get("/sitemap.xml", async (req, res) => {
+  // Định nghĩa hàm xử lý Sơ đồ trang web động chuẩn XML trực tiếp từ Supabase
+  const getSitemapXmlHandler = async (req: any, res: any) => {
     try {
       const { data: properties, error } = await supabase
         .from('properties_hometea')
@@ -469,7 +469,10 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
   </url>
 </urlset>`);
     }
-  });
+  };
+
+  // Đăng ký cho môi trường chung (như Local / Development)
+  app.get("/sitemap.xml", getSitemapXmlHandler);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
@@ -480,7 +483,13 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+    
+    // ✅ Sitemap PHẢI đứng TRƯỚC static và wildcard ở môi trường Production
+    app.get("/sitemap.xml", getSitemapXmlHandler);
+
     app.use(express.static(distPath));
+    
+    // Wildcard đứng CUỐI cùng để tránh ghi đè các API khác
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
