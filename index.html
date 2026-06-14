@@ -4199,19 +4199,7 @@
       let lastSavedPropertyId = null;
       let currentHomeTab = 'all';
 
-      // Hàm xác định xem bất động sản có giảm giá hay không (linh hoạt & tương thích cao cho web ngoài)
-      function checkIsReduced(p) {
-        if (!p) return false;
-        
-        // Chỉ áp dụng khi có mốc thời gian hạ giá được lưu trữ thực tế (trong vòng 2 ngày kể từ khi hạ giá)
-        const priceReducedAt = p.priceReducedAt;
-        const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-        if (priceReducedAt && (Date.now() - priceReducedAt) <= twoDaysMs && (Date.now() - priceReducedAt) >= 0) {
-          return true;
-        }
-        
-        return false;
-      }
+
 
       function savePropertyDataToStorage() {
         try {
@@ -4444,8 +4432,14 @@
           }
           
           // Với lựa chọn "all" (Mặc định): Đưa các sản phẩm Giảm giá nổi bật lên hàng đầu
-          const aReduced = checkIsReduced(a);
-          const bReduced = checkIsReduced(b);
+          const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const aUpdated = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+          const aReduced = aUpdated > 0 && (aUpdated - aCreated) > 60000;
+
+          const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
+          const bUpdated = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+          const bReduced = bUpdated > 0 && (bUpdated - bCreated) > 60000;
+
           if (aReduced && !bReduced) return -1;
           if (!aReduced && bReduced) return 1;
           
@@ -4535,13 +4529,14 @@
            // Thiết lập số lượt xem (như trong ảnh hiển thị "0 lượt xem")
           const viewsCount = p.views !== undefined ? p.views : 0;
 
-          // Tính toán để hiển thị tag "Mới đăng" trong vòng 3 ngày kể từ khi tạo
-          const createdTime = p.id ? p.id * 1000 : Date.now();
           const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-          const isNew = (Date.now() - createdTime) <= threeDaysMs && (Date.now() - createdTime) >= 0;
-
-          // Tính toán để hiển thị tag "Giảm giá" sử dụng hàm kiểm tra đồng bộ thông minh
-          const isReduced = checkIsReduced(p);
+          // "Mới đăng": dùng created_at thực từ Supabase
+          const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
+          const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
+          // "Giảm giá": updated_at phải SAU created_at ít nhất 60 giây
+          // (tránh trường hợp tất cả record có cùng updated_at khi mới thêm cột)
+          const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
+          const isReduced = updatedTime > 0 && (updatedTime - createdTime) > 60000;
 
           const cardHtml = `
             <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal('${p.id}')">
@@ -4707,7 +4702,11 @@
 
         // Áp dụng bộ lọc Tab hiện tại (ví dụ tab Có tag giảm giá)
         if (currentHomeTab === 'discount') {
-          filtered = filtered.filter(p => checkIsReduced(p));
+          filtered = filtered.filter(p => {
+            const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
+            const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
+            return updatedTime > 0 && (updatedTime - createdTime) > 60000;
+          });
         }
 
         renderProducts(filtered);
@@ -6775,7 +6774,11 @@ Nguyên tắc trả lời:
         } else if (sortVal === "area_desc") {
           filtered.sort((a, b) => (parseInt(b.area) || 0) - (parseInt(a.area) || 0));
         } else if (sortVal === "discount") {
-          filtered = filtered.filter(p => checkIsReduced(p));
+          filtered = filtered.filter(p => {
+            const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
+            const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
+            return updatedTime > 0 && (updatedTime - createdTime) > 60000;
+          });
         }
 
         // Cập nhật số lượng đếm hiển thị
@@ -6790,13 +6793,12 @@ Nguyên tắc trả lời:
           const adminImgSrc = getOptimizedCloudinaryUrl(p.img, 100, 75);
 
           // Tính toán nhãn Mới đăng & Giảm giá
-          const createdTime = p.id ? p.id * 1000 : Date.now();
           const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-          const isNew = (Date.now() - createdTime) <= threeDaysMs && (Date.now() - createdTime) >= 0;
+          const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
+          const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
 
-          const priceReducedAt = p.priceReducedAt;
-          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-          const isReduced = priceReducedAt && (Date.now() - priceReducedAt) <= twoDaysMs && (Date.now() - priceReducedAt) >= 0;
+          const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
+          const isReduced = updatedTime > 0 && (updatedTime - createdTime) > 60000;
 
           let badgeHtml = '';
           if (isNew) {
@@ -8066,7 +8068,9 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   bathrooms: (item.bathrooms !== undefined && item.bathrooms !== null && !isNaN(parseInt(item.bathrooms))) ? parseInt(item.bathrooms) : 3,
                   legal: item.legal || "Sổ hồng riêng",
                   views: Math.max(parseInt(item.views) || 0, localViews[item.id] || 0),
-                  priceReducedAt: localPriceReductions[item.id] || null
+                  priceReducedAt: localPriceReductions[item.id] || null,
+                  created_at: item.created_at || null,
+                  updated_at: item.updated_at || null
                 }));
                 
                 // Lưu dự phòng cục bộ
