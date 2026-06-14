@@ -327,9 +327,9 @@ Yêu cầu bóc tách các thông số cụ thể:
 - Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên.
 - Ngang (width): Chiều ngang (m), số thực. Nếu không có, mặc định là 4.
 - Giá bán (price): Giá chào bán quy đổi thành số thực đơn vị TỶ ĐỒNG (VD: 2.5 hoặc 3.6). Nếu không có, gán mặc định là 0.
-- Số phòng ngủ (bedrooms): Số phòng ngủ, nguyên. Nếu không có, mặc định là 3.
-- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên. Nếu không có, mặc định là 3.
-- Số tầng (floors): Số tầng kết cấu, nguyên. Nếu không có, mặc định là 3.
+- Số phòng ngủ (bedrooms): Số phòng ngủ, nguyên. Nếu không có, mặc định là 3. (Nếu là đất trống/đất bán không có nhà thì đặt là 0).
+- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên. Nếu không có, mặc định là 3. (Nếu là đất trống/đất bán không có nhà thì đặt là 0).
+- Số tầng (floors): Số tầng kết cấu, nguyên. Nếu không có, mặc định là 3. ĐẶC BIỆT: Nếu bất động sản là đất trống, đất thổ cư, đất vườn, hoặc là bán đất (không có nhà cửa xây dựng hoặc ghi rõ là đất trống, đất thổ cư), thì trường floors (Số tầng) bắt buộc phải bóc tách bằng số 0 (không).
 - Hướng nhà (direction): Một trong các hướng chuẩn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định".
 - Pháp lý (legal): Tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
 - Nhãn nổi bật (badge): Một nhãn ngắn như "Sổ Hồng Riêng", "Hẻm Xe Hơi", "Mặt Tiền Kinh Doanh", "Sát Đại Học", "Giá Đầu Tư".

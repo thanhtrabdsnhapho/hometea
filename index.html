@@ -7429,9 +7429,9 @@ Yêu cầu bóc tách các thông số cụ thể:
 - Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên.
 - Ngang (width): Chiều ngang (m), số thực. Nếu không có, mặc định là 4.
 - Giá bán (price): Giá chào bán quy đổi thành số thực đơn vị TỶ ĐỒNG. Nếu không có, gán mặc định là 0.
-- Số phòng ngủ (bedrooms): Số phòng ngủ, nguyên. Nếu không có, mặc định là 3.
-- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên. Nếu không có, mặc định là 3.
-- Số tầng (floors): Số tầng kết cấu, nguyên. Nếu không có, mặc định là 3.
+- Số phòng ngủ (bedrooms): Số phòng ngủ, nguyên. Nếu không có, mặc định là 3. (Nếu là đất trống/đất bán không có nhà thì đặt là 0).
+- Số phòng vệ sinh (bathrooms): Số phòng vệ sinh, nguyên. Nếu không có, mặc định là 3. (Nếu là đất trống/đất bán không có nhà thì đặt là 0).
+- Số tầng (floors): Số tầng kết cấu, nguyên. Nếu không có, mặc định là 3. ĐẶC BIỆT: Nếu bất động sản là đất trống, đất thổ cư, đất vườn, hoặc là bán đất (không có nhà cửa xây dựng hoặc ghi rõ là đất trống), thì trường floors (Số tầng) bắt buộc phải bóc tách bằng số 0 (không).
 - Hướng nhà (direction): Một trong các hướng chuẩn: "Không xác định", "Đông", "Tây", "Nam", "Bắc", "Đông Nam", "Đông Bắc", "Tây Nam", "Tây Bắc". Hãy tìm hướng thích hợp từ dữ liệu thô, nếu không nhắc tới hướng thì bắt buộc chọn mặc định là "Không xác định".
 - Pháp lý (legal): Tình trạng pháp lý, mặc định thường là "Sổ hồng riêng" hoặc theo dữ liệu thô.
 - Nhãn nổi bật (badge): Một nhãn ngắn như "Sổ Hồng Riêng", "Hẻm Xe Hơi", "Mặt Tiền Kinh Doanh", "Sát Đại Học", "Giá Đầu Tư".
@@ -8040,7 +8040,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   priceText: item.price_text || (item.price + " Tỷ"),
                   ward: item.ward || "",
                   direction: item.direction || "",
-                  floors: parseInt(item.floors) || 1,
+                  floors: (item.floors !== undefined && item.floors !== null && !isNaN(parseInt(item.floors))) ? parseInt(item.floors) : 1,
                   badge: item.badge || "",
                   address: item.address || "",
                   img: item.img || "",
@@ -8448,7 +8448,24 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         async function callDirectGeminiFast(textToParse) {
           const keysList = getGeminiKeysArray();
           if (keysList.length > 0) {
-            const systemPrompt = `Bạn là trợ lý thông minh cao cấp bóc tách BĐS. Hãy trả về kết quả JSON duy nhất theo đúng cấu trúc. DỮ LIỆU THÔ: "${textToParse}"`;
+            const systemPrompt = `Bạn là trợ lý thông minh cao cấp bóc tách BĐS. Hãy trả về kết quả JSON duy nhất theo đúng cấu trúc.
+Các trường dữ liệu cần bóc tách bao gồm:
+- title: Tiêu đề viết hoa toàn bộ, bắt đầu bằng 🔥.
+- houseNumber: Số nhà (nếu có, không thì "").
+- street: Tên đường (nếu có, không thì "").
+- ward: Tên phường tại Thủ Đức (ví dụ: Long Phước, Trường Thạnh, Cát Lái...).
+- area: Diện tích đất/m2 (số nguyên).
+- width: Chiều ngang/m (mặc định 4).
+- price: Giá bán đơn vị Tỷ (số thực, ví dụ: 2.5).
+- bedrooms: Số phòng ngủ (mặc định 3, nếu là đất trống hoặc bán đất không có nhà thì 0).
+- bathrooms: Số phòng vệ sinh (mặc định 3, nếu là đất trống hoặc bán đất không có nhà thì 0).
+- floors: Số tầng (mặc định 3). ĐẶC BIỆT: Nếu là đất trống, đất thổ cư, đất vườn, hoặc là bán đất (không có nhà cửa xây dựng hoặc ghi rõ là đất trống, đất thổ cư), thì trường floors (Số tầng) bắt buộc phải bóc tách bằng số 0.
+- direction: Hướng nhà (ví dụ "Không xác định", "Đông", "Tây").
+- legal: Pháp lý (ví dụ "Sổ hồng riêng").
+- badge: Nhãn nổi bật (ví dụ "Đất trống", "Sổ Hồng Riêng", "Giá Đầu Tư").
+- desc: Đoạn mô tả quảng cáo cấu trúc đúng mẫu đã có sẵn thông số đất/nhà.
+
+DỮ LIỆU THÔ: "${textToParse}"`;
             for (let i = 0; i < keysList.length; i++) {
               const currentKey = keysList[i];
               try {
