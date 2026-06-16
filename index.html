@@ -8042,7 +8042,16 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   priceText: item.price_text || (item.price + " Tỷ"),
                   ward: item.ward || "",
                   direction: item.direction || "",
-                  floors: (item.floors !== undefined && item.floors !== null && !isNaN(parseInt(item.floors))) ? parseInt(item.floors) : 1,
+                  floors: (() => {
+                    if (item.floors !== undefined && item.floors !== null && !isNaN(parseInt(item.floors))) {
+                      return parseInt(item.floors);
+                    }
+                    const text = ((item.title || "") + " " + (item.desc || "")).toLowerCase();
+                    if (text.includes("đất") || text.includes("lô") || text.includes("nền") || text.includes("vườn") || text.includes("thổ cư")) {
+                      return 0;
+                    }
+                    return 3;
+                  })(),
                   badge: item.badge || "",
                   address: item.address || "",
                   img: item.img || "",
@@ -8064,8 +8073,26 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   houseNumber: item.house_number || "",
                   street: item.street || "",
                   width: parseFloat(item.width) || 0,
-                  bedrooms: (item.bedrooms !== undefined && item.bedrooms !== null && !isNaN(parseInt(item.bedrooms))) ? parseInt(item.bedrooms) : 3,
-                  bathrooms: (item.bathrooms !== undefined && item.bathrooms !== null && !isNaN(parseInt(item.bathrooms))) ? parseInt(item.bathrooms) : 3,
+                  bedrooms: (() => {
+                    if (item.bedrooms !== undefined && item.bedrooms !== null && !isNaN(parseInt(item.bedrooms))) {
+                      return parseInt(item.bedrooms);
+                    }
+                    const text = ((item.title || "") + " " + (item.desc || "")).toLowerCase();
+                    if (text.includes("đất") || text.includes("lô") || text.includes("nền") || text.includes("vườn") || text.includes("thổ cư")) {
+                      return 0;
+                    }
+                    return 3;
+                  })(),
+                  bathrooms: (() => {
+                    if (item.bathrooms !== undefined && item.bathrooms !== null && !isNaN(parseInt(item.bathrooms))) {
+                      return parseInt(item.bathrooms);
+                    }
+                    const text = ((item.title || "") + " " + (item.desc || "")).toLowerCase();
+                    if (text.includes("đất") || text.includes("lô") || text.includes("nền") || text.includes("vườn") || text.includes("thổ cư")) {
+                      return 0;
+                    }
+                    return 3;
+                  })(),
                   legal: item.legal || "Sổ hồng riêng",
                   views: Math.max(parseInt(item.views) || 0, localViews[item.id] || 0),
                   priceReducedAt: localPriceReductions[item.id] || null,

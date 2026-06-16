@@ -5,6 +5,10 @@
       "dest": "/api/sitemap"
     },
     {
+      "src": "/robots.txt",
+      "dest": "/api/robots"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },

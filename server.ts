@@ -402,9 +402,32 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
       });
 
       // Strip any accidental <br> tags injected by the model
-      const cleanedReply = (reply || "").replace(/<br\s*\/?>/gi, '\n');
+      let cleanedReply = (reply || "").replace(/<br\s*\/?>/gi, '\n').trim();
       
-      const parsed = JSON.parse(cleanedReply);
+      // Strip any markdown code fences if present
+      if (cleanedReply.includes("```")) {
+        cleanedReply = cleanedReply.replace(/```json/gi, '').replace(/```/g, '').trim();
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanedReply);
+      } catch (parseErr) {
+        // Try regex extraction of JSON block
+        const match = cleanedReply.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            parsed = JSON.parse(match[0]);
+          } catch (innerParseErr) {
+            console.error("JSON parse failed inside match:", innerParseErr);
+            throw new Error("Không thể phân tích phản hồi định dạng JSON từ AI: " + (parseErr as Error).message);
+          }
+        } else {
+          console.error("No JSON structure match found in reply:", cleanedReply);
+          throw new Error("Không tìm thấy cấu trúc JSON hợp lệ trong phản hồi của AI: " + (parseErr as Error).message);
+        }
+      }
+
       if (parsed.desc) {
          parsed.desc = parsed.desc.replace(/<br\s*\/?>/gi, '\n');
       }
@@ -412,7 +435,17 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
     } catch (apiError: any) {
       console.log("[Info] Analyze proxy call completed with exception.");
       const errMsg = apiError?.message || String(apiError);
-      res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi phân tích dữ liệu AI!" });
+      if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
+        res.status(429).json({ 
+          error: "Hiện tại tất cả các khóa API trong nhóm đã hết lượt sử dụng miễn phí hôm nay. Vui lòng bấm vào bánh răng ⚙️ (Thiết lập) để nhập/thêm khóa dự phòng." 
+        });
+      } else if (errMsg.includes("API key not valid") || errMsg.includes("invalid")) {
+        res.status(401).json({ 
+          error: "Các khóa API của bạn không hợp lệ hoặc đã hết hạn." 
+        });
+      } else {
+        res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi phân tích dữ liệu AI!" });
+      }
     }
   });
  
@@ -471,7 +504,18 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
   };
 
   // Đăng ký cho môi trường chung (như Local / Development)
+  const getRobotsTxtHandler = (req: any, res: any) => {
+    const robots = `User-agent: *
+Allow: /
+Sitemap: https://thanhtrabds.vercel.app/sitemap.xml`;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.status(200).send(robots);
+  };
+
   app.get("/sitemap.xml", getSitemapXmlHandler);
+  app.get("/robots.txt", getRobotsTxtHandler);
+  app.get("/api/robots", getRobotsTxtHandler);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
