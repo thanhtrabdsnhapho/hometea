@@ -7025,12 +7025,28 @@ Nguyên tắc trả lời:
 
         async function uploadRawFile(file) {
           try {
-            const formData = new FormData();
-            formData.append('image', file);
-            
+            let base64String = null;
+            if (typeof file === 'string') {
+              base64String = file;
+            } else {
+              base64String = await new Promise((resolve) => {
+                const r = new FileReader();
+                r.readAsDataURL(file);
+                r.onload = () => resolve(r.result);
+                r.onerror = () => resolve(null);
+              });
+            }
+
+            if (!base64String) {
+              throw new Error("Không thể chuyển đổi ảnh thành chuỗi Base64");
+            }
+
             const response = await fetch('/api/upload', {
               method: 'POST',
-              body: formData
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ image: base64String })
             });
             
             const data = await response.json();
@@ -7038,11 +7054,11 @@ Nguyên tắc trả lời:
               uploadedImagesList.push(data.secure_url);
               successCount++;
             } else {
-              console.error("Lỗi upload file thô:", data.error);
+              console.error("Lỗi upload file:", data?.error || response.statusText);
               failCount++;
             }
           } catch (err) {
-            console.error("Lỗi kết nối upload file thô:", err);
+            console.error("Lỗi kết nối upload file:", err);
             failCount++;
           } finally {
             processedCount++;
@@ -7101,11 +7117,7 @@ Nguyên tắc trả lời:
                 
                 // Nén JPEG chất lượng cao 0.75
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
-                const blobResponse = await fetch(compressedBase64);
-                const blob = await blobResponse.blob();
-                const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-                
-                await uploadRawFile(compressedFile);
+                await uploadRawFile(compressedBase64);
               } catch (err) {
                 console.error("Lỗi nén ảnh:", err);
                 await uploadRawFile(file);
@@ -8600,12 +8612,24 @@ DỮ LIỆU THÔ: "${textToParse}"`;
             const compressed = await compressImageToBlob(file);
             const uploadFile = compressed ? new File([compressed], file.name, { type: 'image/jpeg' }) : file;
 
-            const formData = new FormData();
-            formData.append('image', uploadFile);
+            // Đọc blob/file thành chuỗi Base64
+            const base64String = await new Promise((resolve) => {
+              const r = new FileReader();
+              r.readAsDataURL(uploadFile);
+              r.onload = () => resolve(r.result);
+              r.onerror = () => resolve(null);
+            });
+
+            if (!base64String) {
+              throw new Error("Không thể chuyển đổi ảnh thành chuỗi Base64");
+            }
 
             const uploadResponse = await fetch('/api/upload', {
               method: 'POST',
-              body: formData
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ image: base64String })
             });
 
             if (uploadResponse.ok) {
@@ -8613,6 +8637,9 @@ DỮ LIỆU THÔ: "${textToParse}"`;
               if (uData.success && uData.secure_url) {
                 uploadedUrlsList.push(udataUrlFilter(uData.secure_url));
               }
+            } else {
+              const errorText = await uploadResponse.text();
+              console.error(`Không thể tải ảnh nhanh: ${file.name}`, errorText);
             }
           } catch (uploadError) {
             console.error(`Không thể tải ảnh nhanh: ${file.name}`, uploadError);

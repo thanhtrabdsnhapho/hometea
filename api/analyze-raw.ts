@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { callGeminiWithKeyPool, generateContentWithRetry } from './_gemini';
+import { jsonrepair } from 'jsonrepair';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -108,16 +109,19 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 
     let parsed;
     try {
-      parsed = JSON.parse(cleanedReply);
+      const repaired = jsonrepair(cleanedReply);
+      parsed = JSON.parse(repaired);
     } catch (parseErr) {
       // Try regex extraction of JSON block
       const match = cleanedReply.match(/\{[\s\S]*\}/);
       if (match) {
         try {
-          parsed = JSON.parse(match[0]);
+          const repairedMatch = jsonrepair(match[0]);
+          parsed = JSON.parse(repairedMatch);
         } catch (innerParseErr) {
-          console.error("JSON parse failed inside match:", innerParseErr);
-          throw new Error("Không thể phân tích phản hồi định dạng JSON từ AI: " + (parseErr as Error).message);
+          console.error("JSON parse / jsonrepair failed inside match:", innerParseErr);
+          console.error("Original raw reply:", reply);
+          throw new Error("Không thể phân tích phản hồi định dạng JSON từ AI: " + (innerParseErr as Error).message);
         }
       } else {
         console.error("No JSON structure match found in reply:", cleanedReply);
