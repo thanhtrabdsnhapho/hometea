@@ -4245,6 +4245,103 @@
         }
       }
 
+      async function autoMigrateBase64Properties() {
+        let hasChanges = false;
+        for (let i = 0; i < propertyData.length; i++) {
+          const item = propertyData[i];
+          let itemChanged = false;
+          
+          if (item.img && typeof item.img === 'string' && item.img.startsWith('data:image/') && item.img.includes(';base64,')) {
+            console.log(`Đang re-upload ảnh chính base64 của tin ${item.id} (${item.title || ""})...`);
+            const secureUrl = await uploadBase64ToCloudinary(item.img);
+            if (secureUrl) {
+              item.img = secureUrl;
+              itemChanged = true;
+            }
+          }
+          
+          if (Array.isArray(item.imgList)) {
+            const newList = [];
+            let listChanged = false;
+            for (let j = 0; j < item.imgList.length; j++) {
+              const url = item.imgList[j];
+              if (url && typeof url === 'string' && url.startsWith('data:image/') && url.includes(';base64,')) {
+                console.log(`Đang re-upload ảnh con #${j+1} base64 của tin ${item.id}...`);
+                const secureUrl = await uploadBase64ToCloudinary(url);
+                if (secureUrl) {
+                  newList.push(secureUrl);
+                  listChanged = true;
+                } else {
+                  newList.push(url);
+                }
+              } else {
+                newList.push(url);
+              }
+            }
+            if (listChanged) {
+              item.imgList = newList;
+              itemChanged = true;
+            }
+          }
+          
+          if (itemChanged) {
+            hasChanges = true;
+            if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+              try {
+                const bodyPayload = {
+                  id: item.id,
+                  title: item.title,
+                  price: item.price,
+                  price_text: item.priceText,
+                  ward: item.ward,
+                  direction: item.direction,
+                  floors: item.floors,
+                  badge: item.badge,
+                  address: item.address,
+                  img: item.img,
+                  img_list: JSON.stringify(item.imgList),
+                  desc: item.desc,
+                  area: item.area,
+                  house_number: item.houseNumber,
+                  street: item.street,
+                  width: item.width,
+                  bedrooms: item.bedrooms,
+                  bathrooms: item.bathrooms,
+                  legal: item.legal,
+                  views: item.views
+                };
+
+                if (!supabaseHasViewsColumn) {
+                  delete bodyPayload.views;
+                }
+
+                const url = `${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${item.id}`;
+                await fetch(url, {
+                  method: 'PATCH',
+                  headers: {
+                    'apikey': supabaseAnonKey,
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(bodyPayload)
+                });
+                console.log(`Đã đồng bộ tin ${item.id} sau khi dọn dẹp base64 lên Supabase.`);
+              } catch (err) {
+                console.error(`Không thể đồng bộ tin ${item.id} lên Supabase:`, err);
+              }
+            }
+          }
+        }
+        
+        if (hasChanges) {
+          savePropertyDataToStorage();
+          applyFilters();
+          renderAdminTable();
+          console.log("Đã tự động rà soát & dọn dẹp dữ liệu ảnh cũ dạng base64 thành công.");
+        }
+      }
+
       /* ==========================================
          2. BỘ LỌC TÌM KIẾM SẢN PHẨM REALTIME (KHÔNG LOAD LẠI TRANG)
          ========================================== */
@@ -4545,7 +4642,9 @@
           // "Giảm giá": updated_at phải SAU created_at ít nhất 60 giây
           // (tránh trường hợp tất cả record có cùng updated_at khi mới thêm cột)
           const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
-          const isReduced = updatedTime > 0 && (updatedTime - createdTime) > 60000;
+          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+          const wasEdited = updatedTime > 0 && (updatedTime - createdTime) > 60000;
+          const isReduced = wasEdited && (Date.now() - updatedTime) <= twoDaysMs;
 
           const cardHtml = `
             <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal('${p.id}')">
@@ -6807,7 +6906,9 @@ Nguyên tắc trả lời:
           const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
 
           const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
-          const isReduced = updatedTime > 0 && (updatedTime - createdTime) > 60000;
+          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+          const wasEdited = updatedTime > 0 && (updatedTime - createdTime) > 60000;
+          const isReduced = wasEdited && (Date.now() - updatedTime) <= twoDaysMs;
 
           let badgeHtml = '';
           if (isNew) {
@@ -7140,6 +7241,73 @@ Nguyên tắc trả lời:
         });
       }
 
+      function compressBase64Image(base64Str, maxDim = 1200, quality = 0.75) {
+        return new Promise((resolve) => {
+          if (!base64Str) return resolve(null);
+          // Chỉ nén các dữ liệu ảnh base64 thực sự, bỏ qua các dữ liệu khác như svg hoặc url thông thường
+          if (!base64Str.startsWith('data:image/') || !base64Str.includes(';base64,')) {
+            return resolve(base64Str);
+          }
+          const img = new Image();
+          img.onload = function() {
+            try {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', quality));
+            } catch (e) {
+              console.warn("Lỗi trong quá trình nén base64 canvas:", e);
+              resolve(base64Str);
+            }
+          };
+          img.onerror = function() {
+            resolve(base64Str);
+          };
+          img.src = base64Str;
+        });
+      }
+
+      async function uploadBase64ToCloudinary(base64Str) {
+        if (!base64Str) return null;
+        // Bỏ qua nếu là url thông thường đã được lưu hoặc là ảnh svg vector đại diện
+        if (!base64Str.startsWith('data:image/') || !base64Str.includes(';base64,')) {
+          return base64Str.startsWith('http') ? base64Str : null;
+        }
+        try {
+          const compressed = await compressBase64Image(base64Str);
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: compressed })
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.secure_url) {
+              return data.secure_url;
+            }
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            console.error("Lỗi API upload:", errData?.error || response.statusText);
+          }
+        } catch (err) {
+          console.error("Lỗi uploadBase64ToCloudinary:", err);
+        }
+        return null;
+      }
+
       async function saveAdminProperty(e) {
         if (e) e.preventDefault();
         
@@ -7175,8 +7343,41 @@ Nguyên tắc trả lời:
         const formAddress = document.getElementById('formAddress');
         addressVal = (formAddress && formAddress.value.trim() !== "") ? formAddress.value.trim() : addressParts.join(", ");
 
-        const imgVal = formImg.value.trim() || "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80";
-        const imgListVal = uploadedImagesList && uploadedImagesList.length > 0 ? uploadedImagesList : [imgVal];
+        let imgVal = formImg.value.trim() || "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80";
+        let imgListVal = uploadedImagesList && uploadedImagesList.length > 0 ? uploadedImagesList : [imgVal];
+
+        // Tự động kiểm tra và đồng bộ hóa các ảnh base64 còn sót rải rác lên Cloudinary trước khi lưu
+        let hasBase64 = false;
+        if (imgVal.startsWith('data:image/') && imgVal.includes(';base64,')) hasBase64 = true;
+        if (imgListVal.some(img => img && typeof img === 'string' && img.startsWith('data:image/') && img.includes(';base64,'))) {
+          hasBase64 = true;
+        }
+
+        if (hasBase64) {
+          showToast("Đang đồng bộ hóa và tối ưu hình ảnh lên Cloudinary...", true);
+          const cleanedImgList = [];
+          for (let img of imgListVal) {
+            if (img && typeof img === 'string' && img.startsWith('data:image/') && img.includes(';base64,')) {
+              const secureUrl = await uploadBase64ToCloudinary(img);
+              if (secureUrl) {
+                cleanedImgList.push(secureUrl);
+              } else {
+                cleanedImgList.push("https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80");
+              }
+            } else {
+              cleanedImgList.push(img);
+            }
+          }
+          imgListVal = cleanedImgList;
+          if (imgVal.startsWith('data:image/') && imgVal.includes(';base64,')) {
+            imgVal = imgListVal[0] || "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80";
+          }
+          uploadedImagesList = imgListVal;
+          if (formImg) {
+            formImg.value = imgVal;
+          }
+          renderUploadedImagesPreviews();
+        }
 
         let success = true;
         let finalItem = null;
@@ -8124,6 +8325,9 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                 // Lưu dự phòng cục bộ
                 savePropertyDataToStorage();
                 
+                // Tự động quét và dọn sạch dữ liệu ảnh cũ dạng base64 nếu có
+                autoMigrateBase64Properties();
+                
                 applyFilters();
                 renderAdminTable();
                 checkUrlParams();
@@ -8886,6 +9090,11 @@ DỮ LIỆU THÔ: "${textToParse}"`;
       checkAdminSession();
       initSupabaseState();
       checkUrlParams();
+      
+      // Khởi động dọn dẹp các dữ liệu base64 cũ sau 3 giây khi ứng dụng nạp hoàn tất
+      setTimeout(() => {
+        autoMigrateBase64Properties();
+      }, 3000);
     </script>
   </body>
 </html>

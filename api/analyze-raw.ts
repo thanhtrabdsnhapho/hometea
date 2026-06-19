@@ -100,23 +100,83 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
     });
 
     // Strip any accidental <br> tags injected by the model
-    let cleanedReply = (reply || "").replace(/<br\s*\/?>/gi, '\n').trim();
+    // Using \\n instead of \n ensures we don't inject raw unescaped newlines into JSON strings
+    let cleanedReply = (reply || "").replace(/<br\s*\/?>/gi, '\\n').trim();
     
     // Strip any markdown code fences if present
     if (cleanedReply.includes("```")) {
       cleanedReply = cleanedReply.replace(/```json/gi, '').replace(/```/g, '').trim();
     }
 
+    // Helper to escape raw control characters like tabs, carriage returns, or actual line breaks inside double-quoted string literals in JSON response
+    function escapeControlCharactersInJson(jsonStr: string): string {
+      let result = "";
+      let insideString = false;
+      let i = 0;
+      while (i < jsonStr.length) {
+        const char = jsonStr[i];
+        if (insideString) {
+          if (char === '\\') {
+            const nextChar = jsonStr[i + 1];
+            if (nextChar === '"' || nextChar === '\\' || nextChar === '/' || nextChar === 'b' || nextChar === 'f' || nextChar === 'n' || nextChar === 'r' || nextChar === 't' || nextChar === 'u') {
+              // It's a valid escape sequence! Keep it as is.
+              result += char + (nextChar || "");
+              i += 2;
+              continue;
+            } else {
+              // It's an invalid escape sequence, or a single backslash. Let's escape the backslash itself to prevent JSON parse errors.
+              result += '\\\\';
+              i += 1;
+              continue;
+            }
+          } else if (char === '"') {
+            // Closing quote of the string literal
+            result += char;
+            insideString = false;
+            i += 1;
+          } else if (char === '\n') {
+            result += '\\n';
+            i += 1;
+          } else if (char === '\r') {
+            result += '\\r';
+            i += 1;
+          } else if (char === '\t') {
+            result += '\\t';
+            i += 1;
+          } else {
+            const code = char.charCodeAt(0);
+            if (code < 32) {
+              // Escape other non-printable control characters
+              const hex = code.toString(16).padStart(4, '0');
+              result += '\\u' + hex;
+            } else {
+              result += char;
+            }
+            i += 1;
+          }
+        } else {
+          if (char === '"') {
+            insideString = true;
+          }
+          result += char;
+          i += 1;
+        }
+      }
+      return result;
+    }
+
     let parsed;
     try {
-      const repaired = jsonrepair(cleanedReply);
+      const sanitizedReply = escapeControlCharactersInJson(cleanedReply);
+      const repaired = jsonrepair(sanitizedReply);
       parsed = JSON.parse(repaired);
     } catch (parseErr) {
       // Try regex extraction of JSON block
       const match = cleanedReply.match(/\{[\s\S]*\}/);
       if (match) {
         try {
-          const repairedMatch = jsonrepair(match[0]);
+          const sanitizedMatch = escapeControlCharactersInJson(match[0]);
+          const repairedMatch = jsonrepair(sanitizedMatch);
           parsed = JSON.parse(repairedMatch);
         } catch (innerParseErr) {
           console.error("JSON parse / jsonrepair failed inside match:", innerParseErr);
