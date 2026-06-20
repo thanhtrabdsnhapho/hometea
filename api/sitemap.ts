@@ -1,76 +1,178 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://bywboejxhpvdahbfvote.supabase.co";
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+const SITE_URL = 'https://thanhtrabds.vercel.app'; // TODO: đổi sang domain riêng khi có
+const SUPABASE_TIMEOUT_MS = 6_000; // fail fast trước giới hạn 10s của Vercel
+const MAX_ROWS = 5_000;            // safety cap, tránh result set phình vô hạn
+const MAX_IMAGES_PER_URL = 10;     // giới hạn ảnh/url theo khuyến nghị Google
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+// ---------------------------------------------------------------------------
+// Supabase client — chỉ đọc từ env, KHÔNG bao giờ hardcode credentials
+// ---------------------------------------------------------------------------
+const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  // Log rõ để dễ debug trên Vercel dashboard, không crash silently
+  console.error('[sitemap] Missing env: SUPABASE_URL or SUPABASE_ANON_KEY');
+}
+
+const supabase = createClient(supabaseUrl ?? '', supabaseKey ?? '');
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+interface PropertyRow {
+  id: number;
+  title: string;
+  badge: string | null;
+  img: string | null;
+  img_list: string[] | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function isHotBadge(badge: string | null): boolean {
+  if (!badge) return false;
+  const b = badge.toLowerCase();
+  return b.includes('hot') || b.includes('nổi bật') || b.includes('giảm giá');
+}
+
+function daysSince(dateStr: string): number {
+  return (Date.now() - new Date(dateStr).getTime()) / 86_400_000;
+}
+
+/** Trả về { priority, changefreq } dựa trên tuổi tin và badge */
+function getSeoMeta(row: PropertyRow): { priority: string; changefreq: string } {
+  const age = daysSince(row.updated_at ?? row.created_at);
+
+  if (isHotBadge(row.badge))  return { priority: '0.9', changefreq: 'daily' };
+  if (age < 14)               return { priority: '0.8', changefreq: 'weekly' };
+  if (age < 60)               return { priority: '0.7', changefreq: 'weekly' };
+  return                             { priority: '0.6', changefreq: 'monthly' };
+}
+
+/** Tập hợp ảnh duy nhất: img đại diện + img_list, loại trùng, giới hạn số lượng */
+function collectImages(row: PropertyRow): string[] {
+  const seen = new Set<string>();
+  const push = (src: string | null | undefined) => {
+    if (src) seen.add(src);
+  };
+  push(row.img);
+  if (Array.isArray(row.img_list)) row.img_list.forEach(push);
+  return Array.from(seen).slice(0, MAX_IMAGES_PER_URL);
+}
+
+// ---------------------------------------------------------------------------
+// XML builders
+// ---------------------------------------------------------------------------
+function buildPropertyEntry(row: PropertyRow): string {
+  // Skip row không có dữ liệu bắt buộc để tránh XML không hợp lệ
+  if (!row.id || !row.title) return '';
+
+  const loc = `${SITE_URL}/?id=${row.id}`;
+  const lastmod = new Date(row.updated_at ?? row.created_at).toISOString().split('T')[0];
+  const { priority, changefreq } = getSeoMeta(row);
+
+  const imageTags = collectImages(row)
+    .map(
+      (src) => `
+    <image:image>
+      <image:loc>${escapeXml(src)}</image:loc>
+      <image:title>${escapeXml(row.title)}</image:title>
+    </image:image>`
+    )
+    .join('');
+
+  return `
+  <url>
+    <loc>${escapeXml(loc)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>${imageTags}
+  </url>`;
+}
+
+function buildStaticEntry(loc: string, priority: string, changefreq: string): string {
+  const today = new Date().toISOString().split('T')[0];
+  return `
+  <url>
+    <loc>${escapeXml(loc)}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+}
+
+function buildFallbackXml(): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${buildStaticEntry(SITE_URL, '1.0', 'daily')}
+</urlset>`;
+}
+
+// ---------------------------------------------------------------------------
+// Handler
+// ---------------------------------------------------------------------------
+export default async function handler(_req: VercelRequest, res: VercelResponse) {
   try {
-    // Add a hard timeout so we never hit Vercel's 10s function limit.
-    // If Supabase takes too long, we fail fast and return the fallback sitemap.
+    // Race giữa query thực và timeout — không bao giờ để Vercel hard-kill function
     const queryPromise = supabase
       .from('properties_hometea')
-      .select('id')
-      .order('id', { ascending: false })
-      .limit(5000); // safety cap so result set can't grow unbounded
+      .select('id, title, badge, img, img_list, created_at, updated_at')
+      .order('created_at', { ascending: false })
+      .limit(MAX_ROWS);
 
-    let timeoutId: NodeJS.Timeout | undefined;
-    const timeoutPromise = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error('Supabase query timeout')), 6000);
-    });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase query timeout')), SUPABASE_TIMEOUT_MS)
+    );
 
-    const { data: properties, error }: any = await Promise.race([queryPromise, timeoutPromise]);
-    if (timeoutId) clearTimeout(timeoutId);
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as Awaited<typeof queryPromise>;
 
     if (error) throw error;
 
-    const today = new Date().toISOString().split('T')[0];
-    const propertyUrls = (properties || []).map((p: { id: string | number }) => {
-      return `
-  <url>
-    <loc>https://thanhtrabds.vercel.app/?id=${p.id}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-    }).join('');
+    const properties: PropertyRow[] = data ?? [];
+
+    // Chỉ trang chủ được đưa vào static entries.
+    // Các hash-anchor (#products, #contact) KHÔNG phải URL độc lập
+    // → không đưa vào sitemap, tránh Google coi là nội dung trùng lặp.
+    const staticEntries  = [buildStaticEntry(SITE_URL, '1.0', 'daily')];
+    const propertyEntries = properties.map(buildPropertyEntry).filter(Boolean);
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://thanhtrabds.vercel.app/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>${propertyUrls}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${staticEntries.join('')}${propertyEntries.join('')}
 </urlset>`;
 
-    // CRITICAL: cache at the CDN edge so Googlebot (and everyone else)
-    // gets a fast cached response instead of waiting on Supabase every time.
-    // s-maxage=3600: edge cache for 1 hour
-    // stale-while-revalidate=86400: serve stale (fast) for up to 24h while refreshing in background
+    // Cache tại CDN edge → Googlebot và người dùng nhận response nhanh, không chờ Supabase mỗi lần
+    // s-maxage=3600            : cache edge 1 giờ
+    // stale-while-revalidate   : vẫn serve bản cũ (fast) tối đa 24h trong khi refresh ngầm
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     return res.status(200).send(xml);
 
   } catch (err) {
-    console.error('Sitemap error:', err);
-    const today = new Date().toISOString().split('T')[0];
+    console.error('[sitemap] Generation failed:', err);
 
-    // Fallback sitemap: still return 200 with a valid minimal sitemap
-    // so Google never sees a hard failure. Cache this briefly so a
-    // transient DB hiccup doesn't get "stuck" for too long.
+    // Fallback an toàn: luôn trả 200 + XML hợp lệ (chỉ trang chủ)
+    // → Google không bao giờ nhận lỗi 500, tránh ảnh hưởng index toàn site.
+    // Cache ngắn hơn để sự cố tạm thời (DB hiccup) không bị kẹt cache quá lâu.
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
-    return res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://thanhtrabds.vercel.app/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>`);
+    return res.status(200).send(buildFallbackXml());
   }
 }
