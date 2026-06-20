@@ -7096,7 +7096,7 @@ Nguyên tắc trả lời:
         `;
 
         try {
-          const resp = await fetch(`/api/facebook-post-history?page=${page}&limit=20`);
+          const resp = await fetch(`/api/facebook?action=history&page=${page}&limit=20`);
           const result = await resp.json();
 
           if (resp.status !== 200 || result.error) {
@@ -7203,7 +7203,7 @@ Nguyên tắc trả lời:
         container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px 0;">⌛ Đang tải danh sách...</div>';
 
         try {
-          const response = await fetch('/api/facebook-pages');
+          const response = await fetch('/api/facebook?action=list-pages');
           const pages = await response.json();
           globalFacebookPages = pages || [];
 
@@ -7353,7 +7353,7 @@ Nguyên tắc trả lời:
             btn.style.opacity = '0.6';
           }
 
-          const url = '/api/facebook-pages';
+          const url = isEdit ? '/api/facebook?action=update-page' : '/api/facebook?action=save-page';
           const method = isEdit ? 'PUT' : 'POST';
           const payload = isEdit 
             ? { id: editingFacebookPageId, page_name, page_id, access_token } 
@@ -7404,7 +7404,7 @@ Nguyên tắc trả lời:
         }
 
         try {
-          const response = await fetch(`/api/facebook-pages?id=${id}`, {
+          const response = await fetch(`/api/facebook?action=delete-page&id=${id}`, {
             method: 'DELETE'
           });
 
@@ -7596,7 +7596,7 @@ Nguyên tắc trả lời:
         container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; padding: 10px 0; text-align: center;">⌛ Đang tải các trang Fanpage...</div>';
 
         try {
-          const response = await fetch('/api/facebook-pages');
+          const response = await fetch('/api/facebook?action=list-pages');
           const pages = await response.json();
 
           if (response.status !== 200 || pages.error) {
@@ -7684,7 +7684,7 @@ Nguyên tắc trả lời:
         // -------------------------------------------------------------
         try {
           const pageIdsParam = selectedPages.map(p => p.id).join(',');
-          const checkUrl = `/api/facebook-post-check?product_id=${activeFacebookPostProp.id}&page_ids=${pageIdsParam}`;
+          const checkUrl = `/api/facebook?action=check&product_id=${activeFacebookPostProp.id}&page_ids=${pageIdsParam}`;
           const checkResp = await fetch(checkUrl);
           const checkResult = await checkResp.json();
           
@@ -7763,7 +7763,7 @@ Nguyên tắc trả lời:
             stepLog.innerHTML = `🔷 Đang tải ảnh và gửi bài viết lên <strong>${escapeHtml(page.name)}</strong>...`;
             statusPanel.appendChild(stepLog);
 
-            const response = await fetch('/api/post-to-facebook', {
+            const response = await fetch('/api/facebook?action=post', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
