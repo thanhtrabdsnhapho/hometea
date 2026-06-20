@@ -54,7 +54,9 @@ function isHotBadge(badge: string | null): boolean {
 }
 
 function daysSince(dateStr: string): number {
-  return (Date.now() - new Date(dateStr).getTime()) / 86_400_000;
+  const t = new Date(dateStr).getTime();
+  if (isNaN(t)) return 999;
+  return (Date.now() - t) / 86_400_000;
 }
 
 /** Trả về { priority, changefreq } dựa trên tuổi tin và badge */
@@ -86,7 +88,14 @@ function buildPropertyEntry(row: PropertyRow): string {
   if (!row.id || !row.title) return '';
 
   const loc = `${SITE_URL}/?id=${row.id}`;
-  const lastmod = new Date(row.updated_at ?? row.created_at).toISOString().split('T')[0];
+  const lastmodStr = row.updated_at ?? row.created_at;
+  let lastmod = '';
+  try {
+    const d = new Date(lastmodStr ?? Date.now());
+    lastmod = isNaN(d.getTime()) ? new Date().toISOString().split('T')[0] : d.toISOString().split('T')[0];
+  } catch {
+    lastmod = new Date().toISOString().split('T')[0];
+  }
   const { priority, changefreq } = getSeoMeta(row);
 
   const imageTags = collectImages(row)
@@ -137,11 +146,13 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
       .order('created_at', { ascending: false })
       .limit(MAX_ROWS);
 
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase query timeout')), SUPABASE_TIMEOUT_MS)
-    );
+    let timeoutId: NodeJS.Timeout | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('Supabase query timeout')), SUPABASE_TIMEOUT_MS);
+    });
 
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as Awaited<typeof queryPromise>;
+    if (timeoutId) clearTimeout(timeoutId);
 
     if (error) throw error;
 

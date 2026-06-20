@@ -2972,6 +2972,74 @@
 
     </div> <!-- /#homePageWrapper -->
 
+    <!-- MODAL ĐĂNG FACEBOOK CHO SẢN PHẨM -->
+    <div id="facebookPublishModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background-color: rgba(10, 31, 61, 0.75); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: var(--transition);">
+      <div class="modal-card" style="max-width: 650px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow-y: auto; max-height: 90vh; border: 1px solid var(--border);">
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-light);">
+          <span style="font-weight: 800; color: var(--primary); font-size: 16px; display: flex; align-items: center; gap: 8px;">🔷 Đăng Tin BĐS Lên Facebook</span>
+          <button style="color: var(--text-muted); font-size: 28px; font-weight: 500; background: none; border: none; cursor: pointer; padding: 0;" onclick="closeFacebookPublishModal()">&times;</button>
+        </div>
+        <div style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+          <!-- Product Summary Info displayed nicely -->
+          <div style="padding: 12px; background: rgba(24,119,242,0.04); border: 1px dashed rgba(24,119,242,0.3); border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+            <img id="fbModalProdImg" src="" style="width: 60px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);">
+            <div style="flex: 1; min-width: 0;">
+              <div id="fbModalProdTitle" style="font-weight: 700; font-size: 14px; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+              <div id="fbModalProdSub" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;"></div>
+            </div>
+          </div>
+
+          <!-- 1. CAPTION EDIT -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-weight: 700; font-size: 13.5px; color: var(--text-dark);">✍️ Nội dung bài đăng (Caption Facebook)</label>
+              <button onclick="regenerateFacebookCaption()" style="background: transparent; color: var(--accent); border: none; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; text-decoration: underline;">🔄 Đổi mẫu ngẫu nhiên</button>
+            </div>
+            <textarea id="fbModalCaption" style="width: 100%; height: 160px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; line-height: 1.5; outline: none; background: #fff; color: var(--text-dark); resize: vertical;"></textarea>
+          </div>
+
+          <!-- 3. IMAGES SELECTION -->
+          <div>
+            <label style="font-weight: 700; font-size: 13.5px; color: var(--text-dark); display: block; margin-bottom: 6px;">📷 Chọn hình ảnh đính kèm (Tối đa 4 ảnh)</label>
+            <div id="fbModalImagesWrapper" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: var(--bg-light); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+              <!-- Images with checkbox will be added here dynamically -->
+            </div>
+          </div>
+
+          <!-- 2. FANPAGE SELECTION (checkboxes) -->
+          <div>
+            <label style="font-weight: 700; font-size: 13.5px; color: var(--text-dark); display: block; margin-bottom: 6px;">📢 Chọn các Trang Fanpage đăng tin</label>
+            <div id="fbModalCheckboxPagesList" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: #ffffff;">
+              <!-- Dynamic fanpage list -->
+            </div>
+          </div>
+
+          <!-- 4. DELAY INPUT (Shown if multi pages checked) -->
+          <div id="fbModalDelayContainer" style="display: none; background: #fef3c7; border: 1px solid #fde68a; padding: 12px; border-radius: 8px; align-items: center; gap: 10px;">
+            <span style="font-size: 18px;">⏳</span>
+            <div style="flex: 1;">
+              <div style="font-size: 13px; font-weight: 700; color: #92400e;">Độ trễ giãn cách giữa các Fanpage</div>
+              <p style="font-size: 12px; color: #b45309; margin: 2px 0 0 0;">Khi đăng lên nhiều trang, hệ thống sẽ đăng trang đầu tiên ngay và hoãn các trang sau theo giờ để tự nhiên hơn.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <input type="number" id="fbModalDelayHours" min="0.01" step="0.01" value="4" style="width: 70px; padding: 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-weight: 700; color: #92400e; text-align: center;">
+              <span style="font-size: 12px; font-weight: 700; color: #92400e;">giờ</span>
+            </div>
+          </div>
+
+          <!-- STATUS & RESULTS PROGRESS PANEL -->
+          <div id="fbModalStatusPanel" style="display: none; border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.5; font-family: var(--font-sans);">
+            <!-- Progress log content -->
+          </div>
+
+          <!-- ACTION BUTTON -->
+          <button id="btnFacebookPublishSubmit" onclick="submitFacebookPosts()" style="background: #1877f2; color: #ffffff; border: none; padding: 12px 20px; font-size: 14px; font-weight: 800; border-radius: 8px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; box-shadow: 0 4px 6px rgba(24,119,242,0.15); width: 100%;">
+            🚀 Đăng ngay lên Facebook
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL ĐĂNG NHẬP ADMIN (XUẤT HIỆN KHI NHẤN VÀO ADMIN TRÊN NAVBAR) -->
     <div id="adminLoginModal" class="modal-backdrop">
       <div class="modal-card" style="max-width: 440px; margin: 100px auto;">
@@ -3083,6 +3151,12 @@
           <button id="adminTabBtnInbox" class="admin-tab-btn" onclick="switchAdminTab('inbox')" style="padding: 12px 20px; font-weight: 700; font-size: 14px; border: none; background: transparent; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; position: relative;">
             📥 Hộp Thư Tư Vấn 
             <span id="adminInboxUnreadBadge" style="background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; border: 1px solid #fff;">0</span>
+          </button>
+          <button id="adminTabBtnFacebook" class="admin-tab-btn" onclick="switchAdminTab('facebook')" style="padding: 12px 20px; font-weight: 700; font-size: 14px; border: none; background: transparent; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            🔷 Cấu hình Fanpage
+          </button>
+          <button id="adminTabBtnFacebookHistory" class="admin-tab-btn" onclick="switchAdminTab('facebook-history')" style="padding: 12px 20px; font-weight: 700; font-size: 14px; border: none; background: transparent; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            📜 Lịch sử đăng Facebook
           </button>
         </div>
 
@@ -3396,6 +3470,149 @@
 
           <div id="adminInboxContainer" style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px;">
             <!-- JS dynamic render of customer messages -->
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: ĐĂNG FACEBOOK ==================== -->
+        <div id="adminTabContentFacebook" class="admin-tab-content-block" style="display: none;">
+          <!-- Cấu hình Fanpage -->
+          <div style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow);">
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 24px;">🔧</span>
+              <div>
+                <h4 style="font-weight: 700; color: var(--primary); font-size: 16px; margin: 0; text-transform: uppercase;">Cấu hình Fanpage Facebook</h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0 0;">Cấu hình các trang Facebook Fanpage để tích hợp đăng tin bất động sản tự động.</p>
+              </div>
+            </div>
+
+            <!-- SQL Initialization Guide for facebook_pages -->
+            <details style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 20px; transition: all 0.2s;">
+              <summary style="font-size: 13px; font-weight: 700; color: var(--primary); list-style: inside; cursor: pointer; user-select: none;">📜 Các bước cài đặt Database SQL cho facebook_pages (Xem hướng dẫn)</summary>
+              <div style="margin-top: 12px; cursor: default; font-size: 13px; line-height: 1.65; color: var(--text-dark); border-top: 1px dashed var(--border); padding-top: 12px;">
+                <p style="margin-bottom: 6px;"><strong>Bước 1:</strong> Đăng nhập vào <a href="https://supabase.com" target="_blank" style="color: var(--accent); font-weight: 700; text-decoration: underline;">Supabase Dashboard</a> và mở Project của bạn.</p>
+                <p style="margin-bottom: 6px;"><strong>Bước 2:</strong> Mở mục <strong>SQL Editor</strong> ở thanh bên trái -> Bấm nút <strong>New Query</strong>.</p>
+                <p style="margin-bottom: 10px;"><strong>Bước 3:</strong> Sao chép đoạn mã SQL khởi tạo dưới đây, dán vào và bấm nút <strong>Run</strong> để tạo bảng và mở chính sách bảo mật:</p>
+                <div style="position: relative; margin-top: 8px;">
+                  <textarea readonly style="width:100%; height: 260px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: #1e293b; color: #f8fafc; line-height: 1.45; resize: none;" id="facebookSqlCopyText">CREATE TABLE IF NOT EXISTS facebook_pages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    page_name TEXT NOT NULL,
+    page_id TEXT NOT NULL,
+    access_token TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- Bật phân quyền truy cập trực tiếp
+  ALTER TABLE facebook_pages ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Cho phép tất cả đọc" ON facebook_pages FOR SELECT USING (true);
+  CREATE POLICY "Cho phép tất cả thêm" ON facebook_pages FOR INSERT WITH CHECK (true);
+  CREATE POLICY "Cho phép tất cả xóa" ON facebook_pages FOR DELETE USING (true);
+  CREATE POLICY "Cho phép tất cả sửa" ON facebook_pages FOR UPDATE USING (true);
+
+  -- 1. BẢNG LỊCH SỬ ĐĂNG FACEBOOK
+  CREATE TABLE IF NOT EXISTS facebook_post_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id TEXT NOT NULL,
+    product_name TEXT NOT NULL,
+    page_id TEXT NOT NULL,
+    page_name TEXT NOT NULL,
+    posted_at TIMESTAMPTZ DEFAULT NOW(),
+    status TEXT NOT NULL,
+    error_message TEXT
+  );
+
+  -- Bật RLS và các chính sách cho lịch sử đăng để tránh lỗi thiếu quyền
+  ALTER TABLE facebook_post_history ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Cho phép đọc lịch sử" ON facebook_post_history FOR SELECT USING (true);
+  CREATE POLICY "Cho phép thêm lịch sử" ON facebook_post_history FOR INSERT WITH CHECK (true);
+  CREATE POLICY "Cho phép sửa lịch sử" ON facebook_post_history FOR UPDATE USING (true);
+  CREATE POLICY "Cho phép xóa lịch sử" ON facebook_post_history FOR DELETE USING (true);</textarea>
+                  <button type="button" onclick="copyFacebookSql()" style="position: absolute; top: 12px; right: 12px; background: var(--accent); color: var(--primary); border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">Sao chép đoạn mã</button>
+                </div>
+              </div>
+            </details>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+              <!-- CỘT 1: THÊM MỚI FANPAGE -->
+              <div style="background: var(--bg-light); border: 1px solid var(--border); padding: 20px; border-radius: 10px;">
+                <h5 style="font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                  ➕ Thêm Fanpage Mới
+                </h5>
+                <form id="fbPageForm" onsubmit="saveFacebookPage(event)" style="display: flex; flex-direction: column; gap: 12px;">
+                  <div>
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Tên hiển thị *</label>
+                    <input type="text" id="fb_page_name" required placeholder="Ví dụ: Trà BĐS" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);">
+                  </div>
+                  <div>
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Facebook Page ID *</label>
+                    <input type="text" id="fb_page_id" required placeholder="Nhập Page ID của bạn" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);">
+                  </div>
+                  <div>
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Access Token *</label>
+                    <input type="password" id="fb_access_token" required placeholder="Nhập Access Token dài hạn của Page" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);">
+                  </div>
+                  <button type="submit" style="background: var(--primary); color: white; border: none; font-weight: 700; font-size: 13.5px; padding: 11px; border-radius: 8px; cursor: pointer; margin-top: 8px; text-transform: uppercase; transition: opacity 0.2s;">
+                    Lưu Fanpage
+                  </button>
+                </form>
+              </div>
+
+              <!-- CỘT 2: DANH SÁCH FANPAGE ĐÃ LƯU -->
+              <div style="background: #fff; border: 1px solid var(--border); padding: 20px; border-radius: 10px; display: flex; flex-direction: column;">
+                <h5 style="font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                  📋 Danh Sách Fanpage Đã Lưu
+                </h5>
+                <div id="fbPagesList" style="flex: 1; overflow-y: auto; max-height: 380px; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px 0;">Đang tải danh sách fanpage...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 5: LỊCH SỬ ĐĂNG FACEBOOK ==================== -->
+        <div id="adminTabContentFacebookHistory" class="admin-tab-content-block" style="display: none;">
+          <div style="background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: var(--shadow);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h4 style="font-weight: 800; color: var(--primary); font-size: 18px; margin: 0; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                  📜 Lịch Sử Đăng Tin Facebook
+                </h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 4px 0 0 0;">Nhật ký ghi lại tự động kết quả của tất cả các lần đăng bài/đăng sản phẩm bất động sản lên các Fanpage.</p>
+              </div>
+              <button type="button" onclick="loadFacebookPostHistory(1)" class="action-btn-accent" style="background: var(--accent); color: var(--primary); border: none; padding: 8px 16px; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                🔄 Tải lại lịch sử
+              </button>
+            </div>
+
+            <!-- TABLE OF POST LIST -->
+            <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; background: var(--bg-light);">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 800px;">
+                <thead>
+                  <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+                    <th style="padding: 12px 16px; font-weight: 700; font-size: 12.5px; color: var(--primary); text-transform: uppercase;">ID sản phẩm</th>
+                    <th style="padding: 12px 16px; font-weight: 700; font-size: 12.5px; color: var(--primary); text-transform: uppercase;">Tên sản phẩm (Bất động sản)</th>
+                    <th style="padding: 12px 16px; font-weight: 700; font-size: 12.5px; color: var(--primary); text-transform: uppercase;">Trang Facebook Fanpage</th>
+                    <th style="padding: 12px 16px; font-weight: 700; font-size: 12.5px; color: var(--primary); text-transform: uppercase;">Thời gian đăng</th>
+                    <th style="padding: 12px 16px; font-weight: 700; font-size: 12.5px; color: var(--primary); text-transform: uppercase;">Trạng thái</th>
+                    <th style="padding: 12px 16px; font-weight: 700; font-size: 12.5px; color: var(--primary); text-transform: uppercase;">Chi tiết/Thông báo lỗi</th>
+                  </tr>
+                </thead>
+                <tbody id="fbHistoryTableBody">
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                      Đang tải lịch sử đăng bài...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- PAGINATION CONTAINER -->
+            <div id="fbHistoryPagination" style="display: flex; justify-content: center; align-items: center; margin-top: 16px;">
+              <!-- Pagination controls dynamically -->
+            </div>
+
           </div>
         </div>
       </div> <!-- Đóng adminDashboardSection -->
@@ -6463,6 +6680,28 @@ Nguyên tắc trả lời:
           }
           logSystemActivity('NAV', "Click mục Hộp thư tư vấn.");
           renderAdminInbox();
+        } else if (tabName === 'facebook') {
+          const content = document.getElementById('adminTabContentFacebook');
+          if (content) content.style.display = 'block';
+          const btn = document.getElementById('adminTabBtnFacebook');
+          if (btn) {
+            btn.classList.add('active');
+            btn.style.borderBottomColor = 'var(--accent)';
+            btn.style.color = 'var(--primary)';
+          }
+          logSystemActivity('NAV', "Click mục Cấu hình Facebook Fanpage.");
+          loadFacebookPages();
+        } else if (tabName === 'facebook-history') {
+          const content = document.getElementById('adminTabContentFacebookHistory');
+          if (content) content.style.display = 'block';
+          const btn = document.getElementById('adminTabBtnFacebookHistory');
+          if (btn) {
+            btn.classList.add('active');
+            btn.style.borderBottomColor = 'var(--accent)';
+            btn.style.color = 'var(--primary)';
+          }
+          logSystemActivity('NAV', "Click mục Lịch sử đăng Facebook.");
+          loadFacebookPostHistory(1);
         }
       }
 
@@ -6817,14 +7056,784 @@ Nguyên tắc trả lời:
         }
       }
 
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function copyFacebookSql() {
+        const area = document.getElementById('facebookSqlCopyText');
+        if (area) {
+          navigator.clipboard.writeText(area.value);
+          showToast("Đã sao chép đoạn mã SQL cấu hình facebook_pages!", true);
+        }
+      }
+
+      let globalFacebookPages = [];
+      let editingFacebookPageId = null;
+      let originalTokenValueForEdit = '';
+
+      let fbHistoryCurrentPage = 1;
+      let fbHistoryTotalPages = 1;
+
+      async function loadFacebookPostHistory(page = 1) {
+        fbHistoryCurrentPage = page;
+        const container = document.getElementById('fbHistoryTableBody');
+        const paginationContainer = document.getElementById('fbHistoryPagination');
+        
+        if (!container) return;
+        container.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+              Đang tải lịch sử đăng bài...
+            </td>
+          </tr>
+        `;
+
+        try {
+          const resp = await fetch(`/api/facebook-post-history?page=${page}&limit=20`);
+          const result = await resp.json();
+
+          if (resp.status !== 200 || result.error) {
+            container.innerHTML = `
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px; color: #ef4444; font-weight: 700;">
+                  ❌ Không thể tải lịch sử: ${result.error || 'Lỗi không xác định'}
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          if (result.warning) {
+            container.innerHTML = `
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 32px; color: #ea580c; background: #fff7ed; border-radius: 8px;">
+                  ⚠️ ${result.warning}
+                  <br>
+                  <span style="font-size: 11.5px; opacity: 0.9; margin-top: 6px; display: inline-block;">
+                    Hãy mở mục <strong>Cấu hình Fanpage</strong> ở trên -> xem phần <strong>Mã SQL hướng dẫn khởi tạo</strong>, copy đoạn code và chạy SQL Editor trong Supabase của bạn một lần để tạo bảng này.
+                  </span>
+                </td>
+              </tr>
+            `;
+            if (paginationContainer) paginationContainer.innerHTML = '';
+            return;
+          }
+
+          const data = result.data || [];
+          const count = result.count || 0;
+          fbHistoryTotalPages = Math.ceil(count / 20) || 1;
+
+          if (data.length === 0) {
+            container.innerHTML = `
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                  📭 Chưa có lịch sử đăng bài bất động sản nào được ghi nhận.
+                </td>
+              </tr>
+            `;
+            if (paginationContainer) paginationContainer.innerHTML = '';
+            return;
+          }
+
+          let html = '';
+          data.forEach(item => {
+            const timeStr = item.posted_at ? new Date(item.posted_at).toLocaleString('vi-VN') : '---';
+            const statusBadge = item.status === 'success' 
+              ? `<span style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 99px; display: inline-block;">✅ Thành công</span>`
+              : `<span style="background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 99px; display: inline-block;">❌ Thất bại</span>`;
+
+            const errMessage = item.error_message 
+              ? `<span style="color: #c62828; font-size: 12px; display: inline-block; max-width: 250px; overflow-wrap: break-word; white-space: normal;">${escapeHtml(item.error_message)}</span>` 
+              : `<span style="color: var(--text-muted); font-size: 12px;">---</span>`;
+
+            html += `
+              <tr style="border-bottom: 1px solid var(--border); transition: background 0.15s; background: #fff;">
+                <td style="padding: 12px 16px; font-size: 12px; color: var(--text-muted); font-family: monospace;">#${escapeHtml(item.product_id || 'N/A')}</td>
+                <td style="padding: 12px 16px; font-size: 13.5px; color: var(--primary); font-weight: 700;">${escapeHtml(item.product_name || 'N/A')}</td>
+                <td style="padding: 12px 16px; font-size: 13.5px; color: var(--text-dark); font-weight: 700;">🔷 ${escapeHtml(item.page_name || '---')} <br><span style="font-size: 10.5px; font-weight: normal; color: var(--text-muted);">ID: ${escapeHtml(item.page_id || '---')}</span></td>
+                <td style="padding: 12px 16px; font-size: 12.5px; color: var(--text-muted); font-family: monospace;">${escapeHtml(timeStr)}</td>
+                <td style="padding: 12px 16px;">${statusBadge}</td>
+                <td style="padding: 12px 16px; max-width: 250px;">${errMessage}</td>
+              </tr>
+            `;
+          });
+          container.innerHTML = html;
+
+          // Render pagination
+          if (paginationContainer) {
+            if (fbHistoryTotalPages <= 1) {
+              paginationContainer.innerHTML = '';
+            } else {
+              let pagHtml = `
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px;">
+                  <button type="button" onclick="loadFacebookPostHistory(1)" ${fbHistoryCurrentPage === 1 ? 'disabled style="opacity: 0.4; cursor: not-allowed; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #eee;"' : 'style="cursor: pointer; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #fff;"'}>« Đầu</button>
+                  <button type="button" onclick="loadFacebookPostHistory(${fbHistoryCurrentPage - 1})" ${fbHistoryCurrentPage === 1 ? 'disabled style="opacity: 0.4; cursor: not-allowed; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #eee;"' : 'style="cursor: pointer; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #fff;"'}>‹ Trước</button>
+                  <span style="font-weight: 700; margin: 0 8px; color: var(--text-dark);">Trang ${fbHistoryCurrentPage} / ${fbHistoryTotalPages}</span>
+                  <button type="button" onclick="loadFacebookPostHistory(${fbHistoryCurrentPage + 1})" ${fbHistoryCurrentPage === fbHistoryTotalPages ? 'disabled style="opacity: 0.4; cursor: not-allowed; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #eee;"' : 'style="cursor: pointer; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #fff;"'}>Sau ›</button>
+                  <button type="button" onclick="loadFacebookPostHistory(${fbHistoryTotalPages})" ${fbHistoryCurrentPage === fbHistoryTotalPages ? 'disabled style="opacity: 0.4; cursor: not-allowed; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #eee;"' : 'style="cursor: pointer; padding: 6px 12px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border); background: #fff;"'}>Cuối »</button>
+                </div>
+              `;
+              paginationContainer.innerHTML = pagHtml;
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          container.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 24px; color: #ef4444; font-weight: 700;">
+                ❌ Lỗi kết nối API máy chủ hoặc chưa khởi tạo bảng.
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      window.loadFacebookPostHistory = loadFacebookPostHistory;
+
+      async function loadFacebookPages() {
+        const container = document.getElementById('fbPagesList');
+        if (!container) return;
+        container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px 0;">⌛ Đang tải danh sách...</div>';
+
+        try {
+          const response = await fetch('/api/facebook-pages');
+          const pages = await response.json();
+          globalFacebookPages = pages || [];
+
+          if (response.status !== 200 || pages.error) {
+            container.innerHTML = `<div style="color: #ef4444; font-size: 13px; text-align: center; padding: 24px 10px;">❌ Lỗi: ${pages.error || 'Không thể lấy dữ liệu'}</div>`;
+            return;
+          }
+
+          if (!Array.isArray(pages) || pages.length === 0) {
+            container.innerHTML = '<div style="color: var(--text-muted); font-size: 13.5px; text-align: center; padding: 40px 10px;">Chưa cấu hình fanpage nào.</div>';
+            return;
+          }
+
+          let html = '';
+          pages.forEach(p => {
+            html += `
+              <div class="fb-page-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); transition: var(--transition);">
+                <div style="flex: 1; min-width: 0; padding-right: 12px;">
+                  <div style="font-weight: 700; font-size: 14px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                    <span style="color: #1877f2; font-size: 16px;">🔷</span> ${escapeHtml(p.page_name)}
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+                    <strong>ID:</strong> ${escapeHtml(p.page_id)}
+                  </div>
+                  <div style="font-size: 11.5px; font-family: var(--font-mono); color: #15803d; background: #dcfce7; display: inline-block; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">
+                    🔑 ${escapeHtml(p.access_token)}
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <button onclick="editFacebookPage('${p.id}')" style="background: #eff6ff; color: #2563eb; border: 1px solid #93c5fd; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    ✏️ Sửa
+                  </button>
+                  <button onclick="deleteFacebookPage('${p.id}')" style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    🗑️ Xóa
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+          container.innerHTML = html;
+        } catch (err) {
+          console.error(err);
+          container.innerHTML = '<div style="color: #ef4444; font-size: 13px; text-align: center; padding: 24px 10px;">❌ Không kết nối được API máy chủ hoặc lỗi bảng chưa được tạo. Hãy chạy lệnh khởi tạo SQL trước.</div>';
+        }
+      }
+
+      function editFacebookPage(id) {
+        const p = globalFacebookPages.find(item => String(item.id) === String(id));
+        if (!p) return;
+
+        editingFacebookPageId = p.id;
+        originalTokenValueForEdit = p.access_token;
+
+        document.getElementById('fb_page_name').value = p.page_name || '';
+        document.getElementById('fb_page_id').value = p.page_id || '';
+        document.getElementById('fb_access_token').value = p.access_token || '';
+
+        // Update form state header
+        const formTitle = document.querySelector('#fbPageForm').previousElementSibling;
+        if (formTitle) {
+          formTitle.innerHTML = `✏️ Sửa Cấu Hình Fanpage`;
+        }
+
+        const submitBtn = document.querySelector('#fbPageForm button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.textContent = 'Lưu thay đổi';
+        }
+
+        // Show/create cancel button
+        let cancelBtn = document.getElementById('fbPageFormCancelBtn');
+        if (!cancelBtn) {
+          cancelBtn = document.createElement('button');
+          cancelBtn.id = 'fbPageFormCancelBtn';
+          cancelBtn.type = 'button';
+          cancelBtn.textContent = 'Hủy';
+          cancelBtn.onclick = cancelEditFacebookPage;
+          cancelBtn.style.cssText = `
+            background: #e2e8f0;
+            color: #475569;
+            border: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 13.5px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 4px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+            width: 100%;
+          `;
+          submitBtn.after(cancelBtn);
+        } else {
+          cancelBtn.style.display = 'block';
+        }
+      }
+
+      function cancelEditFacebookPage() {
+        editingFacebookPageId = null;
+        originalTokenValueForEdit = '';
+
+        document.getElementById('fb_page_name').value = '';
+        document.getElementById('fb_page_id').value = '';
+        document.getElementById('fb_access_token').value = '';
+
+        const formTitle = document.querySelector('#fbPageForm').previousElementSibling;
+        if (formTitle) {
+          formTitle.innerHTML = `➕ Thêm Fanpage Mới`;
+        }
+
+        const submitBtn = document.querySelector('#fbPageForm button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.textContent = 'Lưu Fanpage';
+        }
+
+        const cancelBtn = document.getElementById('fbPageFormCancelBtn');
+        if (cancelBtn) {
+          cancelBtn.style.display = 'none';
+        }
+      }
+
+      async function saveFacebookPage(event) {
+        if (event) event.preventDefault();
+
+        const nameInput = document.getElementById('fb_page_name');
+        const idInput = document.getElementById('fb_page_id');
+        const tokenInput = document.getElementById('fb_access_token');
+
+        if (!nameInput || !idInput || !tokenInput) return;
+
+        const page_name = nameInput.value.trim();
+        const page_id = idInput.value.trim();
+        const access_token = tokenInput.value.trim();
+
+        if (!page_name || !page_id || !access_token) {
+          showToast("Vui lòng điền đầy đủ tất cả các trường dữ liệu!", false);
+          return;
+        }
+
+        const isEdit = !!editingFacebookPageId;
+
+        try {
+          const btn = event?.submitter;
+          const origText = btn ? btn.textContent : (isEdit ? 'Lưu thay đổi' : 'Lưu Fanpage');
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⌛ Đang xử lý...';
+            btn.style.opacity = '0.6';
+          }
+
+          const url = '/api/facebook-pages';
+          const method = isEdit ? 'PUT' : 'POST';
+          const payload = isEdit 
+            ? { id: editingFacebookPageId, page_name, page_id, access_token } 
+            : { page_name, page_id, access_token };
+
+          // [DEBUG] Console log payload to verify the correct page ID is being sent as requested
+          console.log("Saving Facebook Page Payload:", payload);
+
+          const response = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = origText;
+            btn.style.opacity = '1';
+          }
+
+          if (response.status === 200 || response.status === 201 || result.success) {
+            showToast(isEdit ? "Cập nhật cấu hình Fanpage thành công!" : "Lưu cấu hình Fanpage thành công!", true);
+            nameInput.value = '';
+            idInput.value = '';
+            tokenInput.value = '';
+            
+            logSystemActivity(isEdit ? 'UPDATE' : 'INSERT', isEdit ? `Đã cập nhật cấu hình fanpage: ${page_name}` : `Đã thêm cấu hình fanpage: ${page_name}`);
+            cancelEditFacebookPage();
+            loadFacebookPages();
+          } else {
+            console.error("Lưu Fanpage thất bại:", result);
+            alert("Lỗi khi lưu: " + (result.error || result.message || 'Lỗi không xác định từ máy chủ hoặc cơ sở dữ liệu. Vui lòng đảm bảo bạn đã tạo chính sách UPDATE SQL cho bảng facebook_pages.'));
+          }
+        } catch (err) {
+          console.error("Lỗi khi kết nối API:", err);
+          alert("Lỗi khi lưu: Không thể kết nối với API máy chủ hoặc bảng chưa được tạo. Chi tiết: " + (err.message || err));
+        }
+      }
+
+      async function deleteFacebookPage(id) {
+        if (!id) return;
+        if (!confirm("Anh/Chị có chắc chắn muốn xóa cấu hình fanpage này khỏi hệ thống không? Dữ liệu về token sẽ bị xóa hoàn toàn khỏi bảng.")) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/facebook-pages?id=${id}`, {
+            method: 'DELETE'
+          });
+
+          const result = await response.json();
+
+          if (response.status === 200 || result.success) {
+            showToast("Đã xóa cấu hình Fanpage thành công!", true);
+            logSystemActivity('DELETE', "Đã xóa một cấu hình fanpage khỏi Supabase.");
+            
+            // If deleting the page currently being edited, cancel the edit mode
+            if (editingFacebookPageId === id) {
+              cancelEditFacebookPage();
+            }
+
+            loadFacebookPages();
+          } else {
+            alert("Xóa thất bại: " + (result.error || 'Lỗi không xác định'));
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Lỗi: Không thể kết nối dengan API máy chủ hoặc lỗi thực thi.");
+        }
+      }
+
+      /* ==========================================
+         FB PUBLISH MODAL & COMPOSITION LOGIC
+         ========================================== */
+      let activeFacebookPostProp = null;
+
+      function detectLoaiHinh(item) {
+        const title = (item.title || "").toLowerCase();
+        if (title.includes("đất") || title.includes("đất nền")) return "Đất nền";
+        if (title.includes("biệt thự")) return "Biệt thự";
+        if (title.includes("căn hộ") || title.includes("chung cư")) return "Căn hộ";
+        return "Nhà phố";
+      }
+
+      async function openFacebookPostModal(id) {
+        const item = propertyData.find(p => p.id == id);
+        if (!item) {
+          showToast("Không tìm thấy thông tin sản phẩm!", false);
+          return;
+        }
+
+        activeFacebookPostProp = item;
+
+        // Reset elements
+        const statusPanel = document.getElementById('fbModalStatusPanel');
+        if (statusPanel) {
+          statusPanel.style.display = 'none';
+          statusPanel.innerHTML = '';
+        }
+
+        const modal = document.getElementById('facebookPublishModal');
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.offsetHeight; // trigger reflow
+          modal.style.opacity = '1';
+          modal.style.pointerEvents = 'auto';
+        }
+
+        // Fill visual header of modal
+        const imgEl = document.getElementById('fbModalProdImg');
+        if (imgEl) {
+          imgEl.src = item.img ? getOptimizedCloudinaryUrl(item.img, 100, 75) : 'https://placehold.co/100x75?text=BDS';
+        }
+
+        const titleEl = document.getElementById('fbModalProdTitle');
+        if (titleEl) {
+          titleEl.textContent = item.title || 'Sản phẩm không tên';
+        }
+
+        const subEl = document.getElementById('fbModalProdSub');
+        if (subEl) {
+          subEl.textContent = `Giá: ${item.priceText || item.price || 'Thỏa thuận'} • Diện tích: ${item.area || 'N/A'} m² • Phường: ${item.ward || 'N/A'}`;
+        }
+
+        // Initialize / generate random caption
+        regenerateFacebookCaption();
+
+        // Initialize / load checkboxed images (max 4 images)
+        setupFacebookModalImages(item);
+
+        // Initialize / load saved Facebook Page configurations (checkboxes)
+        await loadFacebookModalFanpages();
+      }
+
+      function closeFacebookPublishModal() {
+        const modal = document.getElementById('facebookPublishModal');
+        if (modal) {
+          modal.style.opacity = '0';
+          modal.style.pointerEvents = 'none';
+          setTimeout(() => {
+            modal.style.display = 'none';
+          }, 250);
+        }
+        activeFacebookPostProp = null;
+      }
+
+      function regenerateFacebookCaption() {
+        if (!activeFacebookPostProp) return;
+        const p = activeFacebookPostProp;
+
+        const tenTin = p.title || '';
+        const gia = p.priceText || p.price || 'Thỏa thuận';
+        const dienTich = p.area ? p.area + 'm²' : 'Chưa rõ diện tích';
+        const phongNgu = (p.bedrooms !== undefined && p.bedrooms !== null && p.bedrooms !== '') ? p.bedrooms : '3';
+        const phongWC = (p.bathrooms !== undefined && p.bathrooms !== null && p.bathrooms !== '') ? p.bathrooms : '3';
+        const diaChi = getPublicDisplayAddress(p);
+        const phapLy = p.legal || 'Sổ hồng riêng';
+        const hotline = '0854.100.036';
+        const moTa = p.desc || '';
+        const loaiHinh = detectLoaiHinh(p);
+
+        const templates = [
+          `Đang tìm ${loaiHinh} tại ${diaChi}? '${tenTin}' đang có giá ${gia}, diện tích ${dienTich}. ${moTa}`,
+          `${dienTich} - ${gia} - ${phongNgu} phòng ngủ, ${phongWC} WC. ${tenTin} tại ${diaChi}.`,
+          `Pháp lý ${phapLy}, sẵn sàng giao dịch ngay. ${tenTin} - liên hệ ${hotline} để xem nhà.`,
+          `Vị trí đắc địa tại ${diaChi}, ${tenTin}. Diện tích ${dienTich}, giá ${gia}.`
+        ];
+
+        // Randomly pick one template (0 to 3)
+        const randIndex = Math.floor(Math.random() * templates.length);
+        let selectedTemplate = templates[randIndex];
+
+        // Ensure hashtag names have no spaces if we use loaiHinh as badge
+        const hashtagCategory = loaiHinh.replace(/\s+/g, '');
+
+        selectedTemplate += `\n\n📞 Liên hệ: ${hotline}\n#BDS #${hashtagCategory} #ThuDuc`;
+
+        const txtArea = document.getElementById('fbModalCaption');
+        if (txtArea) {
+          txtArea.value = selectedTemplate;
+        }
+      }
+
+      function setupFacebookModalImages(item) {
+        const wrapper = document.getElementById('fbModalImagesWrapper');
+        if (!wrapper) return;
+        wrapper.innerHTML = '';
+
+        let images = [];
+        if (Array.isArray(item.imgList)) {
+          images = [...item.imgList];
+        } else if (typeof item.imgList === 'string' && item.imgList.trim() !== '') {
+          try {
+            const parsed = JSON.parse(item.imgList);
+            if (Array.isArray(parsed)) {
+              images = parsed;
+            } else {
+              images = [parsed];
+            }
+          } catch (e) {
+            images = [item.imgList];
+          }
+        } else if (item.img) {
+          images = [item.img];
+        }
+
+        // Limit to max 4 images
+        const targetImages = images.filter(Boolean).slice(0, 4);
+
+        if (targetImages.length === 0) {
+          wrapper.innerHTML = '<div style="grid-column: span 4; text-align: center; font-size: 13px; color: var(--text-muted); padding: 12px 0;">Sản phẩm này không có hình ảnh nào.</div>';
+          return;
+        }
+
+        targetImages.forEach((imgUrl) => {
+          const div = document.createElement('div');
+          div.style.position = 'relative';
+          div.style.borderRadius = '6px';
+          div.style.overflow = 'hidden';
+          div.style.border = '1px solid var(--border)';
+          div.style.aspectRatio = '4/3';
+
+          div.innerHTML = `
+            <img src="${getOptimizedCloudinaryUrl(imgUrl, 150, 110)}" style="width: 100%; height: 100%; object-fit: cover;">
+            <div style="position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.6); padding: 2px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+              <input type="checkbox" class="fb-modal-img-cb" value="${escapeHtml(imgUrl)}" checked style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent);">
+            </div>
+          `;
+          wrapper.appendChild(div);
+        });
+      }
+
+      async function loadFacebookModalFanpages() {
+        const container = document.getElementById('fbModalCheckboxPagesList');
+        if (!container) return;
+        container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; padding: 10px 0; text-align: center;">⌛ Đang tải các trang Fanpage...</div>';
+
+        try {
+          const response = await fetch('/api/facebook-pages');
+          const pages = await response.json();
+
+          if (response.status !== 200 || pages.error) {
+            container.innerHTML = `<div style="color: #ef4444; font-size: 13px; text-align: center;">❌ Không thể kết nối: ${pages.error}</div>`;
+            return;
+          }
+
+          if (!Array.isArray(pages) || pages.length === 0) {
+            container.innerHTML = `
+              <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 10px 0;">
+                Chưa có Trang Fanpage nào được cấu hình.
+                <br>
+                <a href="javascript:void(0)" onclick="closeFacebookPublishModal(); switchAdminTab('facebook');" style="color: var(--accent); font-weight: 700; text-decoration: underline; margin-top: 6px; display: inline-block;">Đi tới Cấu hình Fanpage ngay</a>
+              </div>
+            `;
+            return;
+          }
+
+          let html = '';
+          pages.forEach(p => {
+            html += `
+              <label class="fb-cb-label" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; user-select: none;">
+                <input type="checkbox" class="fb-modal-page-cb" data-name="${escapeHtml(p.page_name)}" data-id="${escapeHtml(p.page_id)}" data-token="${escapeHtml(p.access_token)}" onchange="updateFacebookModalDelayVisibility()" style="width: 17px; height: 17px; cursor: pointer;">
+                <span style="font-weight: 700; font-size: 13.5px; color: var(--text-dark); flex: 1;">🔷 ${escapeHtml(p.page_name)} <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">(ID: ${escapeHtml(p.page_id)})</span></span>
+              </label>
+            `;
+          });
+          container.innerHTML = html;
+        } catch (err) {
+          console.error(err);
+          container.innerHTML = '<div style="color: #ef4444; font-size: 13px; text-align: center;">❌ Lỗi kết nối API máy chủ.</div>';
+        }
+      }
+
+      function updateFacebookModalDelayVisibility() {
+        const checkboxes = document.querySelectorAll('.fb-modal-page-cb');
+        let checkedCount = 0;
+        checkboxes.forEach(cb => {
+          if (cb.checked) checkedCount++;
+        });
+
+        const delayContainer = document.getElementById('fbModalDelayContainer');
+        if (delayContainer) {
+          if (checkedCount >= 2) {
+            delayContainer.style.display = 'flex';
+          } else {
+            delayContainer.style.display = 'none';
+          }
+        }
+      }
+
+      async function submitFacebookPosts() {
+        if (!activeFacebookPostProp) return;
+        const caption = document.getElementById('fbModalCaption').value.trim();
+        if (!caption) {
+          alert("Vui lòng nhập nội dung caption!");
+          return;
+        }
+
+        // Get selected pages
+        const pageCbs = document.querySelectorAll('.fb-modal-page-cb:checked');
+        if (pageCbs.length === 0) {
+          alert("Vui lòng chọn ít nhất 1 Fanpage Facebook để đăng bài!");
+          return;
+        }
+
+        const selectedPages = [];
+        pageCbs.forEach(cb => {
+          selectedPages.push({
+            id: cb.dataset.id,
+            name: cb.dataset.name,
+            token: cb.dataset.token
+          });
+        });
+
+        // Get selected images
+        const imgCbs = document.querySelectorAll('.fb-modal-img-cb:checked');
+        const selectedImages = [];
+        imgCbs.forEach(cb => {
+          selectedImages.push(cb.value);
+        });
+
+        // -------------------------------------------------------------
+        // GIỚI HẠN AN TOÀN - CHECK DATABASE BEFORE POSTING
+        // -------------------------------------------------------------
+        try {
+          const pageIdsParam = selectedPages.map(p => p.id).join(',');
+          const checkUrl = `/api/facebook-post-check?product_id=${activeFacebookPostProp.id}&page_ids=${pageIdsParam}`;
+          const checkResp = await fetch(checkUrl);
+          const checkResult = await checkResp.json();
+          
+          if (checkResult && checkResult.results) {
+            let warnMessages = [];
+            selectedPages.forEach(page => {
+              const checkInfo = checkResult.results[page.id];
+              if (checkInfo) {
+                if (checkInfo.duplicatePostedAt) {
+                  const dayText = new Date(checkInfo.duplicatePostedAt).toLocaleString('vi-VN');
+                  warnMessages.push(`⚠️ Sản phẩm này đã đăng lên "${page.name}" vào ${dayText} (trong vòng 7 ngày qua).`);
+                }
+                if (checkInfo.dailyCount > 0) {
+                  warnMessages.push(`ℹ️ Trang "${page.name}" đã đăng thành công ${checkInfo.dailyCount} bài trong 24h qua.`);
+                }
+              }
+            });
+
+            if (warnMessages.length > 0) {
+              const confirmOk = confirm(`${warnMessages.join('\n')}\n\nBạn có chắc chắn muốn tiếp tục đăng tin không? (Bấm OK để "Đăng lại" / Bấm Cancel để "Hủy")`);
+              if (!confirmOk) {
+                return; // Cancel posting process
+              }
+            }
+          }
+        } catch (checkErr) {
+          console.warn("Lỗi kiểm tra giới hạn an toàn:", checkErr);
+        }
+
+        // Delay handling
+        let delayHours = 4;
+        const delayInput = document.getElementById('fbModalDelayHours');
+        if (delayInput) {
+          delayHours = parseFloat(delayInput.value) || 0;
+          if (delayHours < 0) delayHours = 0;
+        }
+        const delayMs = delayHours * 3600 * 1000;
+
+        const statusPanel = document.getElementById('fbModalStatusPanel');
+        statusPanel.style.display = 'block';
+        statusPanel.style.background = '#f0fdf4';
+        statusPanel.style.border = '1px solid #bbf7d0';
+        statusPanel.style.color = '#166534';
+        statusPanel.innerHTML = '<div style="font-weight:700; margin-bottom: 8px;">⚙️ Tiến trình đăng bài:</div>';
+
+        const submitBtn = document.getElementById('btnFacebookPublishSubmit');
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.textContent = '⌛ Đang xử lý đăng bài...';
+
+        try {
+          for (let i = 0; i < selectedPages.length; i++) {
+            const page = selectedPages[i];
+
+            if (i > 0 && delayMs > 0) {
+              const waitLog = document.createElement('div');
+              waitLog.style.color = '#b45309';
+              waitLog.style.margin = '4px 0';
+              statusPanel.appendChild(waitLog);
+
+              let secondsLeft = Math.round(delayMs / 1000);
+              // If delay is small (like testing), show countdown, otherwise show standard status
+              if (secondsLeft <= 30) {
+                for (let s = secondsLeft; s > 0; s--) {
+                  waitLog.innerHTML = `⏳ Sẽ đăng lên <strong>${escapeHtml(page.name)}</strong> sau ${s} giây tiếp theo...`;
+                  await new Promise(r => setTimeout(r, 1000));
+                }
+              } else {
+                waitLog.innerHTML = `⏳ Sẽ đăng lên <strong>${escapeHtml(page.name)}</strong> sau ${delayHours} giờ (Ước tính ${secondsLeft} giây)... Đang hoãn...`;
+                await new Promise(r => setTimeout(r, delayMs));
+              }
+            }
+
+            const stepLog = document.createElement('div');
+            stepLog.style.margin = '4px 0';
+            stepLog.innerHTML = `🔷 Đang tải ảnh và gửi bài viết lên <strong>${escapeHtml(page.name)}</strong>...`;
+            statusPanel.appendChild(stepLog);
+
+            const response = await fetch('/api/post-to-facebook', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                page_id: page.id,
+                page_name: page.name,
+                access_token: page.token,
+                caption: caption,
+                image_urls: selectedImages,
+                product_id: String(activeFacebookPostProp.id),
+                product_name: activeFacebookPostProp.title || 'Sản phẩm không tên'
+              })
+            });
+
+            const result = await response.json();
+
+            if (response.status === 200 && result.success) {
+              stepLog.innerHTML = `✅ Đăng tin thành công lên <strong>${escapeHtml(page.name)}</strong>! <span style="font-size:11px; color:#15803d;">(Post ID: ${result.post_id})</span>`;
+              logSystemActivity('POST_FB', `Đăng thành công sản phẩm #${activeFacebookPostProp.id} lên Page: ${page.name}`);
+            } else {
+              stepLog.style.color = '#b91c1c';
+              stepLog.innerHTML = `❌ Thất bại tại <strong>${escapeHtml(page.name)}</strong>: ${result.error || 'Lỗi không xác định'}`;
+              logSystemActivity('POST_FB_ERR', `Lỗi đăng sản phẩm #${activeFacebookPostProp.id} lên Page ${page.name}: ${result.error}`);
+            }
+          }
+
+          // Complete
+          const finishLog = document.createElement('div');
+          finishLog.style.fontWeight = '700';
+          finishLog.style.marginTop = '12px';
+          finishLog.style.color = '#15803d';
+          finishLog.textContent = '🎉 Hoàn tất toàn bộ hàng chờ đăng bài!';
+          statusPanel.appendChild(finishLog);
+
+        } catch (err) {
+          console.error(err);
+          const errDiv = document.createElement('div');
+          errDiv.style.color = '#b91c1c';
+          errDiv.style.fontWeight = '700';
+          errDiv.style.marginTop = '10px';
+          errDiv.textContent = `🚨 Lỗi ngoại lệ trong quá trình thực thi: ${err.message || err}`;
+          statusPanel.appendChild(errDiv);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+          submitBtn.textContent = '🚀 Đăng ngay lên Facebook';
+        }
+      }
+
       // Expose to window for inline onclick execution
       window.switchAdminTab = switchAdminTab;
+      window.copyFacebookSql = copyFacebookSql;
+      window.loadFacebookPages = loadFacebookPages;
+      window.saveFacebookPage = saveFacebookPage;
+      window.deleteFacebookPage = deleteFacebookPage;
+      window.editFacebookPage = editFacebookPage;
+      window.cancelEditFacebookPage = cancelEditFacebookPage;
       window.clearSystemLogs = clearSystemLogs;
       window.filterInbox = filterInbox;
       window.markLeadContacted = markLeadContacted;
       window.restoreLeadNew = restoreLeadNew;
       window.deleteLead = deleteLead;
       window.logSystemActivity = logSystemActivity;
+
+      window.openFacebookPostModal = openFacebookPostModal;
+      window.closeFacebookPublishModal = closeFacebookPublishModal;
+      window.regenerateFacebookCaption = regenerateFacebookCaption;
+      window.submitFacebookPosts = submitFacebookPosts;
+      window.updateFacebookModalDelayVisibility = updateFacebookModalDelayVisibility;
 
       function checkAdminSession() {
         // Tải khởi dựng số liệu thống kê & Hộp thư mẫu cục bộ
@@ -6943,6 +7952,9 @@ Nguyên tắc trả lời:
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-8.5a2.625 2.625 0 113.75 3.75L12 18.5H8.5V15L19.5 4z" />
                   </svg>
                   Sửa
+                </button>
+                <button class="btn-action-facebook" onclick="openFacebookPostModal('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(24,119,242,0.06); border: 1px solid rgba(24,119,242,0.1); color: #1877f2; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+                  🔷 Đăng FB
                 </button>
                 <button class="btn-action-delete" onclick="deleteAdminProperty('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.1); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">

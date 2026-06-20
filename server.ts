@@ -239,6 +239,399 @@ async function startServer() {
     }
   });
 
+  // API router to manage connected Facebook Page configurations
+  app.get("/api/facebook-pages", async (req, res) => {
+    try {
+      const { data: pages, error } = await supabase
+        .from('facebook_pages')
+        .select('id, page_name, page_id, access_token, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === '42703' || error.message?.includes('does not exist')) {
+          return res.json([]);
+        }
+        throw error;
+      }
+
+      const maskedPages = (pages || []).map(p => {
+        const token = (p.access_token || '').trim();
+        const masked = token.length > 4 ? '••••••••' + token.slice(-4) : '••••';
+        return {
+          id: p.id,
+          page_name: p.page_name,
+          page_id: p.page_id,
+          access_token: masked,
+          created_at: p.created_at
+        };
+      });
+
+      res.json(maskedPages);
+    } catch (err: any) {
+      console.error('[facebook-pages] Local GET error:', err);
+      res.status(500).json({ error: err?.message || 'Lỗi lấy danh sách fanpage' });
+    }
+  });
+
+  app.post("/api/facebook-pages", async (req, res) => {
+    try {
+      const { page_name, page_id, access_token } = req.body;
+
+      if (!page_name || !page_id || !access_token) {
+        return res.status(400).json({ error: 'Cung cấp đầy đủ Tên hiển thị, Page ID và Access Token!' });
+      }
+
+      const { data, error } = await supabase
+        .from('facebook_pages')
+        .insert([
+          {
+            page_name: page_name.trim(),
+            page_id: page_id.trim(),
+            access_token: access_token.trim()
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      res.status(201).json({
+        success: true,
+        message: 'Lưu Fanpage thành công!',
+        data: data ? data[0] : null
+      });
+    } catch (err: any) {
+      console.error('[facebook-pages] Local POST error:', err);
+      res.status(500).json({ error: err?.message || 'Lỗi thêm mới fanpage' });
+    }
+  });
+
+  app.delete("/api/facebook-pages", async (req, res) => {
+    try {
+      const id = req.query.id || req.body.id;
+
+      if (!id) {
+        return res.status(400).json({ error: 'Thiếu id fanpage để xóa!' });
+      }
+
+      const { error } = await supabase
+        .from('facebook_pages')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        message: 'Xóa cấu hình Fanpage thành công!'
+      });
+    } catch (err: any) {
+      console.error('[facebook-pages] Local DELETE error:', err);
+      res.status(500).json({ error: err?.message || 'Lỗi khi xóa fanpage' });
+    }
+  });
+
+  app.put("/api/facebook-pages", async (req, res) => {
+    try {
+      const { id, page_name, page_id, access_token } = req.body;
+
+      if (!id) {
+        return res.status(400).json({ error: 'Thiếu id fanpage để cập nhật!' });
+      }
+
+      const updateData: any = {};
+      if (page_name !== undefined) updateData.page_name = page_name.trim();
+      if (page_id !== undefined) updateData.page_id = page_id.trim();
+      if (access_token && !access_token.includes('•') && access_token.trim() !== '') {
+        updateData.access_token = access_token.trim();
+      }
+
+      const { data, error } = await supabase
+        .from('facebook_pages')
+        .update(updateData)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        message: 'Cập nhật cấu hình Fanpage thành công!',
+        data: data ? data[0] : null
+      });
+    } catch (err: any) {
+      console.error('[facebook-pages] Local PUT error:', err);
+      res.status(500).json({ error: err?.message || 'Lỗi khi cập nhật fanpage' });
+    }
+  });
+
+  app.patch("/api/facebook-pages", async (req, res) => {
+    try {
+      const { id, page_name, page_id, access_token } = req.body;
+
+      if (!id) {
+        return res.status(400).json({ error: 'Thiếu id fanpage để cập nhật!' });
+      }
+
+      const updateData: any = {};
+      if (page_name !== undefined) updateData.page_name = page_name.trim();
+      if (page_id !== undefined) updateData.page_id = page_id.trim();
+      if (access_token && !access_token.includes('•') && access_token.trim() !== '') {
+        updateData.access_token = access_token.trim();
+      }
+
+      const { data, error } = await supabase
+        .from('facebook_pages')
+        .update(updateData)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        message: 'Cập nhật cấu hình Fanpage thành công!',
+        data: data ? data[0] : null
+      });
+    } catch (err: any) {
+      console.error('[facebook-pages] Local PATCH error:', err);
+      res.status(500).json({ error: err?.message || 'Lỗi khi cập nhật fanpage' });
+    }
+  });
+
+  // Helper to sanitize error messages from potentially containing the raw access token
+  function sanitizeError(msg: string): string {
+    if (!msg) return msg;
+    // Facebook user or page tokens start with EAA and are alphanumeric
+    return msg.replace(/\b(EAA[a-zA-Z0-9]{15,})\b/ig, '[MASKED_FB_TOKEN]');
+  }
+
+  // API router to post to Facebook pages
+  app.post("/api/post-to-facebook", async (req, res) => {
+    const { page_id, page_name, access_token, caption, image_urls, product_id, product_name } = req.body;
+
+    if (!page_id) {
+      return res.status(400).json({ error: 'Thiếu Facebook Page ID' });
+    }
+
+    if (!caption) {
+      return res.status(400).json({ error: 'Nội dung caption không được để trống' });
+    }
+
+    try {
+      const pageIdClean = String(page_id).trim();
+      let tokenClean = String(access_token || '').trim();
+
+      // Secure token recovery from database if token is masked or omitted
+      if (!tokenClean || tokenClean.includes('•') || tokenClean.length < 10) {
+        const { data, error } = await supabase
+          .from('facebook_pages')
+          .select('access_token')
+          .eq('page_id', pageIdClean)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          throw new Error(`Lỗi tìm token từ database: ${error.message}`);
+        }
+        if (!data || data.length === 0) {
+          throw new Error(`Không tìm thấy Fanpage ID ${pageIdClean} đã kết nối trong cơ sở dữ liệu.`);
+        }
+        tokenClean = data[0].access_token.trim();
+      }
+
+      const mediaFbids: string[] = [];
+
+      if (Array.isArray(image_urls) && image_urls.length > 0) {
+        for (const imgUrl of image_urls) {
+          if (!imgUrl || typeof imgUrl !== 'string') continue;
+
+          const photoResponse = await fetch(`https://graph.facebook.com/v19.0/${pageIdClean}/photos`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              url: imgUrl.trim(),
+              published: false,
+              access_token: tokenClean
+            })
+          });
+
+          const photoResult: any = await photoResponse.json();
+
+          if (!photoResponse.ok || !photoResult.id) {
+            console.error('[post-to-facebook] Local Photo upload failure details:', photoResult);
+            const errorMsg = photoResult.error?.message || 'Không thể tải ảnh lên Facebook';
+            throw new Error(`Lỗi tải ảnh (${imgUrl.substring(0, 30)}...): ${errorMsg}`);
+          }
+
+          mediaFbids.push(photoResult.id);
+        }
+      }
+
+      const feedBody: any = {
+        message: caption,
+        access_token: tokenClean
+      };
+
+      if (mediaFbids.length > 0) {
+        feedBody.attached_media = JSON.stringify(
+          mediaFbids.map(id => ({ media_fbid: id }))
+        );
+      }
+
+      const feedResponse = await fetch(`https://graph.facebook.com/v19.0/${pageIdClean}/feed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(feedBody)
+      });
+
+      const feedResult: any = await feedResponse.json();
+
+      if (!feedResponse.ok) {
+        console.error('[post-to-facebook] Local Publish feed details:', feedResult);
+        const errorMsg = feedResult.error?.message || 'Không thể đăng bài lên dòng thời gian';
+        throw new Error(`Lỗi đăng bài lên feed: ${errorMsg}`);
+      }
+
+      // Record success to history
+      try {
+        await supabase.from('facebook_post_history').insert({
+          product_id: String(product_id || ''),
+          product_name: String(product_name || 'Sản phẩm không tên'),
+          page_id: String(page_id || ''),
+          page_name: String(page_name || 'Fanpage'),
+          posted_at: new Date().toISOString(),
+          status: 'success',
+          error_message: null
+        });
+      } catch (dbErr) {
+        console.warn('[post-to-facebook] Local database logging failed (success):', dbErr);
+      }
+
+      res.json({
+        success: true,
+        post_id: feedResult.id || feedResult.post_id || 'ok',
+        message: 'Đăng bài lên Facebook thành công!'
+      });
+
+    } catch (err: any) {
+      const errorMsgRaw = err.message || 'Đã xảy ra lỗi không xác định tại máy chủ khi đăng bài';
+      const errorMsg = sanitizeError(errorMsgRaw);
+
+      console.error('[post-to-facebook] Local error:', errorMsg);
+
+      // Record failure in history
+      try {
+        await supabase.from('facebook_post_history').insert({
+          product_id: String(product_id || ''),
+          product_name: String(product_name || 'Sản phẩm không tên'),
+          page_id: String(page_id || ''),
+          page_name: String(page_name || 'Fanpage'),
+          posted_at: new Date().toISOString(),
+          status: 'failed',
+          error_message: errorMsg
+        });
+      } catch (dbErr) {
+        console.warn('[post-to-facebook] Local database logging failed (failure):', dbErr);
+      }
+
+      res.status(500).json({
+        error: errorMsg
+      });
+    }
+  });
+
+  // API router to fetch Facebook post history
+  app.get("/api/facebook-post-history", async (req, res) => {
+    try {
+      const page = parseInt(String(req.query.page || '1'), 10);
+      const limit = parseInt(String(req.query.limit || '20'), 10);
+      const offset = (page - 1) * limit;
+
+      const { data, count, error } = await supabase
+        .from('facebook_post_history')
+        .select('*', { count: 'exact' })
+        .order('posted_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist')) {
+          return res.json({ data: [], count: 0, warning: 'Bảng facebook_post_history chưa được tạo trong database.' });
+        }
+        throw error;
+      }
+
+      res.json({
+        data: data || [],
+        count: count || 0,
+        page,
+        limit
+      });
+    } catch (err: any) {
+      console.error('[facebook-post-history] Local GET error:', err);
+      res.status(500).json({ error: err?.message || 'Lỗi khi lấy lịch sử đăng bài' });
+    }
+  });
+
+  // API router to check safety before posting
+  app.get("/api/facebook-post-check", async (req, res) => {
+    const productId = String(req.query.product_id || '').trim();
+    const pageIdsStr = String(req.query.page_ids || '').trim();
+
+    if (!pageIdsStr) {
+      return res.json({ results: {} });
+    }
+
+    const pageIds = pageIdsStr.split(',').map(id => id.trim()).filter(Boolean);
+
+    try {
+      const results: Record<string, { dailyCount: number; duplicatePostedAt: string | null }> = {};
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      for (const pageId of pageIds) {
+        // 1. Count success posts of this page in last 24h
+        const { count: dailyCount, error: dailyError } = await supabase
+          .from('facebook_post_history')
+          .select('*', { count: 'exact', head: true })
+          .eq('page_id', pageId)
+          .eq('status', 'success')
+          .gte('posted_at', oneDayAgo);
+
+        // 2. Check if product already posted on this page in last 7 days
+        const { data: dupData, error: dupError } = await supabase
+          .from('facebook_post_history')
+          .select('posted_at')
+          .eq('page_id', pageId)
+          .eq('product_id', productId)
+          .eq('status', 'success')
+          .gte('posted_at', sevenDaysAgo)
+          .order('posted_at', { ascending: false })
+          .limit(1);
+
+        const dCount = (dailyError) ? 0 : (dailyCount || 0);
+        const dupPostedAt = (dupError || !dupData || dupData.length === 0) ? null : dupData[0].posted_at;
+
+        results[pageId] = {
+          dailyCount: dCount,
+          duplicatePostedAt: dupPostedAt
+        };
+      }
+
+      res.json({ results });
+    } catch (err: any) {
+      console.error('[facebook-post-check] Error:', err);
+      const results: Record<string, { dailyCount: number; duplicatePostedAt: string | null }> = {};
+      for (const pageId of pageIds) {
+        results[pageId] = { dailyCount: 0, duplicatePostedAt: null };
+      }
+      res.json({ results, warning: 'Bảng facebook_post_history không tồn tại.' });
+    }
+  });
+
   // API router to proxy Gemini Chat calls
   app.post("/api/chat", async (req, res) => {
     try {

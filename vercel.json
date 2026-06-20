@@ -18,7 +18,7 @@
       ]
     },
     {
-      "source": "/((?!sitemap.xml|robots.txt).*)",
+      "source": "/((?!api/|assets/|sitemap.xml|robots.txt).*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, proxy-revalidate" }
       ]
