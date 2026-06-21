@@ -3019,11 +3019,11 @@
             <span style="font-size: 18px;">⏳</span>
             <div style="flex: 1;">
               <div style="font-size: 13px; font-weight: 700; color: #92400e;">Độ trễ giãn cách giữa các Fanpage</div>
-              <p style="font-size: 12px; color: #b45309; margin: 2px 0 0 0;">Khi đăng lên nhiều trang, hệ thống sẽ đăng trang đầu tiên ngay và hoãn các trang sau theo giờ để tự nhiên hơn.</p>
+              <p style="font-size: 12px; color: #b45309; margin: 2px 0 0 0;">Khi đăng lên nhiều trang, hệ thống sẽ đăng trang đầu tiên ngay và hoãn các trang sau theo giây để tránh bị spam/block.</p>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <input type="number" id="fbModalDelayHours" min="0.01" step="0.01" value="4" style="width: 70px; padding: 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-weight: 700; color: #92400e; text-align: center;">
-              <span style="font-size: 12px; font-weight: 700; color: #92400e;">giờ</span>
+              <input type="number" id="fbModalDelayHours" min="0" step="1" value="2" style="width: 70px; padding: 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-weight: 700; color: #92400e; text-align: center;">
+              <span style="font-size: 12px; font-weight: 700; color: #92400e;">giây</span>
             </div>
           </div>
 
@@ -3537,23 +3537,23 @@
                 <h5 style="font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
                   ➕ Thêm Fanpage Mới
                 </h5>
-                <form id="fbPageForm" onsubmit="saveFacebookPage(event)" style="display: flex; flex-direction: column; gap: 12px;">
+                <div id="fbPageForm" style="display: flex; flex-direction: column; gap: 12px;">
                   <div>
                     <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Tên hiển thị *</label>
-                    <input type="text" id="fb_page_name" required placeholder="Ví dụ: Trà BĐS" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);">
+                    <input type="text" id="fb_page_name" required placeholder="Ví dụ: Trà BĐS" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);" autocomplete="off" data-lpignore="true">
                   </div>
                   <div>
                     <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Facebook Page ID *</label>
-                    <input type="text" id="fb_page_id" required placeholder="Nhập Page ID của bạn" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);">
+                    <input type="text" id="fb_page_id" required placeholder="Nhập Page ID của bạn" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);" autocomplete="off" data-lpignore="true">
                   </div>
                   <div>
                     <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Access Token *</label>
-                    <input type="password" id="fb_access_token" required placeholder="Nhập Access Token dài hạn của Page" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark);">
+                    <input type="text" id="fb_access_token" required placeholder="Nhập Access Token dài hạn của Page" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--text-dark); -webkit-text-security: disc; text-security: disc;" autocomplete="off" data-lpignore="true">
                   </div>
-                  <button type="submit" style="background: var(--primary); color: white; border: none; font-weight: 700; font-size: 13.5px; padding: 11px; border-radius: 8px; cursor: pointer; margin-top: 8px; text-transform: uppercase; transition: opacity 0.2s;">
+                  <button type="button" id="btnSaveFacebookPage" onclick="saveFacebookPage(event)" style="background: var(--primary); color: white; border: none; font-weight: 700; font-size: 13.5px; padding: 11px; border-radius: 8px; cursor: pointer; margin-top: 8px; text-transform: uppercase; transition: opacity 0.2s;">
                     Lưu Fanpage
                   </button>
-                </form>
+                </div>
               </div>
 
               <!-- CỘT 2: DANH SÁCH FANPAGE ĐÃ LƯU -->
@@ -7267,7 +7267,7 @@ Nguyên tắc trả lời:
           formTitle.innerHTML = `✏️ Sửa Cấu Hình Fanpage`;
         }
 
-        const submitBtn = document.querySelector('#fbPageForm button[type="submit"]');
+        const submitBtn = document.getElementById('btnSaveFacebookPage');
         if (submitBtn) {
           submitBtn.textContent = 'Lưu thay đổi';
         }
@@ -7313,7 +7313,7 @@ Nguyên tắc trả lời:
           formTitle.innerHTML = `➕ Thêm Fanpage Mới`;
         }
 
-        const submitBtn = document.querySelector('#fbPageForm button[type="submit"]');
+        const submitBtn = document.getElementById('btnSaveFacebookPage');
         if (submitBtn) {
           submitBtn.textContent = 'Lưu Fanpage';
         }
@@ -7345,7 +7345,7 @@ Nguyên tắc trả lời:
         const isEdit = !!editingFacebookPageId;
 
         try {
-          const btn = event?.submitter;
+          const btn = event?.submitter || event?.target || document.getElementById('btnSaveFacebookPage');
           const origText = btn ? btn.textContent : (isEdit ? 'Lưu thay đổi' : 'Lưu Fanpage');
           if (btn) {
             btn.disabled = true;
@@ -7389,17 +7389,21 @@ Nguyên tắc trả lời:
             loadFacebookPages();
           } else {
             console.error("Lưu Fanpage thất bại:", result);
-            alert("Lỗi khi lưu: " + (result.error || result.message || 'Lỗi không xác định từ máy chủ hoặc cơ sở dữ liệu. Vui lòng đảm bảo bạn đã tạo chính sách UPDATE SQL cho bảng facebook_pages.'));
+            showToast("Lỗi khi lưu: " + (result.error || result.message || 'Lỗi không xác định từ máy chủ hoặc SQL.'), false);
           }
         } catch (err) {
           console.error("Lỗi khi kết nối API:", err);
-          alert("Lỗi khi lưu: Không thể kết nối với API máy chủ hoặc bảng chưa được tạo. Chi tiết: " + (err.message || err));
+          showToast("Lỗi khi lưu: Không thể kết nối với API máy chủ. Chi tiết: " + (err.message || err), false);
         }
       }
 
       async function deleteFacebookPage(id) {
         if (!id) return;
-        if (!confirm("Anh/Chị có chắc chắn muốn xóa cấu hình fanpage này khỏi hệ thống không? Dữ liệu về token sẽ bị xóa hoàn toàn khỏi bảng.")) {
+        const confirmOk = await showCustomConfirm(
+          "⚠️ Xác nhận xóa cấu hình Fanpage", 
+          "Anh/Chị có chắc chắn muốn xóa cấu hình fanpage này khỏi hệ thống không? Dữ liệu về token sẽ bị xóa hoàn toàn khỏi bảng."
+        );
+        if (!confirmOk) {
           return;
         }
 
@@ -7458,6 +7462,13 @@ Nguyên tắc trả lời:
           statusPanel.innerHTML = '';
         }
 
+        const submitBtn = document.getElementById('btnFacebookPublishSubmit');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+          submitBtn.textContent = '🚀 Đăng ngay lên Facebook';
+        }
+
         const modal = document.getElementById('facebookPublishModal');
         if (modal) {
           modal.style.display = 'flex';
@@ -7504,40 +7515,203 @@ Nguyên tắc trả lời:
         activeFacebookPostProp = null;
       }
 
+      function cleanCaptionFromExaggerations(text) {
+        if (!text) return "";
+        let cleaned = text;
+        const replacements = [
+          { pattern: /tốt nhất/gi, rep: "tốt" },
+          { pattern: /đẹp nhất/gi, rep: "nhà đẹp" },
+          { pattern: /hiếm nhất/gi, rep: "tiềm năng" },
+          { pattern: /số 1/gi, rep: "chất lượng" },
+          { pattern: /đỉnh nhất/gi, rep: "nổi bật" },
+          { pattern: /duy nhất/gi, rep: "đặc biệt" },
+          { pattern: /hoàn hảo/gi, rep: "chỉn chu" },
+          { pattern: /đẳng cấp nhất/gi, rep: "cao cấp" },
+          { pattern: /siêu phẩm/gi, rep: "nhà đẹp" },
+          { pattern: /hoàn mỹ/gi, rep: "chỉn chu" },
+          { pattern: /độc nhất vô nhị/gi, rep: "đặc biệt" },
+          { pattern: /độc nhất/gi, rep: "tiềm năng" },
+          { pattern: /tuyệt vời nhất/gi, rep: "rất thuận tiện" },
+          { pattern: /đỉnh cao/gi, rep: "chất lượng" },
+          { pattern: /vô địch/gi, rep: "tiềm năng" },
+          { pattern: /hiếm có khó tìm/gi, rep: "tiềm năng" }
+        ];
+        replacements.forEach(({ pattern, rep }) => {
+          cleaned = cleaned.replace(pattern, rep);
+        });
+        return cleaned;
+      }
+
+      function formatPriceToVnText(val) {
+        if (!val) return "Thỏa thuận";
+        if (typeof val === 'string' && (val.includes('Tỷ') || val.includes('Triệu') || val.includes('tỷ') || val.includes('triệu'))) {
+          return val;
+        }
+        let numVal = parseFloat(val);
+        if (isNaN(numVal) || numVal <= 0) {
+          return val;
+        }
+        if (numVal < 50) {
+          if (numVal >= 1) {
+            const ty = Math.floor(numVal);
+            const le = Math.round((numVal - ty) * 1000);
+            if (le > 0) {
+              return `${ty} Tỷ ${le} Triệu`;
+            } else {
+              return `${ty} Tỷ`;
+            }
+          } else {
+            const trieu = Math.round(numVal * 1000);
+            return `${trieu} Triệu`;
+          }
+        } else {
+          const ty = Math.floor(numVal / 1000);
+          const le = Math.round(numVal % 1000);
+          if (ty > 0) {
+            if (le > 0) {
+              return `${ty} Tỷ ${le} Triệu`;
+            } else {
+              return `${ty} Tỷ`;
+            }
+          } else {
+            return `${le} Triệu`;
+          }
+        }
+      }
+
       function regenerateFacebookCaption() {
         if (!activeFacebookPostProp) return;
         const p = activeFacebookPostProp;
 
         const tenTin = p.title || '';
-        const gia = p.priceText || p.price || 'Thỏa thuận';
         const dienTich = p.area ? p.area + 'm²' : 'Chưa rõ diện tích';
         const phongNgu = (p.bedrooms !== undefined && p.bedrooms !== null && p.bedrooms !== '') ? p.bedrooms : '3';
-        const phongWC = (p.bathrooms !== undefined && p.bathrooms !== null && p.bathrooms !== '') ? p.bathrooms : '3';
-        const diaChi = getPublicDisplayAddress(p);
+        const phongWC = (p.bathrooms !== undefined && p.bathrooms !== null && p.bathrooms !== '') ? p.bathrooms : '1';
         const phapLy = p.legal || 'Sổ hồng riêng';
         const hotline = '0854.100.036';
         const moTa = p.desc || '';
         const loaiHinh = detectLoaiHinh(p);
 
+        // Extract clean ward
+        let wardTxt = '';
+        if (p.ward) {
+          let w = p.ward.trim();
+          if (w.toLowerCase().startsWith("phường")) {
+            w = "P. " + w.substring(6).trim();
+          } else if (w.toLowerCase().startsWith("p.")) {
+            w = "P. " + w.substring(2).trim();
+          } else if (w.toLowerCase().startsWith("p")) {
+            const nextChar = w.charAt(1);
+            if (nextChar === ' ' || !isNaN(parseInt(nextChar))) {
+              w = "P. " + w.substring(1).trim();
+            } else {
+              w = "P. " + w;
+            }
+          } else {
+            w = "P. " + w;
+          }
+          wardTxt = w;
+        } else {
+          wardTxt = 'P. Long Trường';
+        }
+
+        let districtTxt = 'TP. Thủ Đức';
+        if (p.district && !p.district.toLowerCase().includes('thủ đức')) {
+          districtTxt = p.district.trim();
+        }
+
+        const isLand = loaiHinh.toLowerCase().includes('đất') || loaiHinh.toLowerCase().includes('nền');
+        const floorsVal = (p.floors !== undefined && p.floors !== null && p.floors !== '') ? parseInt(p.floors) : 2;
+        const katCauTxt = isLand ? 'Đất trống' : `${floorsVal} tầng, ${phongNgu}PN, ${phongWC}WC`;
+
+        const moTaLower = moTa.toLowerCase();
+        let specWidthTxt = '';
+        if (p.width && parseFloat(p.width) > 0) {
+          specWidthTxt = `(Ngang ${p.width}m`;
+          if (moTaLower.includes('nở hậu')) {
+            specWidthTxt += ', nở hậu';
+          }
+          specWidthTxt += ')';
+        } else if (moTaLower.includes('nở hậu')) {
+          specWidthTxt = '(Nở hậu)';
+        }
+
+        let hgTxt = '';
+        if (p.direction && p.direction !== 'Chưa xác định' && p.direction !== 'Không xác định') {
+          hgTxt = ` Hướng ${p.direction}.`;
+        }
+
+        const giaTxt = formatPriceToVnText(p.price || p.priceText);
+
+        // Formulate dynamic 'HIỆN TRẠNG' content from description highlights
+        let details = [];
+
+        const rentMatch = moTa.match(/(cho thuê|dòng tiền|thu nhập)[^\d]*(\d+)\s*(triệu|tr)/i);
+        if (rentMatch) {
+          details.push(`đang cho thuê ${rentMatch[2]} triệu/tháng`);
+        } else if (moTaLower.includes('cho thuê')) {
+          details.push('đang cho thuê/kinh doanh ổn định');
+        }
+
+        const roadReg = /(đường|hẻm|rộng)[^\d]*(\d+)\s*(m|mét)/i;
+        const roadMatch = moTa.match(roadReg);
+        let roadInfo = '';
+        if (roadMatch) {
+          roadInfo = `Đường ${roadMatch[2]}m`;
+          if (moTaLower.includes('vỉa hè')) {
+            roadInfo += ' có vỉa hè';
+          }
+        }
+        if (moTaLower.includes('ô tô') || moTaLower.includes('xe hơi') || moTaLower.includes('đỗ cửa')) {
+          if (roadInfo) {
+            roadInfo += ', ô tô đỗ cửa';
+          } else {
+            roadInfo = 'Đường rộng, ô tô đỗ cửa';
+          }
+        }
+        if (roadInfo) {
+          details.push(roadInfo);
+        }
+
+        if (moTaLower.includes('an ninh') || moTaLower.includes('yên tĩnh')) {
+          details.push('an ninh, yên tĩnh');
+        } else if (moTaLower.includes('dân trí')) {
+          details.push('an ninh, dân trí cao');
+        }
+
+        if (phapLy) {
+          details.push(phapLy);
+        } else {
+          details.push('Sổ hồng riêng, sẵn sàng giao dịch');
+        }
+
+        let hienTrangText = '';
+        if (details.length > 0) {
+          let baseHienTrang = details.join(', ');
+          baseHienTrang = baseHienTrang.charAt(0).toUpperCase() + baseHienTrang.slice(1);
+          hienTrangText = `${isLand ? 'Đất trống' : 'Nhà kiên cố, đang hoạt động'}, ${baseHienTrang.replace(/, Sổ hồng/i, '. Sổ hồng')}.`;
+        } else {
+          hienTrangText = `${isLand ? 'Đất trống' : 'Nhà kiên cố, đường rộng, ô tô đỗ cửa, an ninh'}. Sổ hồng riêng, sẵn sàng giao dịch.`;
+        }
+
         const templates = [
-          `Đang tìm ${loaiHinh} tại ${diaChi}? '${tenTin}' đang có giá ${gia}, diện tích ${dienTich}. ${moTa}`,
-          `${dienTich} - ${gia} - ${phongNgu} phòng ngủ, ${phongWC} WC. ${tenTin} tại ${diaChi}.`,
-          `Pháp lý ${phapLy}, sẵn sàng giao dịch ngay. ${tenTin} - liên hệ ${hotline} để xem nhà.`,
-          `Vị trí đắc địa tại ${diaChi}, ${tenTin}. Diện tích ${dienTich}, giá ${gia}.`
+          `THÔNG SỐ & GIÁ BÁN: ${wardTxt}, ${districtTxt}. DT: ${dienTich}${specWidthTxt ? ' ' + specWidthTxt : ''}. Kết cấu: ${katCauTxt}.${hgTxt} Giá: ${giaTxt}.\n\nHIỆN TRẠNG: ${hienTrangText}\nQuý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà.`,
+          `🔥 CỰC HOT: ${loaiHinh.toUpperCase()} ${wardTxt.toUpperCase()} — GIÁ TỐT ĐẦU TƯ 🔥\nTHÔNG SỐ: ${wardTxt}, ${districtTxt}. DT: ${dienTich}${specWidthTxt ? ' ' + specWidthTxt : ''}. Kết cấu: ${katCauTxt}.${hgTxt} Giá: ${giaTxt}.\n\nHIỆN TRẠNG thực tế: ${hienTrangText}\nAnh/Chị quan tâm vui lòng kết nối ngay để xem nhà và đàm phán chính chủ.`,
+          `💎 SỞ HỮU NGAY ${loaiHinh.toUpperCase()} CHUẨN ĐẸP TẠI ${wardTxt.toUpperCase()} 💎\nTHÔNG SỐ: ${wardTxt}, ${districtTxt}. DT: ${dienTich}${specWidthTxt ? ' ' + specWidthTxt : ''}. Kết cấu: ${katCauTxt}.${hgTxt} Hướng: ${p.direction || 'Đông'}. Giá: ${giaTxt}.\n\nHIỆN TRẠNG thực tế: ${hienTrangText}\nLiên hệ ngay để nhận thêm chi tiết và sắp xếp xem nhà.`
         ];
 
-        // Randomly pick one template (0 to 3)
+        // Randomly pick one template (0 to 2)
         const randIndex = Math.floor(Math.random() * templates.length);
         let selectedTemplate = templates[randIndex];
 
-        // Ensure hashtag names have no spaces if we use loaiHinh as badge
-        const hashtagCategory = loaiHinh.replace(/\s+/g, '');
+        // Append constant hashtags and requested lines
+        selectedTemplate += `\n\n📞 Liên hệ: ${hotline}\nxem thêm nhiều căn nhà ở thanhtrabds.vercel.app\n#nhaphophukhang #thanhtrabds`;
 
-        selectedTemplate += `\n\n📞 Liên hệ: ${hotline}\n#BDS #${hashtagCategory} #ThuDuc`;
+        const purifiedTemplate = cleanCaptionFromExaggerations(selectedTemplate);
 
         const txtArea = document.getElementById('fbModalCaption');
         if (txtArea) {
-          txtArea.value = selectedTemplate;
+          txtArea.value = purifiedTemplate;
         }
       }
 
@@ -7649,17 +7823,22 @@ Nguyên tắc trả lời:
       }
 
       async function submitFacebookPosts() {
-        if (!activeFacebookPostProp) return;
-        const caption = document.getElementById('fbModalCaption').value.trim();
+        if (!activeFacebookPostProp) {
+          showToast("Không tìm thấy thông tin sản phẩm đăng bài!", false);
+          return;
+        }
+
+        const captionField = document.getElementById('fbModalCaption');
+        const caption = captionField ? captionField.value.trim() : '';
         if (!caption) {
-          alert("Vui lòng nhập nội dung caption!");
+          showToast("Vui lòng nhập nội dung caption!", false);
           return;
         }
 
         // Get selected pages
         const pageCbs = document.querySelectorAll('.fb-modal-page-cb:checked');
         if (pageCbs.length === 0) {
-          alert("Vui lòng chọn ít nhất 1 Fanpage Facebook để đăng bài!");
+          showToast("Vui lòng chọn ít nhất 1 Fanpage Facebook để đăng bài!", false);
           return;
         }
 
@@ -7679,89 +7858,92 @@ Nguyên tắc trả lời:
           selectedImages.push(cb.value);
         });
 
-        // -------------------------------------------------------------
-        // GIỚI HẠN AN TOÀN - CHECK DATABASE BEFORE POSTING
-        // -------------------------------------------------------------
-        try {
-          const pageIdsParam = selectedPages.map(p => p.id).join(',');
-          const checkUrl = `/api/facebook?action=check&product_id=${activeFacebookPostProp.id}&page_ids=${pageIdsParam}`;
-          const checkResp = await fetch(checkUrl);
-          const checkResult = await checkResp.json();
-          
-          if (checkResult && checkResult.results) {
-            let warnMessages = [];
-            selectedPages.forEach(page => {
-              const checkInfo = checkResult.results[page.id];
-              if (checkInfo) {
-                if (checkInfo.duplicatePostedAt) {
-                  const dayText = new Date(checkInfo.duplicatePostedAt).toLocaleString('vi-VN');
-                  warnMessages.push(`⚠️ Sản phẩm này đã đăng lên "${page.name}" vào ${dayText} (trong vòng 7 ngày qua).`);
-                }
-                if (checkInfo.dailyCount > 0) {
-                  warnMessages.push(`ℹ️ Trang "${page.name}" đã đăng thành công ${checkInfo.dailyCount} bài trong 24h qua.`);
-                }
-              }
-            });
-
-            if (warnMessages.length > 0) {
-              const confirmOk = confirm(`${warnMessages.join('\n')}\n\nBạn có chắc chắn muốn tiếp tục đăng tin không? (Bấm OK để "Đăng lại" / Bấm Cancel để "Hủy")`);
-              if (!confirmOk) {
-                return; // Cancel posting process
-              }
-            }
-          }
-        } catch (checkErr) {
-          console.warn("Lỗi kiểm tra giới hạn an toàn:", checkErr);
-        }
-
-        // Delay handling
-        let delayHours = 4;
-        const delayInput = document.getElementById('fbModalDelayHours');
-        if (delayInput) {
-          delayHours = parseFloat(delayInput.value) || 0;
-          if (delayHours < 0) delayHours = 0;
-        }
-        const delayMs = delayHours * 3600 * 1000;
-
-        const statusPanel = document.getElementById('fbModalStatusPanel');
-        statusPanel.style.display = 'block';
-        statusPanel.style.background = '#f0fdf4';
-        statusPanel.style.border = '1px solid #bbf7d0';
-        statusPanel.style.color = '#166534';
-        statusPanel.innerHTML = '<div style="font-weight:700; margin-bottom: 8px;">⚙️ Tiến trình đăng bài:</div>';
+        // Initialize queue controller state
+        window.cancelFbPosting = false;
 
         const submitBtn = document.getElementById('btnFacebookPublishSubmit');
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.5';
-        submitBtn.textContent = '⌛ Đang xử lý đăng bài...';
+        const statusPanel = document.getElementById('fbModalStatusPanel');
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.5';
+          submitBtn.textContent = '⌛ Đang xử lý đăng bài...';
+        }
+
+        if (statusPanel) {
+          statusPanel.style.display = 'block';
+          statusPanel.style.background = '#f0fdf4';
+          statusPanel.style.border = '1px solid #bbf7d0';
+          statusPanel.style.color = '#166534';
+          statusPanel.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 8px; border-bottom: 1px dashed #bbf7d0; padding-bottom: 6px;">
+              <span>⚙️ Tiến trình đăng bài:</span>
+              <button type="button" onclick="window.cancelFbPosting = true; this.style.display='none';" style="background: #ef4444; color: white; border: none; padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;">🛑 Dừng Hàng Chờ</button>
+            </div>
+          `;
+        }
 
         try {
+          // Giới hạn an toàn đăng bài đã gỡ bỏ theo yêu cầu
+
+
+          // Delay handling - in seconds
+          let delaySeconds = 2;
+          const delayInput = document.getElementById('fbModalDelayHours');
+          if (delayInput) {
+            delaySeconds = parseFloat(delayInput.value) || 0;
+            if (delaySeconds < 0) delaySeconds = 0;
+          }
+          const delayMs = delaySeconds * 1000;
+
           for (let i = 0; i < selectedPages.length; i++) {
             const page = selectedPages[i];
+
+            if (window.cancelFbPosting) {
+              if (statusPanel) {
+                const cancelLog = document.createElement('div');
+                cancelLog.style.color = '#ef4444';
+                cancelLog.style.fontWeight = '700';
+                cancelLog.style.marginTop = '8px';
+                cancelLog.textContent = '🛑 Đã dừng hàng chờ đăng bài theo yêu cầu của Anh/Chị!';
+                statusPanel.appendChild(cancelLog);
+              }
+              break;
+            }
 
             if (i > 0 && delayMs > 0) {
               const waitLog = document.createElement('div');
               waitLog.style.color = '#b45309';
               waitLog.style.margin = '4px 0';
-              statusPanel.appendChild(waitLog);
+              if (statusPanel) statusPanel.appendChild(waitLog);
 
               let secondsLeft = Math.round(delayMs / 1000);
-              // If delay is small (like testing), show countdown, otherwise show standard status
-              if (secondsLeft <= 30) {
-                for (let s = secondsLeft; s > 0; s--) {
-                  waitLog.innerHTML = `⏳ Sẽ đăng lên <strong>${escapeHtml(page.name)}</strong> sau ${s} giây tiếp theo...`;
-                  await new Promise(r => setTimeout(r, 1000));
+              for (let s = secondsLeft; s > 0; s--) {
+                if (window.cancelFbPosting) {
+                  break;
                 }
-              } else {
-                waitLog.innerHTML = `⏳ Sẽ đăng lên <strong>${escapeHtml(page.name)}</strong> sau ${delayHours} giờ (Ước tính ${secondsLeft} giây)... Đang hoãn...`;
-                await new Promise(r => setTimeout(r, delayMs));
+                waitLog.innerHTML = `⏳ Sẽ đăng lên <strong>${escapeHtml(page.name)}</strong> sau ${s} giây tiếp theo...`;
+                await new Promise(r => setTimeout(r, 1000));
               }
+
+              if (window.cancelFbPosting) {
+                if (statusPanel) {
+                  const cancelLog = document.createElement('div');
+                  cancelLog.style.color = '#ef4444';
+                  cancelLog.style.fontWeight = '700';
+                  cancelLog.style.marginTop = '8px';
+                  cancelLog.textContent = '🛑 Đã dừng hàng chờ đăng bài theo yêu cầu của Anh/Chị!';
+                  statusPanel.appendChild(cancelLog);
+                }
+                break;
+              }
+              waitLog.remove();
             }
 
             const stepLog = document.createElement('div');
             stepLog.style.margin = '4px 0';
-            stepLog.innerHTML = `🔷 Đang tải ảnh và gửi bài viết lên <strong>${escapeHtml(page.name)}</strong>...`;
-            statusPanel.appendChild(stepLog);
+            stepLog.innerHTML = `🔷 Đang tải dữ liệu và đăng bài lên <strong>${escapeHtml(page.name)}</strong>...`;
+            if (statusPanel) statusPanel.appendChild(stepLog);
 
             const response = await fetch('/api/facebook?action=post', {
               method: 'POST',
@@ -7786,31 +7968,44 @@ Nguyên tắc trả lời:
               logSystemActivity('POST_FB', `Đăng thành công sản phẩm #${activeFacebookPostProp.id} lên Page: ${page.name}`);
             } else {
               stepLog.style.color = '#b91c1c';
-              stepLog.innerHTML = `❌ Thất bại tại <strong>${escapeHtml(page.name)}</strong>: ${result.error || 'Lỗi không xác định'}`;
-              logSystemActivity('POST_FB_ERR', `Lỗi đăng sản phẩm #${activeFacebookPostProp.id} lên Page ${page.name}: ${result.error}`);
+              stepLog.innerHTML = `❌ Thất bại tại <strong>${escapeHtml(page.name)}</strong>: ${result.error || result.message || 'Lỗi không xác định từ máy chủ Facebook'}`;
+              logSystemActivity('POST_FB_ERR', `Lỗi đăng sản phẩm #${activeFacebookPostProp.id} lên Page ${page.name}: ${result.error || result.message}`);
             }
           }
 
-          // Complete
-          const finishLog = document.createElement('div');
-          finishLog.style.fontWeight = '700';
-          finishLog.style.marginTop = '12px';
-          finishLog.style.color = '#15803d';
-          finishLog.textContent = '🎉 Hoàn tất toàn bộ hàng chờ đăng bài!';
-          statusPanel.appendChild(finishLog);
+          if (!window.cancelFbPosting) {
+            // Complete
+            if (statusPanel) {
+              const finishLog = document.createElement('div');
+              finishLog.style.fontWeight = '700';
+              finishLog.style.marginTop = '12px';
+              finishLog.style.color = '#15803d';
+              finishLog.textContent = '🎉 Hoàn tất tiến trình đăng bài lên Facebook!';
+              statusPanel.appendChild(finishLog);
+            }
+          }
 
         } catch (err) {
           console.error(err);
-          const errDiv = document.createElement('div');
-          errDiv.style.color = '#b91c1c';
-          errDiv.style.fontWeight = '700';
-          errDiv.style.marginTop = '10px';
-          errDiv.textContent = `🚨 Lỗi ngoại lệ trong quá trình thực thi: ${err.message || err}`;
-          statusPanel.appendChild(errDiv);
+          if (statusPanel) {
+            const errDiv = document.createElement('div');
+            errDiv.style.color = '#b91c1c';
+            errDiv.style.fontWeight = '700';
+            errDiv.style.marginTop = '10px';
+            errDiv.textContent = `🚨 Lỗi ngoại lệ trong quá trình thực thi: ${err.message || err}`;
+            statusPanel.appendChild(errDiv);
+          }
         } finally {
-          submitBtn.disabled = false;
-          submitBtn.style.opacity = '1';
-          submitBtn.textContent = '🚀 Đăng ngay lên Facebook';
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.textContent = '🚀 Đăng ngay lên Facebook';
+          }
+          // Hide stop queue button on wrapper header if exists
+          try {
+            const stopQBtn = statusPanel ? statusPanel.querySelector('button') : null;
+            if (stopQBtn) stopQBtn.style.display = 'none';
+          } catch(e) {}
         }
       }
 
@@ -8735,7 +8930,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 
         function fillFormWithResult(data) {
           if (!data) return;
-          if (data.title && formTitle) formTitle.value = data.title;
+          if (data.title && formTitle) formTitle.value = cleanCaptionFromExaggerations(data.title);
           if (data.houseNumber !== undefined && formHouseNumber) formHouseNumber.value = data.houseNumber;
           if (data.street && formStreet) formStreet.value = data.street;
           if (data.ward && formWard) formWard.value = data.ward;
@@ -8745,8 +8940,8 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
           if (data.bedrooms !== undefined && formBedrooms) formBedrooms.value = data.bedrooms;
           if (data.bathrooms !== undefined && formBathrooms) formBathrooms.value = data.bathrooms;
           if (data.floors !== undefined && formFloors) formFloors.value = data.floors;
-          if (data.legal && formLegal) formLegal.value = data.legal;
-          if (data.badge && formBadge) formBadge.value = data.badge;
+          if (data.legal && formLegal) formLegal.value = cleanCaptionFromExaggerations(data.legal);
+          if (data.badge && formBadge) formBadge.value = cleanCaptionFromExaggerations(data.badge);
           
           if (data.desc && formDesc) {
             // Thay thế cả thẻ HTML <br> và bỏ dòng liên hệ Thanh Trà BĐS để tránh lỗi hiển thị
@@ -8758,7 +8953,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
             for (const regex of linesToRemove) {
               tempDesc = tempDesc.replace(regex, '');
             }
-            formDesc.value = tempDesc.trim();
+            formDesc.value = cleanCaptionFromExaggerations(tempDesc.trim());
           }
 
           // Hướng nhà
