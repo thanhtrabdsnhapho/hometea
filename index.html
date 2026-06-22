@@ -3561,6 +3561,9 @@
                 <h5 style="font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
                   📋 Danh Sách Fanpage Đã Lưu
                 </h5>
+                <button type="button" id="btnSyncSystemUserFB" onclick="syncAllFBFromSystemUser()" style="background: var(--accent); color: var(--primary); border: none; font-weight: 800; font-size: 13px; padding: 10px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; border: 1px solid rgba(0,0,0,0.1); width: 100%;">
+                  🔄 Đồng bộ tất cả Fanpage từ System User
+                </button>
                 <div id="fbPagesList" style="flex: 1; overflow-y: auto; max-height: 380px; display: flex; flex-direction: column; gap: 10px;">
                   <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px 0;">Đang tải danh sách fanpage...</div>
                 </div>
@@ -7324,6 +7327,51 @@ Nguyên tắc trả lời:
         }
       }
 
+      async function syncAllFBFromSystemUser() {
+        const btn = document.getElementById('btnSyncSystemUserFB');
+        if (!btn) return;
+
+        const origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '⌛ Đang đồng bộ...';
+        btn.style.opacity = '0.6';
+
+        try {
+          const response = await fetch('/api/facebook?action=sync_all_pages_from_system_user', {
+            method: 'POST'
+          });
+          const result = await response.json();
+
+          if (!response.ok || result.error) {
+            showToast(result.error || 'Gặp lỗi trong quá trình đồng bộ!', false);
+          } else {
+            const successCount = result.synced_count || 0;
+            const failedCount = result.failed_pages ? result.failed_pages.length : 0;
+            
+            let message = `Đồng bộ thành công ${successCount} Fanpage từ System User!`;
+            if (failedCount > 0) {
+              message += ` Thất bại ${failedCount} trang.`;
+            }
+
+            showToast(message, true);
+
+            if (result.failed_pages && result.failed_pages.length > 0) {
+              console.warn("Một số Fanpage không đồng bộ thành công:", result.failed_pages);
+            }
+          }
+
+          // Refresh the list
+          await loadFacebookPages();
+        } catch (err) {
+          console.error('[syncAllFBFromSystemUser] error:', err);
+          showToast('Không kết nối được API máy chủ để đồng bộ!', false);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+          btn.style.opacity = '1';
+        }
+      }
+
       async function saveFacebookPage(event) {
         if (event) event.preventDefault();
 
@@ -7579,7 +7627,7 @@ Nguyên tắc trả lời:
         }
       }
 
-      function regenerateFacebookCaption() {
+      async function regenerateFacebookCaption() {
         if (!activeFacebookPostProp) return;
         const p = activeFacebookPostProp;
 
@@ -7597,22 +7645,22 @@ Nguyên tắc trả lời:
         if (p.ward) {
           let w = p.ward.trim();
           if (w.toLowerCase().startsWith("phường")) {
-            w = "P. " + w.substring(6).trim();
+            w = "Phường " + w.substring(6).trim();
           } else if (w.toLowerCase().startsWith("p.")) {
-            w = "P. " + w.substring(2).trim();
+            w = "Phường " + w.substring(2).trim();
           } else if (w.toLowerCase().startsWith("p")) {
             const nextChar = w.charAt(1);
             if (nextChar === ' ' || !isNaN(parseInt(nextChar))) {
-              w = "P. " + w.substring(1).trim();
+              w = "Phường " + w.substring(1).trim();
             } else {
-              w = "P. " + w;
+              w = "Phường " + w;
             }
           } else {
-            w = "P. " + w;
+            w = "Phường " + w;
           }
           wardTxt = w;
         } else {
-          wardTxt = 'P. Long Trường';
+          wardTxt = 'Phường Long Trường';
         }
 
         let districtTxt = 'TP. Thủ Đức';
@@ -7622,7 +7670,7 @@ Nguyên tắc trả lời:
 
         const isLand = loaiHinh.toLowerCase().includes('đất') || loaiHinh.toLowerCase().includes('nền');
         const floorsVal = (p.floors !== undefined && p.floors !== null && p.floors !== '') ? parseInt(p.floors) : 2;
-        const katCauTxt = isLand ? 'Đất trống' : `${floorsVal} tầng, ${phongNgu}PN, ${phongWC}WC`;
+        const katCauTxt = isLand ? 'Đất trống' : `${floorsVal} tầng, ${phongNgu} phòng ngủ, ${phongWC} phòng vệ sinh`;
 
         const moTaLower = moTa.toLowerCase();
         let specWidthTxt = '';
@@ -7694,24 +7742,124 @@ Nguyên tắc trả lời:
           hienTrangText = `${isLand ? 'Đất trống' : 'Nhà kiên cố, đường rộng, ô tô đỗ cửa, an ninh'}. Sổ hồng riêng, sẵn sàng giao dịch.`;
         }
 
-        const templates = [
-          `THÔNG SỐ & GIÁ BÁN: ${wardTxt}, ${districtTxt}. DT: ${dienTich}${specWidthTxt ? ' ' + specWidthTxt : ''}. Kết cấu: ${katCauTxt}.${hgTxt} Giá: ${giaTxt}.\n\nHIỆN TRẠNG: ${hienTrangText}\nQuý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà.`,
-          `🔥 CỰC HOT: ${loaiHinh.toUpperCase()} ${wardTxt.toUpperCase()} — GIÁ TỐT ĐẦU TƯ 🔥\nTHÔNG SỐ: ${wardTxt}, ${districtTxt}. DT: ${dienTich}${specWidthTxt ? ' ' + specWidthTxt : ''}. Kết cấu: ${katCauTxt}.${hgTxt} Giá: ${giaTxt}.\n\nHIỆN TRẠNG thực tế: ${hienTrangText}\nAnh/Chị quan tâm vui lòng kết nối ngay để xem nhà và đàm phán chính chủ.`,
-          `💎 SỞ HỮU NGAY ${loaiHinh.toUpperCase()} CHUẨN ĐẸP TẠI ${wardTxt.toUpperCase()} 💎\nTHÔNG SỐ: ${wardTxt}, ${districtTxt}. DT: ${dienTich}${specWidthTxt ? ' ' + specWidthTxt : ''}. Kết cấu: ${katCauTxt}.${hgTxt} Hướng: ${p.direction || 'Đông'}. Giá: ${giaTxt}.\n\nHIỆN TRẠNG thực tế: ${hienTrangText}\nLiên hệ ngay để nhận thêm chi tiết và sắp xếp xem nhà.`
-        ];
-
-        // Randomly pick one template (0 to 2)
-        const randIndex = Math.floor(Math.random() * templates.length);
-        let selectedTemplate = templates[randIndex];
-
-        // Append constant hashtags and requested lines
-        selectedTemplate += `\n\n📞 Liên hệ: ${hotline}\nxem thêm nhiều căn nhà ở thanhtrabds.vercel.app\n#nhaphophukhang #thanhtrabds`;
-
-        const purifiedTemplate = cleanCaptionFromExaggerations(selectedTemplate);
-
         const txtArea = document.getElementById('fbModalCaption');
-        if (txtArea) {
-          txtArea.value = purifiedTemplate;
+        if (!txtArea) return;
+
+        txtArea.value = "🤖 Trợ lý AI đang sáng tạo nội dung caption độc bản và tự nhiên nhất... Vui lòng chờ vài giây...";
+        txtArea.disabled = true;
+
+        // Custom emoji mapping
+        let emojiSet = "🏡, ✨, 📍, 📞";
+        if (isLand) {
+          emojiSet = "🌳, 🗺️, 🌾, 🛣️";
+        } else if (loaiHinh.toLowerCase().includes("biệt thự") || loaiHinh.toLowerCase().includes("nhà phố")) {
+          emojiSet = "🏠, 🔑, 🚪, 🪴";
+        } else if (loaiHinh.toLowerCase().includes("căn hộ") || loaiHinh.toLowerCase().includes("chung cư")) {
+          emojiSet = "🏢, 🏙️, 🛋️, 🔑";
+        }
+
+        // Randomly pick targeted length and style configuration
+        const lengths = ["ngắn gọn khoảng 60 từ", "chi tiết khoảng 150 từ"];
+        const selectedLength = lengths[Math.round(Math.random())];
+
+        const styles = [
+          "Kiểu kể chuyện ngắn (storytelling): tâm sự nhẹ nhàng, tự nhiên về ưu điểm ngôi nhà hoặc câu chuyện bán nhà của gia chủ.",
+          "Kiểu thông số cụ thể: liệt kê các thông số kỹ thuật gọn gàng, súc tích và dễ theo dõi dành cho những khách hàng bận rộn.",
+          "Kiểu hỏi - đáp (Q&A): bắt đầu bằng câu hỏi thu hút, khơi gợi nhu cầu, sau đó giải đáp bằng những ưu điểm nổi trội của sản phẩm.",
+          "Kiểu nhấn mạnh 1 điểm nổi bật nhất: tập trung phân tích sâu ưu thế đắt giá nhất của tài sản (như hẻm xe hơi tránh, gần chợ, dòng tiền cho thuê tốt...)."
+        ];
+        const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+
+        const promptInput = `Bạn là một nhà môi giới bất động sản thực thụ, chuyên nghiệp và có tâm tại khu vực TP. Thủ Đức (Thanh Trà BĐS). Hãy viết một bài đăng (caption) Facebook tự nhiên để bán sản phẩm bất động sản sau đây:
+
+THÔNG TIN TẢN PHẨM:
+- Loại hình: ${loaiHinh}
+- Tiêu đề tham chiếu: ${tenTin}
+- Diện tích: ${dienTich} ${specWidthTxt}
+- Kết cấu/Hiện trạng: ${katCauTxt}
+- Pháp lý: ${phapLy}
+- ${hgTxt ? hgTxt.trim() : ""}
+- Giá bán: ${giaTxt}
+- Khu vực: ${wardTxt}, ${districtTxt}
+- Mô tả chi tiết thêm: ${moTa}
+
+HƯỚNG DẪN HOÀN TOÀN QUAN TRỌNG ĐỂ BIÊN SOẠN CAPTION:
+1. GIỌNG VĂN & PHONG CÁCH:
+- Viết theo giọng văn tư vấn thật, tự nhiên như một người môi giới chuyên nghiệp đang nhắn tin hoặc chia sẻ chân thành với khách quen.
+- Thân thiện, tin cậy, không rập khuôn mẫu hay khoa trương quá đà.
+- KHÔNG bắt đầu trực tiếp bằng định dạng "Tên sản phẩm - Giá" một cách máy móc. Hãy bắt đầu một cách gợi mở, hoặc nhận xét tự nhiên, hoặc câu hỏi thu hút (Ví dụ: "Đang tìm nhà phố khu Long Trường?", "Anh chị nào tìm đất xây biệt thự vườn thì xem qua lô này...", "Em mới nhận được căn nhà có hướng rất mát mẻ...").
+- Tránh các mô tả sáo rỗng thường thấy của dân sale kiểu như "cơ hội không thể bỏ lỡ", "vị trí đắc địa", "giá tốt đầu tư" lặp đi lặp lại. Thay vào đó, hãy mô tả thực tế, cụ thể dựa trên thông tin mô tả chi tiết (ví dụ: gần trường, gần chợ, hẻm rộng bao nhiêu mét, tiện ích xung quanh ra sao, ô tô đỗ cửa...).
+
+2. KIỂU VIẾT & ĐỘ DÀI:
+- Độ dài yêu cầu: ${selectedLength}.
+- Cấu trúc bài viết: Hãy viết theo "${selectedStyle}".
+
+3. HÌNH THỨC TRÌNH BÀY & EMOJI:
+- KHÔNG dùng bất kỳ từ viết hoa toàn bộ nào kiểu "CỰC HOT", "SIÊU PHẨM", "GIÁ TỐT NHẤT", "SIÊU RẺ", "HOT"... Viết hoa chỉ được dùng ở đầu câu, tên riêng (ví dụ: Long Trường, Thanh Trà BĐS), hoặc địa danh viết tắt tiêu chuẩn.
+- KHÔNG dùng emoji lửa 🔥 lặp đi lặp lại hay tràn ngập bài đăng.
+- Thay vào đó, hãy dùng bộ emoji chọn lọc từ nhóm này: [${emojiSet}]. Chỉ sử dụng lượng emoji vừa phải, tinh tế.
+
+4. THÔNG TIN BẮT BUỘC (Hãy lồng ghép khéo léo và tự nhiên vào đoạn văn):
+- Diện tích: ${dienTich}
+- Giá bán: ${giaTxt}
+- Địa chỉ tổng quát: ${wardTxt}, ${districtTxt} (Tuyệt đối KHÔNG lộ số nhà hoặc tên đường chi tiết cụ thể để bảo mật thông tin).
+- Thông tin liên hệ và liên kết bắt buộc ở cuối bài:
+  📞 Hotline/Zalo tư vấn: ${hotline}
+  🌐 Xem thêm sản phẩm tại: thanhtrabds.vercel.app
+  Hashtags: #nhaphophukhang #thanhtrabds
+
+Hãy trực tiếp xuất ra bài viết hoàn thiện luôn, không kèm theo bất kỳ lời dẫn giải nào khác của AI.`;
+
+        const activeClientKey = localStorage.getItem('gemini_api_key') || buildGeminiKey;
+
+        try {
+          const response = await fetch('/api/generate-desc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              promptInput: promptInput,
+              localKey: activeClientKey
+            })
+          });
+
+          if (response.ok) {
+            const resData = await response.json();
+            if (resData.reply) {
+              txtArea.value = resData.reply.trim();
+              return;
+            }
+          }
+          throw new Error("Không thể kết nối API AI hoặc máy chủ bận.");
+        } catch (err) {
+          console.warn("Lỗi gọi Gemini tạo caption, đang chuyển sang chế độ tự dựng mẫu tối ưu:", err);
+
+          // Premium Fallback Template generation adhering to identical rules
+          const templates = [];
+          const customDirection = p.direction ? `hướng ${p.direction}` : "hướng mát mẻ";
+
+          // 1. Question / Advisory structure
+          templates.push(`Anh/Chị đang tìm kiêm ${loaiHinh.toLowerCase()} sạch đẹp khu vực ${wardTxt}, ${districtTxt} phải không ạ? Trà gợi ý căn này rất thích hợp để gia đình an cư lâu dài. Diện tích rộng rãi ${dienTich}, pháp lý ${phapLy} bảo đảm an toàn giao dịch. ${hienTrangText} Giá bán hiện tại chỉ khoảng ${giaTxt}.`);
+
+          // 2. Specifications style
+          templates.push(`Trà xin gửi đến anh chị thông tin cụ thể về một căn ${loaiHinh.toLowerCase()} mới nhận tại ${wardTxt}, ${districtTxt} hẻm xe hơi yên tĩnh:\n📍 Diện tích đất: ${dienTich} ${specWidthTxt}\n📍 Hiện trạng ngôi nhà: ${katCauTxt}\n📍 Pháp lý: ${phapLy} cầm tay sang tên nhanh chóng\n📍 Hướng nhà: ${customDirection}\n💰 Giá bán hữu nghị: ${giaTxt}\n📍 ${hienTrangText}`);
+
+          // 3. Outstanding highlight style
+          templates.push(`Nếu anh chị đang tìm kiếm một tài sản bảo đảm ${hienTrangText.toLowerCase().replace(/\.$/, '')} thì căn ${loaiHinh.toLowerCase()} tại ${wardTxt}, ${districtTxt} này là một phương án rất đáng cân nhắc. Sở hữu diện tích ${dienTich}, ${customDirection}, sổ hồng riêng chỉn chu. Giá bán chính chủ đưa ra chỉ ${giaTxt}.`);
+
+          // Pick random template
+          const randIndex = Math.floor(Math.random() * templates.length);
+          let fallbackResult = templates[randIndex];
+
+          // Choose emoji dynamically based on asset type
+          const emojiList = emojiSet.split(",").map(e => e.trim());
+          const randomEmoji1 = emojiList[0] || "🏡";
+          const randomEmoji2 = emojiList[1] || "✨";
+
+          fallbackResult = `${randomEmoji1} ${fallbackResult}\n\n📞 Hotline/Zalo tư vấn: ${hotline}\n🌐 Xem thêm nhiều căn nhà ở thanhtrabds.vercel.app\n#nhaphophukhang #thanhtrabds`;
+
+          txtArea.value = fallbackResult;
+        } finally {
+          txtArea.disabled = false;
         }
       }
 
@@ -8013,6 +8161,7 @@ Nguyên tắc trả lời:
       window.switchAdminTab = switchAdminTab;
       window.copyFacebookSql = copyFacebookSql;
       window.loadFacebookPages = loadFacebookPages;
+      window.syncAllFBFromSystemUser = syncAllFBFromSystemUser;
       window.saveFacebookPage = saveFacebookPage;
       window.deleteFacebookPage = deleteFacebookPage;
       window.editFacebookPage = editFacebookPage;

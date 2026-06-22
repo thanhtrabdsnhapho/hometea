@@ -269,7 +269,154 @@ async function startServer() {
       }
 
       switch (action) {
+        // ---------------------------------------------------------------------
+        // 0. GET/POST: Synchronize more automated Fanpages from System User
+        // ---------------------------------------------------------------------
+        case 'sync_all_pages_from_system_user': {
+          const systemToken = (process.env.FB_SYSTEM_USER_TOKEN || '').trim();
+          if (!systemToken) {
+            return res.status(400).json({ error: 'Chưa cấu hình FB_SYSTEM_USER_TOKEN trong Environment Variables' });
+          }
+
+          let fbRes;
+          try {
+            fbRes = await fetch(`https://graph.facebook.com/v25.0/me/accounts?access_token=${encodeURIComponent(systemToken)}&fields=id,name,access_token,category&limit=100`);
+          } catch (fetchErr: any) {
+            console.error('[facebook-api/sync_all_pages_from_system_user] Fetch error:', fetchErr);
+            return res.status(500).json({ error: `Không thể kết nối với Facebook API: ${fetchErr.message}` });
+          }
+
+          const fbData: any = await fbRes.json();
+          if (!fbRes.ok || fbData.error) {
+            console.error('[facebook-api/sync_all_pages_from_system_user] Facebook API error:', fbData);
+            const fbErrMsg = fbData.error?.message || 'Lỗi không xác định từ Facebook Graph API';
+            return res.status(400).json({ error: `Lỗi Facebook Graph API: ${fbErrMsg}` });
+          }
+
+          const pagesList = fbData.data;
+          if (!Array.isArray(pagesList)) {
+            return res.status(200).json({
+              success: true,
+              synced_count: 0,
+              updated_pages: [],
+              failed_pages: [],
+              timestamp: new Date().toISOString()
+            });
+          }
+
+          let hasCategory = false;
+          let hasUpdatedAt = false;
+          try {
+            const { error: catErr } = await supabase.from('facebook_pages').select('category').limit(1);
+            if (!catErr) hasCategory = true;
+          } catch (e) {
+            console.log('[facebook-api] Table check category error:', e);
+          }
+
+          try {
+            const { error: updErr } = await supabase.from('facebook_pages').select('updated_at').limit(1);
+            if (!updErr) hasUpdatedAt = true;
+          } catch (e) {
+            console.log('[facebook-api] Table check updated_at error:', e);
+          }
+
+          const { data: existingPages, error: extError } = await supabase
+            .from('facebook_pages')
+            .select('id, page_id');
+
+          if (extError) {
+            console.error('[facebook-api] Error reading existing facebook_pages:', extError);
+            return res.status(500).json({ error: 'Bảng facebook_pages chưa tồn tại hoặc bị lỗi truy vấn Database.' });
+          }
+
+          const existingMap = new Map<string, string>();
+          if (existingPages) {
+            existingPages.forEach(p => {
+              if (p.page_id) {
+                existingMap.set(String(p.page_id).trim(), p.id);
+              }
+            });
+          }
+
+          const successList: string[] = [];
+          const failedList: { name: string; page_id: string; reason: string }[] = [];
+
+          for (const item of pagesList) {
+            try {
+              const pageIdStr = item.id ? String(item.id).trim() : '';
+              if (!pageIdStr || !item.name) {
+                failedList.push({
+                  name: item.name || 'Không rõ',
+                  page_id: pageIdStr || 'Không rõ',
+                  reason: 'Thiếu thông tin ID hoặc tên Page từ Facebook'
+                });
+                continue;
+              }
+
+              if (!item.access_token) {
+                failedList.push({
+                  name: item.name,
+                  page_id: pageIdStr,
+                  reason: 'Facebook không trả về Access Token (Vui lòng kiểm tra phân quyền trang cho System User)'
+                });
+                continue;
+              }
+
+              const payload: any = {
+                page_id: pageIdStr,
+                page_name: String(item.name).trim(),
+                access_token: String(item.access_token).trim()
+              };
+
+              if (hasCategory) {
+                payload.category = item.category ? String(item.category).trim() : '';
+              }
+              if (hasUpdatedAt) {
+                payload.updated_at = new Date().toISOString();
+              }
+
+              const existingId = existingMap.get(pageIdStr);
+              let dbError = null;
+
+              if (existingId) {
+                const { error } = await supabase
+                  .from('facebook_pages')
+                  .update(payload)
+                  .eq('id', existingId);
+                dbError = error;
+              } else {
+                const { error } = await supabase
+                  .from('facebook_pages')
+                  .insert([payload]);
+                dbError = error;
+              }
+
+              if (dbError) {
+                throw dbError;
+              }
+
+              successList.push(item.name);
+            } catch (pageErr: any) {
+              console.error(`[facebook-api] Error on page item ${item.name || 'unknown'}:`, pageErr);
+              failedList.push({
+                name: item.name || 'Không rõ',
+                page_id: item.id || 'Không rõ',
+                reason: sanitizeError(pageErr.message || 'Lỗi lưu database hoặc thao tác Facebook')
+              });
+            }
+          }
+
+          return res.status(200).json({
+            success: true,
+            synced_count: successList.length,
+            updated_pages: successList,
+            failed_pages: failedList,
+            timestamp: new Date().toISOString()
+          });
+        }
+
         // 1. GET: Fetch saved Facebook pages
+        // ---------------------------------------------------------------------
         case 'list-pages': {
           if (req.method !== 'GET') {
             return res.status(405).json({ error: 'Method Not Allowed' });
