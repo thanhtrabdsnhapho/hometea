@@ -90,7 +90,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 "${sanitizedRawInput}"`;
 
       const response = await generateContentWithRetry(ai, {
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: promptInput,
         config: {
           responseMimeType: "application/json"

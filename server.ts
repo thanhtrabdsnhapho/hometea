@@ -28,7 +28,7 @@ async function generateContentWithRetry(ai: any, config: { model: string; conten
   } catch (err: any) {
     // Avoid logging raw error JSON containing triggers to maintain pristine server console logs
     console.log(`[Info] Primary model was busy, requesting content using fallback model...`);
-    const fallbackModel = "gemini-3.1-flash-lite";
+    const fallbackModel = "gemini-1.5-flash";
     try {
       return await ai.models.generateContent({
         ...config,
@@ -774,7 +774,7 @@ async function startServer() {
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const prompt = `${systemInstruction}\n\n${warehouseData}\n\nCâu hỏi/Yêu cầu của khách hàng: ${userQuestion}`;
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: prompt
         });
         return response.text || "";
@@ -806,7 +806,7 @@ async function startServer() {
 
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: promptInput
         });
         return response.text || "";
@@ -918,7 +918,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 "${sanitizedRawInput}"`;
 
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: promptInput,
           config: {
             responseMimeType: "application/json"

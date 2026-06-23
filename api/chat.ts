@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
       const prompt = `${systemInstruction}\n\n${warehouseData}\n\nCâu hỏi/Yêu cầu của khách hàng: ${userQuestion}`;
       const response = await generateContentWithRetry(ai, {
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: prompt
       });
       return response.text || "";
