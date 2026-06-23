@@ -28,7 +28,7 @@ async function generateContentWithRetry(ai: any, config: { model: string; conten
   } catch (err: any) {
     // Avoid logging raw error JSON containing triggers to maintain pristine server console logs
     console.log(`[Info] Primary model was busy, requesting content using fallback model...`);
-    const fallbackModel = "gemini-1.5-flash";
+    const fallbackModel = "gemini-2.0-flash";
     try {
       return await ai.models.generateContent({
         ...config,
