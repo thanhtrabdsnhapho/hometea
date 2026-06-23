@@ -135,9 +135,40 @@ function buildFallbackXml(): string {
 }
 
 // ---------------------------------------------------------------------------
+// HTML builder — trang khám phá cho Googlebot follow link (không tốn API slot)
+// Truy cập: /sitemap.xml?format=html
+// ---------------------------------------------------------------------------
+function buildHtmlDiscoveryPage(properties: PropertyRow[]): string {
+  const links = properties
+    .filter(p => p.id && p.title)
+    .map(p => `  <li><a href="${SITE_URL}/?id=${p.id}">${p.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a></li>`)
+    .join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, follow">
+  <title>Danh sách bất động sản - Thanh Trà BĐS</title>
+</head>
+<body>
+  <h1>Danh sách bất động sản tại TP. Thủ Đức</h1>
+  <p>Tổng cộng: ${properties.length} bất động sản</p>
+  <ul>
+\${links}
+  </ul>
+</body>
+</html>`;
+}
+
+// ---------------------------------------------------------------------------
 // Handler
 // ---------------------------------------------------------------------------
-export default async function handler(_req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Phân luồng: ?format=html → trang HTML cho Googlebot follow link
+  //             (mặc định)  → XML sitemap chuẩn
+  const wantHtml = req.query?.format === 'html';
+
   try {
     // Race giữa query thực và timeout — không bao giờ để Vercel hard-kill function
     const queryPromise = supabase
@@ -163,6 +194,14 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
     // → không đưa vào sitemap, tránh Google coi là nội dung trùng lặp.
     const staticEntries  = [buildStaticEntry(SITE_URL, '1.0', 'daily')];
     const propertyEntries = properties.map(buildPropertyEntry).filter(Boolean);
+
+    // Nếu yêu cầu HTML → trả trang khám phá cho Googlebot follow link
+    if (wantHtml) {
+      const html = buildHtmlDiscoveryPage(properties);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+      return res.status(200).send(html);
+    }
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

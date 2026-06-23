@@ -975,57 +975,118 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
     }
   });
  
+  // ---------------------------------------------------------------------------
+  // Sitemap config — đồng bộ với api/sitemap.ts (logic chạy trên Vercel production)
+  // ---------------------------------------------------------------------------
+  const SITE_URL = 'https://thanhtrabds.vercel.app'; // TODO: đổi sang domain riêng khi có
+  const MAX_IMAGES_PER_URL = 10;
+
+  function escapeXml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  function isHotBadge(badge: string | null | undefined): boolean {
+    if (!badge) return false;
+    const b = badge.toLowerCase();
+    return b.includes('hot') || b.includes('nổi bật') || b.includes('giảm giá');
+  }
+
+  function daysSince(dateStr: string): number {
+    const t = new Date(dateStr).getTime();
+    if (isNaN(t)) return 999;
+    return (Date.now() - t) / 86_400_000;
+  }
+
+  function getSeoMeta(row: { badge?: string | null; created_at?: string; updated_at?: string | null }): { priority: string; changefreq: string } {
+    const age = daysSince(row.updated_at ?? row.created_at ?? new Date().toISOString());
+    if (isHotBadge(row.badge)) return { priority: '0.9', changefreq: 'daily' };
+    if (age < 14)              return { priority: '0.8', changefreq: 'weekly' };
+    if (age < 60)              return { priority: '0.7', changefreq: 'weekly' };
+    return                            { priority: '0.6', changefreq: 'monthly' };
+  }
+
+  function collectImages(row: { img?: string | null; img_list?: string[] | null }): string[] {
+    const seen = new Set<string>();
+    if (row.img) seen.add(row.img);
+    if (Array.isArray(row.img_list)) row.img_list.forEach(s => s && seen.add(s));
+    return Array.from(seen).slice(0, MAX_IMAGES_PER_URL);
+  }
+
+  function buildPropertyEntry(row: any): string {
+    if (!row.id || !row.title) return '';
+    const loc = `${SITE_URL}/?id=${row.id}`;
+    const lastmodStr = row.updated_at ?? row.created_at;
+    let lastmod = '';
+    try {
+      const d = new Date(lastmodStr ?? Date.now());
+      lastmod = isNaN(d.getTime()) ? new Date().toISOString().split('T')[0] : d.toISOString().split('T')[0];
+    } catch { lastmod = new Date().toISOString().split('T')[0]; }
+    const { priority, changefreq } = getSeoMeta(row);
+    const imageTags = collectImages(row)
+      .map(src => `
+    <image:image>
+      <image:loc>${escapeXml(src)}</image:loc>
+      <image:title>${escapeXml(row.title)}</image:title>
+    </image:image>`).join('');
+    return `
+  <url>
+    <loc>${escapeXml(loc)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>${imageTags}
+  </url>`;
+  }
+
+  function buildStaticEntry(loc: string, priority: string, changefreq: string): string {
+    const today = new Date().toISOString().split('T')[0];
+    return `
+  <url>
+    <loc>${escapeXml(loc)}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+  }
+
+  function buildFallbackXml(): string {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${buildStaticEntry(SITE_URL, '1.0', 'daily')}
+</urlset>`;
+  }
+
   // Định nghĩa hàm xử lý Sơ đồ trang web động chuẩn XML trực tiếp từ Supabase
   const getSitemapXmlHandler = async (req: any, res: any) => {
     try {
       const { data: properties, error } = await supabase
         .from('properties_hometea')
-        .select('id, title, updated_at')
-        .order('id', { ascending: false });
+        .select('id, title, badge, img, img_list, created_at, updated_at')
+        .order('created_at', { ascending: false })
+        .limit(5000);
 
       if (error) throw error;
 
-      const today = new Date().toISOString().split('T')[0];
-
-      const propertyUrls = (properties || []).map(p => {
-        const lastmod = p.updated_at
-          ? new Date(p.updated_at).toISOString().split('T')[0]
-          : today;
-        return `
-  <url>
-    <loc>https://thanhtrabds.vercel.app/?id=${p.id}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-      }).join('');
+      const staticEntries = [buildStaticEntry(SITE_URL, '1.0', 'daily')];
+      const propertyEntries = (properties || []).map(buildPropertyEntry).filter(Boolean);
 
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://thanhtrabds.vercel.app/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>${propertyUrls}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${staticEntries.join('')}${propertyEntries.join('')}
 </urlset>`;
 
       res.header('Content-Type', 'application/xml; charset=utf-8');
+      res.header('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
       res.send(xml);
 
     } catch (err) {
-      console.error('Sitemap error:', err);
-      const today = new Date().toISOString().split('T')[0];
+      console.error('[sitemap] Generation failed:', err);
       res.header('Content-Type', 'application/xml; charset=utf-8');
-      res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://thanhtrabds.vercel.app/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>`);
+      res.header('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+      res.send(buildFallbackXml());
     }
   };
 
@@ -1033,7 +1094,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
   const getRobotsTxtHandler = (req: any, res: any) => {
     const robots = `User-agent: *
 Allow: /
-Sitemap: https://thanhtrabds.vercel.app/sitemap.xml`;
+Sitemap: ${SITE_URL}/sitemap.xml`;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     return res.status(200).send(robots);
