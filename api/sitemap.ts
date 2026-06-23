@@ -155,7 +155,7 @@ function buildHtmlDiscoveryPage(properties: PropertyRow[]): string {
   <h1>Danh sách bất động sản tại TP. Thủ Đức</h1>
   <p>Tổng cộng: ${properties.length} bất động sản</p>
   <ul>
-\${links}
+${links}
   </ul>
 </body>
 </html>`;
