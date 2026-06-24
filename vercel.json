@@ -2,7 +2,7 @@
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/robots.txt", "destination": "/api/robots" },
-    { "source": "/((?!api/|assets/|sitemap.xml|robots.txt).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|sitemap.xml|robots.txt|35b5d3bca36c4c1dbe818a516f674d43.txt).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -24,7 +24,7 @@
       ]
     },
     {
-      "source": "/((?!api/|assets/|sitemap.xml|robots.txt).*)",
+      "source": "/((?!api/|assets/|sitemap.xml|robots.txt|35b5d3bca36c4c1dbe818a516f674d43.txt).*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, proxy-revalidate" }
       ]
