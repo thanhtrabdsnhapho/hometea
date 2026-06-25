@@ -23,19 +23,24 @@ export function decryptKeyIfNeeded(key: string): string {
 }
 
 export async function generateContentWithRetry(ai: any, config: { model: string; contents: any; config?: any }) {
+  const primaryModel = config.model === "gemini-3.5-flash" ? "gemini-2.5-flash" : config.model;
   try {
-    return await ai.models.generateContent(config);
+    return await ai.models.generateContent({
+      ...config,
+      model: primaryModel
+    });
   } catch (err: any) {
-    console.log(`[Info] Primary model was busy, requesting content using fallback model...`);
-    const fallbackModel = "gemini-2.0-flash";
+    console.log(`[Info] Primary model was busy, requesting content using fallback model... Lỗi: ${err?.message || err}`);
+    const fallbackModel = "gemini-2.5-flash";
     try {
       return await ai.models.generateContent({
         ...config,
         model: fallbackModel
       });
     } catch (fallbackError: any) {
-      console.log(`[Info] Fallback path completed.`);
-      throw new Error("Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt.");
+      console.log(`[Info] Fallback path completed with error.`);
+      const origError = fallbackError?.message || String(fallbackError);
+      throw new Error(`Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt. (Lỗi gốc: ${origError})`);
     }
   }
 }
@@ -81,7 +86,9 @@ export async function callGeminiWithKeyPool(
         apiKey: decryptedKey,
         httpOptions: {
           headers: {
-            'User-Agent': 'aistudio-build'
+            'User-Agent': 'aistudio-build',
+            // Thiết lập Authorization rỗng để tránh proxy của môi trường tự động chèn Service Account Token gây lỗi ACCESS_TOKEN_TYPE_UNSUPPORTED
+            'Authorization': ''
           }
         }
       });

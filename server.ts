@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 import { createClient } from "@supabase/supabase-js";
+import { jsonrepair as jsonRepair } from "jsonrepair";
 
 dotenv.config();
 
@@ -23,20 +24,24 @@ const upload = multer({
 
 // Helper function to safely call Gemini with a fallback model if the primary one is unavailable (e.g. 503 high demand)
 async function generateContentWithRetry(ai: any, config: { model: string; contents: any; config?: any }) {
+  const primaryModel = config.model === "gemini-3.5-flash" ? "gemini-2.5-flash" : config.model;
   try {
-    return await ai.models.generateContent(config);
+    return await ai.models.generateContent({
+      ...config,
+      model: primaryModel
+    });
   } catch (err: any) {
-    // Avoid logging raw error JSON containing triggers to maintain pristine server console logs
-    console.log(`[Info] Primary model was busy, requesting content using fallback model...`);
-    const fallbackModel = "gemini-2.0-flash";
+    console.log(`[Info] Primary model was busy, requesting content using fallback model... Lỗi: ${err?.message || err}`);
+    const fallbackModel = "gemini-2.5-flash";
     try {
       return await ai.models.generateContent({
         ...config,
         model: fallbackModel
       });
     } catch (fallbackError: any) {
-      console.log(`[Info] Fallback path completed.`);
-      throw new Error("Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt.");
+      console.log(`[Info] Fallback path completed with error.`);
+      const origError = fallbackError?.message || String(fallbackError);
+      throw new Error(`Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt. (Lỗi gốc: ${origError})`);
     }
   }
 }
@@ -110,7 +115,9 @@ async function callGeminiWithKeyPool(
         apiKey: decryptedKey,
         httpOptions: {
           headers: {
-            'User-Agent': 'aistudio-build'
+            'User-Agent': 'aistudio-build',
+            // Thiết lập Authorization rỗng để tránh proxy của môi trường tự động chèn Service Account Token gây lỗi ACCESS_TOKEN_TYPE_UNSUPPORTED
+            'Authorization': ''
           }
         }
       });
@@ -937,13 +944,13 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 
       let parsed;
       try {
-        parsed = JSON.parse(cleanedReply);
+        parsed = JSON.parse(jsonRepair(cleanedReply));
       } catch (parseErr) {
         // Try regex extraction of JSON block
         const match = cleanedReply.match(/\{[\s\S]*\}/);
         if (match) {
           try {
-            parsed = JSON.parse(match[0]);
+            parsed = JSON.parse(jsonRepair(match[0]));
           } catch (innerParseErr) {
             console.error("JSON parse failed inside match:", innerParseErr);
             throw new Error("Không thể phân tích phản hồi định dạng JSON từ AI: " + (parseErr as Error).message);
@@ -959,6 +966,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
       }
       res.json(parsed);
     } catch (apiError: any) {
+      console.log("[Info] Analyze proxy call failed:", apiError?.message || apiError);
       console.log("[Info] Analyze proxy call completed with exception.");
       const errMsg = apiError?.message || String(apiError);
       if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
