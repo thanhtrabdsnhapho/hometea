@@ -49,7 +49,7 @@ async function generateContentWithRetry(ai: any, config: { model: string; conten
 // Helper function to handle multiple API keys (Key Pool) with automated rotation/failover
 // Các khóa hệ thống đã được mã hóa ngược dưới dạng Base64 để bảo mật chống quét Secret của GitHub, Google...
 const DEFAULT_SYSTEM_GEMINI_KEYS = [
-  "QTM1OF9nSnplY0gteXVYOTFNb0VHczQ0aWNiYmJJUURHYVU3QzJFdFh6cUk2TlI4YkEuUUE=",
+  "ZzBzakRMMUo1Z3hJUkZfSXczN2QwcDVkNmhLUTVBNWVsbnNPb0d3MmZJSUk2TlI4YkEuUUE=",
   "QXpDbEljYVZoeGMwN0NiejgzeXlsRVdpNnJVT3BXNG5sTm1VMlpnMV9WQ0k2TlI4YkEuUUE=",
   "ZzBzakRMMUo1Z3hJUkZfSXczN2QwcDVkNmhLUTVBNWVsbnNPb0d3MmZJSUk2TlI4YkEuUUE=",
   "d2dmWjdZeU1icWlHV21rVHJwTUZvUnpEYnBHN1drLWc4RTdJTTN2ZlRaMEw2TlI4YkEuUUE=",

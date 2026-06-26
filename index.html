@@ -5438,28 +5438,71 @@
             
             showToast('Đã bắt đầu chụp ảnh tin đăng dọc...', true);
             
-            const tempImage = new Image();
-            tempImage.crossOrigin = 'anonymous';
-            tempImage.src = activeImgSrc;
+            let imgList = item.imgList && item.imgList.length > 0 ? item.imgList : [item.img];
+            // Lọc các giá trị rỗng, không hợp lệ
+            imgList = imgList.filter(src => src && typeof src === 'string' && src.trim() !== '');
             
+            // Chuẩn hóa toàn bộ ảnh thành URL tuyệt đối để loại bỏ trùng lặp và so sánh chính xác
+            const absoluteImgList = imgList.map(src => {
+              try {
+                return new URL(src, window.location.href).href;
+              } catch (e) {
+                return src;
+              }
+            });
+            
+            const uniqueImgList = [...new Set(absoluteImgList)];
+            
+            let image1 = activeImgSrc;
+            try {
+              image1 = new URL(activeImgSrc, window.location.href).href;
+            } catch (e) {}
+            
+            let image2 = null;
+            
+            // Nếu có nhiều hơn 1 ảnh độc nhất, lấy ảnh thứ 2 khác ảnh đang xem (image1)
+            if (uniqueImgList.length > 1) {
+              const otherImgs = uniqueImgList.filter(src => src !== image1);
+              if (otherImgs.length > 0) {
+                image2 = otherImgs[0];
+              }
+            }
+
+            const img1 = new Image();
+            img1.crossOrigin = 'anonymous';
+            img1.src = image1;
+
+            let img2 = null;
+            if (image2) {
+              img2 = new Image();
+              img2.crossOrigin = 'anonymous';
+              img2.src = image2;
+            }
+
+            let loadedCount = 0;
+            const targetCount = image2 ? 2 : 1;
+
             const proceedWithCapture = () => {
-              // Khởi tạo thẻ flyer chứa giao diện dọc chuyên nghiệp
+              // Khởi tạo thẻ flyer chứa giao diện dọc chuyên nghiệp với tỷ lệ 9:16 chuẩn (480px x 853.33px)
               const flyer = document.createElement('div');
               flyer.id = 'dynamicShareCard';
               flyer.style.position = 'fixed';
               flyer.style.left = '-9999px';
               flyer.style.top = '-9999px';
               flyer.style.width = '480px';
-              flyer.style.background = '#0a1220'; 
+              flyer.style.height = '853.33px';
+              flyer.style.boxSizing = 'border-box';
+              flyer.style.background = 'linear-gradient(180deg, #020712 0%, #061124 50%, #020817 100%)'; 
               flyer.style.color = '#f1f5f9';
               flyer.style.fontFamily = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
-              flyer.style.padding = '30px';
+              flyer.style.padding = '22px';
               flyer.style.borderRadius = '16px';
               flyer.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
               flyer.style.display = 'flex';
               flyer.style.flexDirection = 'column';
-              flyer.style.gap = '20px';
-              flyer.style.border = '2px solid rgba(249, 115, 22, 0.35)';
+              flyer.style.justifyContent = 'space-between';
+              flyer.style.gap = '10px';
+              flyer.style.border = '2.5px solid rgba(249, 115, 22, 0.4)';
               flyer.style.zIndex = '-999';
               
               // 1. Header logo thương hiệu & hotline
@@ -5468,210 +5511,422 @@
               header.style.justifyContent = 'space-between';
               header.style.alignItems = 'center';
               header.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
-              header.style.paddingBottom = '16px';
+              header.style.paddingBottom = '10px';
+              header.style.width = '100%';
               
               const brandInfo = document.createElement('div');
               brandInfo.innerHTML = `
-                <div style="font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
-                  <span style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 6px; font-weight: 900; font-size: 18px;">T</span>
+                <div style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                  <span style="background: #f97316; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 900; font-size: 16px;">T</span>
                   <span>THANH TRÀ BĐS</span>
                 </div>
-                <div style="font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-top: 2px; letter-spacing: 1px;">MUA BÁN NHÀ PHỐ UY TÍN</div>
+                <div style="font-size: 9px; font-weight: 700; color: #f97316; text-transform: uppercase; margin-top: 1px; letter-spacing: 1px;">MUA BÁN NHÀ PHỐ UY TÍN</div>
               `;
               
               const phoneInfo = document.createElement('div');
               phoneInfo.style.textAlign = 'right';
               phoneInfo.innerHTML = `
-                <div style="font-size: 14px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 4px;">
-                  📱 0854.100.036
+                <div style="font-size: 13px; font-weight: 800; color: #f97316; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                  📞 0854.100.036
                 </div>
-                <div style="font-size: 9px; color: #94a3b8; font-weight: 500; margin-top: 1px;">TƯ VẤN PHÁP LÝ LIÊN TỤC 24/7</div>
+                <div style="font-size: 8px; color: #94a3b8; font-weight: 600; margin-top: 1px; letter-spacing: 0.3px;">TƯ VẤN PHÁP LÝ LIÊN TỤC 24/7</div>
               `;
               
               header.appendChild(brandInfo);
               header.appendChild(phoneInfo);
               flyer.appendChild(header);
               
-              // 2. Ảnh lớn của bất động sản đang xem
-              const imgContainer = document.createElement('div');
-              imgContainer.style.width = '100%';
-              imgContainer.style.height = '280px';
-              imgContainer.style.borderRadius = '12px';
-              imgContainer.style.overflow = 'hidden';
-              imgContainer.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
-              imgContainer.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-              
-              const flyerImg = document.createElement('img');
-              flyerImg.src = tempImage.src;
-              flyerImg.style.width = '100%';
-              flyerImg.style.height = '100%';
-              flyerImg.style.objectFit = 'cover';
-              
-              imgContainer.appendChild(flyerImg);
-              flyer.appendChild(imgContainer);
-              
-              // 3. Khối giá nổi bật & diện tích
-              const highlightRow = document.createElement('div');
-              highlightRow.style.display = 'flex';
-              highlightRow.style.justifyContent = 'space-between';
-              highlightRow.style.alignItems = 'center';
-              highlightRow.style.background = 'rgba(249, 115, 22, 0.08)';
-              highlightRow.style.padding = '12px 18px';
-              highlightRow.style.borderRadius = '10px';
-              highlightRow.style.borderLeft = '4px solid var(--accent)';
-              
-              const priceTag = document.createElement('div');
-              priceTag.innerHTML = `
-                <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Mức Giá Bán</div>
-                <div style="font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 2px;">${item.priceText}</div>
+              // 2. Tiêu đề tài sản & Giá + Diện tích nổi bật
+              const heroRow = document.createElement('div');
+              heroRow.style.display = 'flex';
+              heroRow.style.justifyContent = 'space-between';
+              heroRow.style.alignItems = 'flex-start';
+              heroRow.style.width = '100%';
+              heroRow.style.gap = '10px';
+
+              // Tách tiêu đề thành Title Main & Title Sub để hiển thị chuẩn
+              let titleMain = item.title;
+              let titleSub = "";
+              const sepMatch = item.title.match(/[-|]/);
+              if (sepMatch) {
+                const splitIndex = item.title.indexOf(sepMatch[0]);
+                titleMain = item.title.substring(0, splitIndex).trim();
+                titleSub = item.title.substring(splitIndex + 1).trim();
+              } else {
+                const words = item.title.split(' ');
+                if (words.length > 3) {
+                  titleMain = words.slice(0, 3).join(' ');
+                  titleSub = words.slice(3).join(' ');
+                }
+              }
+
+              const leftTitleBlock = document.createElement('div');
+              leftTitleBlock.style.flex = '1';
+              leftTitleBlock.style.display = 'flex';
+              leftTitleBlock.style.flexDirection = 'column';
+              leftTitleBlock.style.gap = '2px';
+
+              const mainTitleEl = document.createElement('h3');
+              mainTitleEl.textContent = '🔥 ' + titleMain;
+              mainTitleEl.style.fontSize = '18px';
+              mainTitleEl.style.fontWeight = '800';
+              mainTitleEl.style.fontStyle = 'italic';
+              mainTitleEl.style.lineHeight = '1.25';
+              mainTitleEl.style.color = '#ffffff';
+              mainTitleEl.style.margin = '0';
+              mainTitleEl.style.textTransform = 'uppercase';
+              leftTitleBlock.appendChild(mainTitleEl);
+
+              if (titleSub) {
+                const subTitleEl = document.createElement('h4');
+                subTitleEl.textContent = titleSub;
+                subTitleEl.style.fontSize = '16px';
+                subTitleEl.style.fontWeight = '800';
+                subTitleEl.style.fontStyle = 'italic';
+                subTitleEl.style.lineHeight = '1.25';
+                subTitleEl.style.color = '#fbbf24';
+                subTitleEl.style.margin = '0';
+                subTitleEl.style.textTransform = 'uppercase';
+                leftTitleBlock.appendChild(subTitleEl);
+              }
+
+              const priceBadge = document.createElement('div');
+              priceBadge.style.background = 'linear-gradient(90deg, rgba(249,115,22,0.25) 0%, rgba(249,115,22,0.05) 100%)';
+              priceBadge.style.border = '1.5px solid rgba(249, 115, 22, 0.7)';
+              priceBadge.style.borderRadius = '8px';
+              priceBadge.style.padding = '3px 12px';
+              priceBadge.style.fontSize = '18px';
+              priceBadge.style.fontWeight = '900';
+              priceBadge.style.color = '#fbbf24';
+              priceBadge.style.textShadow = '0 0 10px rgba(249,115,22,0.4)';
+              priceBadge.style.display = 'inline-block';
+              priceBadge.style.marginTop = '4px';
+              priceBadge.style.width = 'fit-content';
+              priceBadge.textContent = item.priceText;
+              leftTitleBlock.appendChild(priceBadge);
+
+              const rightStatsBlock = document.createElement('div');
+              rightStatsBlock.style.display = 'flex';
+              rightStatsBlock.style.gap = '8px';
+              rightStatsBlock.style.padding = '8px 10px';
+              rightStatsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
+              rightStatsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+              rightStatsBlock.style.borderRadius = '10px';
+              rightStatsBlock.style.alignItems = 'center';
+              rightStatsBlock.style.justifyContent = 'center';
+              rightStatsBlock.style.flexShrink = '0';
+
+              rightStatsBlock.innerHTML = `
+                <div style="padding-right: 8px; border-right: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                  <div style="font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">MỨC GIÁ BÁN</div>
+                  <div style="font-size: 14px; font-weight: 800; color: #fbbf24; margin-top: 1px;">${item.priceText}</div>
+                </div>
+                <div style="text-align: center; padding-left: 2px;">
+                  <div style="font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">DIỆN TÍCH SỔ</div>
+                  <div style="font-size: 14px; font-weight: 800; color: #ffffff; margin-top: 1px;">${item.area}m²</div>
+                </div>
               `;
-              
-              const areaTag = document.createElement('div');
-              areaTag.style.textAlign = 'right';
-              areaTag.innerHTML = `
-                <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Diện tích sổ</div>
-                <div style="font-size: 20px; font-weight: 700; color: #fff; margin-top: 2px;">${item.area} m²</div>
-              `;
-              
-              highlightRow.appendChild(priceTag);
-              highlightRow.appendChild(areaTag);
-              flyer.appendChild(highlightRow);
-              
-              // 4. Tiêu đề tài sản
-              const titleEl = document.createElement('h3');
-              titleEl.textContent = item.title;
-              titleEl.style.fontSize = '18px';
-              titleEl.style.fontWeight = '800';
-              titleEl.style.lineHeight = '1.45';
-              titleEl.style.color = '#ffffff';
-              titleEl.style.margin = '4px 0 ';
-              titleEl.style.textTransform = 'capitalize';
-              flyer.appendChild(titleEl);
-              
-              // 5. Địa chỉ cụ thể
-              const addressEl = document.createElement('p');
-              addressEl.style.fontSize = '12px';
-              addressEl.style.color = '#94a3b8';
+
+              heroRow.appendChild(leftTitleBlock);
+              heroRow.appendChild(rightStatsBlock);
+              flyer.appendChild(heroRow);
+
+              // 3. Địa chỉ cụ thể
+              const addressEl = document.createElement('div');
+              addressEl.style.fontSize = '11px';
+              addressEl.style.color = '#cbd5e1';
+              addressEl.style.fontWeight = '500';
               addressEl.style.display = 'flex';
               addressEl.style.alignItems = 'center';
-              addressEl.style.gap = '6px';
-              addressEl.style.marginTop = '-8px';
-              addressEl.innerHTML = `📍 <span style="font-weight: 500;">${getPublicDisplayAddress(item)}</span>`;
+              addressEl.style.gap = '4px';
+              addressEl.style.width = '100%';
+              addressEl.innerHTML = `📍 ${getPublicDisplayAddress(item)}`;
               flyer.appendChild(addressEl);
-              
-              // 6. Bảng thông số chi tiết (Grid 2 cột)
-              const specsGrid = document.createElement('div');
-              specsGrid.style.display = 'grid';
-              specsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-              specsGrid.style.gap = '10px';
-              specsGrid.style.background = 'rgba(255,255,255,0.03)';
-              specsGrid.style.padding = '14px';
-              specsGrid.style.borderRadius = '10px';
-              specsGrid.style.border = '1px solid rgba(255, 255, 255, 0.05)';
-              
-              const specBoxHTML = (icon, label, value, valColor = '#fff') => `
-                <div style="display: flex; align-items: center; gap: 8px; padding: 4px;">
-                  <span style="font-size: 16px;">${icon}</span>
-                  <div>
-                    <span style="display: block; font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">${label}</span>
-                    <span style="font-size: 12.5px; font-weight: 700; color: ${valColor};">${value}</span>
+
+              // 4. Ảnh lớn của bất động sản đang xem
+              const imgContainer = document.createElement('div');
+              imgContainer.style.width = '100%';
+              imgContainer.style.height = '230px';
+              imgContainer.style.display = 'flex';
+              imgContainer.style.gap = '10px';
+              imgContainer.style.boxSizing = 'border-box';
+
+              if (image2) {
+                // 2 ảnh song song
+                const flyerImg1 = document.createElement('div');
+                flyerImg1.style.flex = '1';
+                flyerImg1.style.height = '100%';
+                flyerImg1.style.borderRadius = '14px';
+                flyerImg1.style.overflow = 'hidden';
+                flyerImg1.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
+                flyerImg1.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+                
+                const imgEl1 = document.createElement('img');
+                imgEl1.src = img1.src;
+                imgEl1.style.width = '100%';
+                imgEl1.style.height = '100%';
+                imgEl1.style.objectFit = 'cover';
+                flyerImg1.appendChild(imgEl1);
+
+                const flyerImg2 = document.createElement('div');
+                flyerImg2.style.flex = '1';
+                flyerImg2.style.height = '100%';
+                flyerImg2.style.borderRadius = '14px';
+                flyerImg2.style.overflow = 'hidden';
+                flyerImg2.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
+                flyerImg2.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+                
+                const imgEl2 = document.createElement('img');
+                imgEl2.src = img2.src;
+                imgEl2.style.width = '100%';
+                imgEl2.style.height = '100%';
+                imgEl2.style.objectFit = 'cover';
+                flyerImg2.appendChild(imgEl2);
+
+                imgContainer.appendChild(flyerImg1);
+                imgContainer.appendChild(flyerImg2);
+              } else {
+                // 1 ảnh to chiếm toàn chiều rộng (gấp đôi kích thước ảnh khi song hành)
+                const flyerImg1 = document.createElement('div');
+                flyerImg1.style.width = '100%';
+                flyerImg1.style.height = '100%';
+                flyerImg1.style.borderRadius = '14px';
+                flyerImg1.style.overflow = 'hidden';
+                flyerImg1.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
+                flyerImg1.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+                
+                const imgEl1 = document.createElement('img');
+                imgEl1.src = img1.src;
+                imgEl1.style.width = '100%';
+                imgEl1.style.height = '100%';
+                imgEl1.style.objectFit = 'cover';
+                flyerImg1.appendChild(imgEl1);
+
+                imgContainer.appendChild(flyerImg1);
+              }
+              flyer.appendChild(imgContainer);
+
+              // 5. Khối thông tin kép (Thông tin nổi bật & Thông tin chi tiết)
+              const specsRow = document.createElement('div');
+              specsRow.style.display = 'flex';
+              specsRow.style.gap = '10px';
+              specsRow.style.width = '100%';
+              specsRow.style.boxSizing = 'border-box';
+
+              // 5a. Hộp THÔNG TIN NỔI BẬT
+              const leftHighlightsBlock = document.createElement('div');
+              leftHighlightsBlock.style.flex = '1';
+              leftHighlightsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
+              leftHighlightsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+              leftHighlightsBlock.style.borderRadius = '12px';
+              leftHighlightsBlock.style.padding = '10px';
+              leftHighlightsBlock.style.display = 'flex';
+              leftHighlightsBlock.style.flexDirection = 'column';
+
+              const highlightsTitle = document.createElement('div');
+              highlightsTitle.textContent = 'THÔNG TIN NỔI BẬT';
+              highlightsTitle.style.fontSize = '11px';
+              highlightsTitle.style.fontWeight = '800';
+              highlightsTitle.style.color = '#fbbf24';
+              highlightsTitle.style.textAlign = 'center';
+              highlightsTitle.style.letterSpacing = '0.5px';
+              highlightsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
+              highlightsTitle.style.paddingBottom = '5px';
+              highlightsTitle.style.marginBottom = '8px';
+              leftHighlightsBlock.appendChild(highlightsTitle);
+
+              const bulletHTML = (icon, text) => `
+                <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; font-family: var(--font-sans);">
+                  <div style="background: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px;">
+                    ${icon}
+                  </div>
+                  <div style="font-size: 9.5px; line-height: 1.35; color: #cbd5e1; font-weight: 500;">
+                    ${text}
                   </div>
                 </div>
               `;
-              
-              const legalStatus = item.legal || "Sổ hồng riêng";
+
               const parsedFloors = formatFloors(item.floors);
-              
-              specsGrid.innerHTML = `
-                ${specBoxHTML('📐', 'Diện Tích', `${item.area} m²`)}
-                ${specBoxHTML('📏', 'Chiều Ngang', (item.width && item.width > 0) ? `${item.width} m` : "Thương lượng")}
-                ${specBoxHTML('🏢', 'Kết Cấu', parsedFloors)}
-                ${specBoxHTML('🧭', 'Hướng Nhà', item.direction)}
-                ${specBoxHTML('🛏️', 'Phòng Ngủ', (item.bedrooms !== undefined && item.bedrooms !== null) ? `${item.bedrooms} PN` : "3 PN")}
-                ${specBoxHTML('🚽', 'Phòng WC', (item.bathrooms !== undefined && item.bathrooms !== null) ? `${item.bathrooms} WC` : "3 WC")}
-                <div style="grid-column: span 2; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 8px; margin-top: 4px;"></div>
-                <div style="grid-column: span 2;">
-                  ${specBoxHTML('📜', 'Pháp Lý Bản Đăng', legalStatus, '#22c55e')}
+              leftHighlightsBlock.innerHTML += `
+                ${bulletHTML('📍', `Vị trí tại phường ${item.ward || 'Trường Thạnh'}, TP. Thủ Đức.`)}
+                ${bulletHTML('📐', `Diện tích đất ${item.area}m².`)}
+                ${bulletHTML('🏢', `Kết cấu gồm ${parsedFloors}, thiết kế ${item.bedrooms || 3} phòng ngủ.`)}
+                ${bulletHTML('🧭', `Hướng nhà: ${item.direction || 'Không xác định'}.`)}
+                ${bulletHTML('💰', `Giá bán: ${item.priceText} đồng.`)}
+              `;
+
+              // 5b. Hộp THÔNG TIN CHI TIẾT
+              const rightSpecsBlock = document.createElement('div');
+              rightSpecsBlock.style.flex = '1';
+              rightSpecsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
+              rightSpecsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+              rightSpecsBlock.style.borderRadius = '12px';
+              rightSpecsBlock.style.padding = '10px';
+              rightSpecsBlock.style.display = 'flex';
+              rightSpecsBlock.style.flexDirection = 'column';
+
+              const specsTitle = document.createElement('div');
+              specsTitle.textContent = 'THÔNG TIN CHI TIẾT';
+              specsTitle.style.fontSize = '11px';
+              specsTitle.style.fontWeight = '800';
+              specsTitle.style.color = '#fbbf24';
+              specsTitle.style.textAlign = 'center';
+              specsTitle.style.letterSpacing = '0.5px';
+              specsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
+              specsTitle.style.paddingBottom = '5px';
+              specsTitle.style.marginBottom = '8px';
+              rightSpecsBlock.appendChild(specsTitle);
+
+              const specGrid = document.createElement('div');
+              specGrid.style.display = 'grid';
+              specGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+              specGrid.style.gap = '6px 8px';
+              specGrid.style.width = '100%';
+
+              const specItemHTML = (icon, label, value, valColor = '#ffffff') => `
+                <div style="display: flex; align-items: center; gap: 5px; padding: 2px 0;">
+                  <span style="font-size: 13px; color: #f97316;">${icon}</span>
+                  <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 7px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">${label}</span>
+                    <span style="font-size: 9.5px; font-weight: 700; color: ${valColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;">${value}</span>
+                  </div>
                 </div>
               `;
-              
-              flyer.appendChild(specsGrid);
-              
-              // 7. Chi tiết mô tả bài đăng tự luận
-              const descSection = document.createElement('div');
-              descSection.style.display = 'flex';
-              descSection.style.flexDirection = 'column';
-              descSection.style.gap = '6px';
-              
-              const descHeading = document.createElement('div');
-              descHeading.style.fontSize = '11px';
-              descHeading.style.fontWeight = '800';
-              descHeading.style.color = 'var(--accent)';
-              descHeading.style.letterSpacing = '0.5px';
-              descHeading.textContent = 'MÔ TẢ CHI TIẾT TÀI SẢN';
-              descSection.appendChild(descHeading);
-              
-              const descBody = document.createElement('div');
-              descBody.style.fontSize = '12px';
-              descBody.style.lineHeight = '1.55';
-              descBody.style.color = '#cbd5e1';
-              descBody.style.maxHeight = '180px';
-              descBody.style.overflow = 'hidden';
-              descBody.style.textOverflow = 'ellipsis';
-              descBody.style.display = '-webkit-box';
-              descBody.style.webkitLineClamp = '7';
-              descBody.style.webkitBoxOrient = 'vertical';
-              descBody.style.whiteSpace = 'pre-line';
-              descBody.textContent = item.desc;
-              
-              descSection.appendChild(descBody);
-              flyer.appendChild(descSection);
-              
-              // 8. Chân trang thông tin liên hệ và mã QR Zalo độc quyền
+
+              specGrid.innerHTML = `
+                ${specItemHTML('📐', 'Diện Tích', `${item.area} m²`)}
+                ${specItemHTML('📏', 'C.Ngang', (item.width && item.width > 0) ? `${item.width} m` : "4 m")}
+                ${specItemHTML('🏢', 'Kết Cấu', parsedFloors)}
+                ${specItemHTML('🧭', 'Hướng Nhà', item.direction)}
+                ${specItemHTML('🛏️', 'Phòng Ngủ', (item.bedrooms !== undefined && item.bedrooms !== null) ? `${item.bedrooms} PN` : "3 PN")}
+                ${specItemHTML('🚽', 'Phòng WC', (item.bathrooms !== undefined && item.bathrooms !== null) ? `${item.bathrooms} WC` : "3 WC")}
+              `;
+
+              const legalRow = document.createElement('div');
+              legalRow.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
+              legalRow.style.paddingTop = '6px';
+              legalRow.style.marginTop = '4px';
+              legalRow.style.width = '100%';
+              legalRow.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 14px;">📜</span>
+                  <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 7px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">PHÁP LÝ BÁN ĐẰNG</span>
+                    <span style="font-size: 10px; font-weight: 800; color: #22c55e;">${item.legal || "Sổ hồng riêng"}</span>
+                  </div>
+                </div>
+              `;
+
+              rightSpecsBlock.appendChild(specGrid);
+              rightSpecsBlock.appendChild(legalRow);
+
+              specsRow.appendChild(leftHighlightsBlock);
+              specsRow.appendChild(rightSpecsBlock);
+              flyer.appendChild(specsRow);
+
+              // 6. Chân trang liên hệ và QR Code
               const appFooter = document.createElement('div');
               appFooter.style.display = 'flex';
               appFooter.style.alignItems = 'center';
               appFooter.style.justifyContent = 'space-between';
-              appFooter.style.background = 'rgba(15, 23, 42, 0.4)';
-              appFooter.style.padding = '15px 18px';
+              appFooter.style.background = 'rgba(15, 23, 42, 0.45)';
+              appFooter.style.padding = '8px 12px';
               appFooter.style.borderRadius = '12px';
-              appFooter.style.border = '1px solid rgba(249, 115, 22, 0.15)';
+              appFooter.style.border = '1.5px solid rgba(249, 115, 22, 0.35)';
               appFooter.style.marginTop = 'auto';
-              
+              appFooter.style.position = 'relative';
+              appFooter.style.width = '100%';
+
+              const leftContact = document.createElement('div');
+              leftContact.style.display = 'flex';
+              leftContact.style.alignItems = 'center';
+              leftContact.style.gap = '8px';
+
+              const phoneIconContainer = document.createElement('div');
+              phoneIconContainer.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
+              phoneIconContainer.style.borderRadius = '50%';
+              phoneIconContainer.style.width = '32px';
+              phoneIconContainer.style.height = '32px';
+              phoneIconContainer.style.display = 'flex';
+              phoneIconContainer.style.alignItems = 'center';
+              phoneIconContainer.style.justifyContent = 'center';
+              phoneIconContainer.style.flexShrink = '0';
+              phoneIconContainer.style.fontSize = '12px';
+              phoneIconContainer.style.color = '#ffffff';
+              phoneIconContainer.textContent = '📞';
+
               const contactTexts = document.createElement('div');
               contactTexts.style.display = 'flex';
               contactTexts.style.flexDirection = 'column';
-              contactTexts.style.gap = '4px';
+              contactTexts.style.gap = '1px';
               contactTexts.innerHTML = `
-                <div style="font-size: 13px; font-weight: 800; color: #ffffff;">Liên Hệ: Mr. Thanh Trà</div>
-                <div style="font-size: 11px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 4px;">
-                  📞 0854.100.036 (Zalo kinh doanh)
-                </div>
-                <div style="font-size: 9px; color: #94a3b8; font-weight: 500; font-style: italic;">Quét mã QR để nhận sổ hồng và làm việc chính chủ!</div>
+                <div style="font-size: 11.5px; font-weight: 800; color: #ffffff; font-family: var(--font-sans);">Liên hệ: Mr. Thanh Trà</div>
+                <div style="font-size: 13px; font-weight: 950; color: #fbbf24; text-shadow: 0 0 6px rgba(249,115,22,0.3); font-family: var(--font-sans);">0854.100.036 <span style="font-size: 8px; font-weight: 600; color: #cbd5e1; text-shadow: none;">(Zalo kinh doanh)</span></div>
+                <div style="font-size: 8px; color: #94a3b8; font-weight: 600;">Quét mã QR để nhận sổ hồng và làm việc chính chủ!</div>
               `;
-              
-              const qrContainer = document.createElement('div');
-              qrContainer.style.background = '#ffffff';
-              qrContainer.style.padding = '6px';
-              qrContainer.style.borderRadius = '10px';
-              qrContainer.style.width = '74px';
-              qrContainer.style.height = '74px';
-              qrContainer.style.display = 'flex';
-              qrContainer.style.alignItems = 'center';
-              qrContainer.style.justifyContent = 'center';
-              qrContainer.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.2)';
-              
-              const qrImage = document.createElement('img');
-              qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent('https://zalo.me/0854100036')}`;
-              qrImage.style.width = '100%';
-              qrImage.style.height = '100%';
-              qrImage.style.objectFit = 'contain';
-              
-              qrContainer.appendChild(qrImage);
-              appFooter.appendChild(contactTexts);
-              appFooter.appendChild(qrContainer);
+
+              leftContact.appendChild(phoneIconContainer);
+              leftContact.appendChild(contactTexts);
+              appFooter.appendChild(leftContact);
+
+              // Nhãn phụ quét mã
+              const qrPromoText = document.createElement('div');
+              qrPromoText.style.position = 'absolute';
+              qrPromoText.style.right = '74px';
+              qrPromoText.style.bottom = '12px';
+              qrPromoText.style.color = '#f97316';
+              qrPromoText.style.fontSize = '8px';
+              qrPromoText.style.fontWeight = '800';
+              qrPromoText.style.fontStyle = 'italic';
+              qrPromoText.style.transform = 'rotate(-8deg)';
+              qrPromoText.innerHTML = 'Quét mã ngay! ➔';
+              appFooter.appendChild(qrPromoText);
+
+              const qrFrame = document.createElement('div');
+              qrFrame.style.border = '1.5px solid #f97316';
+              qrFrame.style.borderRadius = '6px';
+              qrFrame.style.padding = '3px';
+              qrFrame.style.background = '#ffffff';
+              qrFrame.style.width = '56px';
+              qrFrame.style.height = '56px';
+              qrFrame.style.display = 'flex';
+              qrFrame.style.alignItems = 'center';
+              qrFrame.style.justifyContent = 'center';
+              qrFrame.style.boxShadow = '0 0 8px rgba(249, 115, 22, 0.3)';
+              qrFrame.style.flexShrink = '0';
+
+              const qrImg = document.createElement('img');
+              qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://zalo.me/0854100036')}`;
+              qrImg.style.width = '100%';
+              qrImg.style.height = '100%';
+              qrImg.style.objectFit = 'contain';
+
+              qrFrame.appendChild(qrImg);
+              appFooter.appendChild(qrFrame);
               flyer.appendChild(appFooter);
-              
+
+              // 7. Thanh tính năng cam kết cuối trang
+              const bottomBar = document.createElement('div');
+              bottomBar.style.display = 'flex';
+              bottomBar.style.justifyContent = 'space-around';
+              bottomBar.style.alignItems = 'center';
+              bottomBar.style.width = '100%';
+              bottomBar.style.borderTop = '1px solid rgba(255,255,255,0.08)';
+              bottomBar.style.paddingTop = '6px';
+              bottomBar.style.fontFamily = 'var(--font-sans)';
+              bottomBar.style.fontSize = '9px';
+              bottomBar.style.color = '#cbd5e1';
+              bottomBar.style.fontWeight = '700';
+
+              bottomBar.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 3px;">🛡️ Pháp lý rõ ràng</div>
+                <div style="color: rgba(255,255,255,0.15);">|</div>
+                <div style="display: flex; align-items: center; gap: 3px;">🤝 Làm việc chính chủ</div>
+                <div style="color: rgba(255,255,255,0.15);">|</div>
+                <div style="display: flex; align-items: center; gap: 3px;">🕒 Hỗ trợ 24/7</div>
+              `;
+              flyer.appendChild(bottomBar);
+
               document.body.appendChild(flyer);
               
               // Chạy html2canvas để kết xuất ảnh
@@ -5679,8 +5934,8 @@
                 html2canvas(flyer, {
                   useCORS: true,
                   allowTaint: false,
-                  scale: 2,
-                  backgroundColor: '#0a1220',
+                  scale: 2.5,
+                  backgroundColor: '#020712',
                   logging: false
                 }).then(canvas => {
                   const dataUrl = canvas.toDataURL('image/png');
@@ -5701,14 +5956,25 @@
                 });
               }, 400);
             };
-            
-            if (tempImage.complete) {
-              proceedWithCapture();
-            } else {
-              tempImage.onload = proceedWithCapture;
-              tempImage.onerror = () => {
-                tempImage.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="100%25" height="100%25" fill="%231a2238"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="28" fill="%23f97316"%3EThanh Trà BĐS Nhà Phố Thủ Đức%3C/text%3E%3C/svg%3E';
+
+            const onImageLoaded = () => {
+              loadedCount++;
+              if (loadedCount === targetCount) {
                 proceedWithCapture();
+              }
+            };
+
+            img1.onload = onImageLoaded;
+            img1.onerror = () => {
+              img1.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="100%25" height="100%25" fill="%231a2238"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="28" fill="%23f97316"%3EThanh Trà BĐS Nhà Phố Thủ Đức%3C/text%3E%3C/svg%3E';
+              onImageLoaded();
+            };
+
+            if (img2) {
+              img2.onload = onImageLoaded;
+              img2.onerror = () => {
+                img2.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="100%25" height="100%25" fill="%231a2238"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="28" fill="%23f97316"%3EThanh Trà BĐS Nhà Phố Thủ Đức%3C/text%3E%3C/svg%3E';
+                onImageLoaded();
               };
             }
           };
