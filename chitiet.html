@@ -17,7 +17,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-B1TZ24PBW0"></script>
@@ -57,6 +57,7 @@
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
       --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-serif: 'Playfair Display', serif;
     }
     
     body {
@@ -1192,6 +1193,110 @@
         right: 16px;
       }
     }
+
+    /* Style for Recommended Properties */
+    .recommendations-card {
+      position: sticky;
+      top: 94px;
+      border: 1px solid var(--border);
+    }
+    
+    .recommend-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      transition: all 0.25s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid transparent;
+    }
+    
+    .recommend-item:hover {
+      background-color: var(--secondary-light);
+      border-color: rgba(249, 115, 22, 0.12);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .recommend-img-wrapper {
+      width: 76px;
+      height: 76px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+    
+    .recommend-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    
+    .recommend-item:hover .recommend-img {
+      transform: scale(1.08);
+    }
+    
+    .recommend-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-grow: 1;
+      min-width: 0;
+    }
+    
+    .recommend-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 4px;
+      transition: color 0.2s ease;
+    }
+    
+    .recommend-item:hover .recommend-title {
+      color: var(--primary);
+    }
+    
+    .recommend-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: auto;
+    }
+    
+    .recommend-price {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--secondary);
+    }
+    
+    .recommend-area {
+      font-size: 11px;
+      font-weight: 500;
+      color: #64748b;
+    }
+
+    .recommend-ward {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--primary);
+      background-color: rgba(249, 115, 22, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 110px;
+    }
   </style>
 </head>
 <body>
@@ -1212,11 +1317,34 @@
   <!-- HEADER -->
   <header>
     <div class="container header-content">
-      <a href="/" class="logo-container">
-        <div class="logo-badge">T</div>
-        <div class="logo-text">
-          <span class="logo-main">THANH TRÀ BĐS</span>
-          <span class="logo-sub">MUA BÁN NHÀ PHỐ UY TÍN</span>
+      <a href="/" class="logo-group" style="display: inline-flex; align-items: center; gap: 14px; text-decoration: none;">
+        <!-- T. Logo Icon -->
+        <div class="brand-logo-container" style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: #0c1524; border-radius: 10px; border: 1.5px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);">
+          <svg width="26" height="26" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Geometric Slab T -->
+            <path d="M12 18C12 16.8954 12.8954 16 14 16H50C51.1046 16 52 16.8954 52 18V24C52 25.1046 51.1046 26 50 26H38V48C38 49.1046 37.1046 50 36 50H28C26.8954 50 26 49.1046 26 48V26H14C12.8954 26 12 25.1046 12 24V18Z" fill="#f97316" />
+            <!-- Round dot -->
+            <circle cx="50" cy="45" r="5.5" fill="#f97316" />
+          </svg>
+        </div>
+        
+        <!-- Thin vertical separator line -->
+        <div class="brand-vertical-divider" style="height: 38px; width: 1.5px; background: rgba(249, 115, 22, 0.4); flex-shrink: 0;"></div>
+        
+        <!-- Brand wordmark area -->
+        <div class="brand-wordmark" style="display: flex; flex-direction: column; justify-content: center; text-align: left;">
+          <!-- THANH TRÀ (Premium Serif) -->
+          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 850; color: #0f172a; letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
+            Thanh Trà
+          </div>
+          <!-- B Đ S with border under -->
+          <div style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid rgba(249, 115, 22, 0.35); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font); font-size: 10px; font-weight: 800; color: #ea580c; letter-spacing: 5px; line-height: 1; text-transform: uppercase;">
+            B Đ S
+          </div>
+          <!-- Mua bán nhà phố - TP. Thủ Đức -->
+          <div style="font-family: var(--font); font-size: 7.5px; font-weight: 600; color: #475569; letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
+            Mua bán nhà phố - TP. Thủ Đức
+          </div>
         </div>
       </a>
       <a href="/" class="back-home-btn">
@@ -1362,39 +1490,14 @@
       <!-- RIGHT COLUMN (SIDEBAR) -->
       <div class="sidebar-column">
         
-        <!-- Contact Sticky Card -->
-        <div class="card contact-card">
-          <div class="agent-profile">
-            <div class="agent-avatar">T</div>
-            <div class="agent-info">
-              <span class="agent-name">Mr. Thanh Trà</span>
-              <span class="agent-title">Chuyên Viên Tư Vấn Nhà Phố Thủ Đức</span>
-            </div>
-          </div>
-          
-          <button class="cta-button" onclick="window.location.href='tel:0854100036'">
-            <i data-lucide="phone" style="width: 18px; height: 18px;"></i>
-            Gọi ngay: 0854.100.036
-          </button>
-          
-          <a id="zaloLink" href="https://zalo.me/0854100036" target="_blank" rel="noopener noreferrer" class="zalo-button">
-            <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
-            Liên hệ qua Zalo
-          </a>
-
-          <div class="commitment-list">
-            <div class="commitment-item">
-              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-              🛡️ Cam kết pháp lý rõ ràng
-            </div>
-            <div class="commitment-item">
-              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-              🤝 Làm việc trực tiếp chính chủ
-            </div>
-            <div class="commitment-item">
-              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-              🕒 Hỗ trợ thủ tục sang tên 24/7
-            </div>
+        <!-- Recommended Properties Card -->
+        <div class="card recommendations-card" id="recommendationsCard" style="position: sticky; top: 94px;">
+          <h3 style="font-family: var(--font-serif); font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 18px; border-bottom: 2px solid var(--primary); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="sparkles" style="width: 20px; height: 20px; color: var(--primary);"></i>
+            Sản phẩm đề xuất
+          </h3>
+          <div id="recommendationsList" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="color: #64748b; font-size: 13px; text-align: center; padding: 20px 0;">Đang tải danh sách đề xuất...</div>
           </div>
         </div>
 
@@ -1555,10 +1658,36 @@
   <!-- FOOTER -->
   <footer>
     <div class="container footer-content">
-      <div class="footer-logo">
-        <div class="footer-logo-badge">T</div>
-        <span style="color: #ffffff; font-weight: 800; font-size: 15px; letter-spacing: 0.5px;">THANH TRÀ BĐS</span>
-      </div>
+      <a href="/" class="logo-group" style="display: inline-flex; align-items: center; gap: 14px; text-decoration: none;">
+        <!-- T. Logo Icon -->
+        <div class="brand-logo-container" style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: #0c1524; border-radius: 10px; border: 1.5px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);">
+          <svg width="26" height="26" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Geometric Slab T -->
+            <path d="M12 18C12 16.8954 12.8954 16 14 16H50C51.1046 16 52 16.8954 52 18V24C52 25.1046 51.1046 26 50 26H38V48C38 49.1046 37.1046 50 36 50H28C26.8954 50 26 49.1046 26 48V26H14C12.8954 26 12 25.1046 12 24V18Z" fill="#f97316" />
+            <!-- Round dot -->
+            <circle cx="50" cy="45" r="5.5" fill="#f97316" />
+          </svg>
+        </div>
+        
+        <!-- Thin vertical separator line -->
+        <div class="brand-vertical-divider" style="height: 38px; width: 1.5px; background: rgba(249, 115, 22, 0.4); flex-shrink: 0;"></div>
+        
+        <!-- Brand wordmark area -->
+        <div class="brand-wordmark" style="display: flex; flex-direction: column; justify-content: center; text-align: left;">
+          <!-- THANH TRÀ (Premium Serif) -->
+          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 850; color: #ffffff; letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
+            Thanh Trà
+          </div>
+          <!-- B Đ S with border under -->
+          <div style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid rgba(249, 115, 22, 0.35); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font); font-size: 10px; font-weight: 800; color: #f97316; letter-spacing: 5px; line-height: 1; text-transform: uppercase;">
+            B Đ S
+          </div>
+          <!-- Mua bán nhà phố - TP. Thủ Đức -->
+          <div style="font-family: var(--font); font-size: 7.5px; font-weight: 600; color: #94a3b8; letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
+            Mua bán nhà phố - TP. Thủ Đức
+          </div>
+        </div>
+      </a>
       <div class="footer-links">
         <a href="/">Trang chủ</a>
         <a href="tel:0854100036">Hotline: 0854.100.036</a>
@@ -1805,8 +1934,10 @@
       // 7. Contacts links customizing
       const messageText = `Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin chi tiết căn: "${item.title}" có mã số căn #${item.id}`;
       const zaloUrl = `https://zalo.me/0854100036?text=${encodeURIComponent(messageText)}`;
-      document.getElementById('zaloLink').href = zaloUrl;
-      document.getElementById('zaloLinkMobile').href = zaloUrl;
+      const zaloEl = document.getElementById('zaloLink');
+      if (zaloEl) zaloEl.href = zaloUrl;
+      const zaloMobileEl = document.getElementById('zaloLinkMobile');
+      if (zaloMobileEl) zaloMobileEl.href = zaloUrl;
 
       currentProperty = item;
 
@@ -1873,6 +2004,7 @@
         .then(allData => {
           if (Array.isArray(allData)) {
             propertyData = allData;
+            renderRecommendations(data[0], propertyData);
           }
         })
         .catch(err => console.warn('Could not load all properties for Chatbot:', err));
@@ -1880,6 +2012,123 @@
         console.error('Lỗi fetch:', error);
         showError('Đã xảy ra lỗi trong quá trình tải thông tin bất động sản. Vui lòng kết nối mạng ổn định và thử lại.');
       }
+    }
+
+    function createSlug(title) {
+      const map = {
+        'à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ': 'a',
+        'è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ': 'e',
+        'ì|í|ị|ỉ|ĩ': 'i',
+        'ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ': 'o',
+        'ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ': 'u',
+        'ỳ|ý|ỵ|ỷ|ỹ': 'y',
+        'đ': 'd',
+        'À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ': 'a',
+        'È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ': 'e',
+        'Ì|Í|Ị|Ỉ|Ĩ': 'i',
+        'Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ': 'o',
+        'Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ': 'u',
+        'Ý|Ý|Ỵ|Ỷ|Ỹ': 'y',
+        'Đ': 'd'
+      };
+      let str = title || '';
+      if (typeof str !== 'string') {
+        str = String(str);
+      }
+      for (const [pattern, replacement] of Object.entries(map)) {
+        str = str.replace(new RegExp(pattern, 'g'), replacement);
+      }
+      return str
+        .replace(/[^\w\s-]/g, '')   // bỏ ký tự đặc biệt và emoji
+        .replace(/[\s_]+/g, '-')    // khoảng trắng → gạch ngang
+        .replace(/-+/g, '-')        // nhiều gạch liên tiếp → 1 gạch
+        .replace(/^-+|-+$/g, '')    // bỏ gạch đầu/cuối
+        .toLowerCase();
+    }
+
+    function normalizeWard(ward) {
+      if (!ward) return '';
+      return String(ward)
+        .trim()
+        .toLowerCase()
+        .replace(/^phường\s+/g, '') // loại bỏ "phường "
+        .replace(/^p\.\s*/g, '');   // loại bỏ "p."
+    }
+
+    function renderRecommendations(current, allList) {
+      const listContainer = document.getElementById('recommendationsList');
+      if (!listContainer || !current || !Array.isArray(allList) || allList.length === 0) return;
+
+      // Lọc bỏ chính sản phẩm hiện tại
+      const otherProperties = allList.filter(item => String(item.id) !== String(current.id));
+      if (otherProperties.length === 0) {
+        listContainer.innerHTML = '<div style="color: #64748b; font-size: 13px; text-align: center; padding: 20px 0;">Không có sản phẩm đề xuất khác.</div>';
+        return;
+      }
+
+      const currentWardNorm = normalizeWard(current.ward);
+
+      // Phân nhóm sản phẩm cùng phường và khác phường
+      let sameWardProps = [];
+      let otherWardProps = [];
+
+      otherProperties.forEach(item => {
+        if (normalizeWard(item.ward) === currentWardNorm && currentWardNorm !== '') {
+          sameWardProps.push(item);
+        } else {
+          otherWardProps.push(item);
+        }
+      });
+
+      // Hàm trộn ngẫu nhiên (shuffle)
+      const shuffle = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      };
+      
+      shuffle(sameWardProps);
+      shuffle(otherWardProps);
+
+      // Kết hợp: Ưu tiên cùng phường, nếu thiếu điền từ phường khác cho đủ 4
+      let recommended = [...sameWardProps];
+      if (recommended.length < 4) {
+        const needed = 4 - recommended.length;
+        recommended = recommended.concat(otherWardProps.slice(0, needed));
+      } else {
+        recommended = recommended.slice(0, 4);
+      }
+
+      // Render ra HTML giao diện
+      listContainer.innerHTML = '';
+      
+      recommended.forEach(item => {
+        const slug = createSlug(item.title);
+        const url = `/chitiet/${item.id}-${slug}`;
+        const priceStr = item.priceText || `${item.price} Tỷ`;
+        const areaStr = `${item.area} m²`;
+        const wardStr = item.ward ? `P. ${item.ward}` : 'Thủ Đức';
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.className = 'recommend-item';
+        a.innerHTML = `
+          <div class="recommend-img-wrapper">
+            <img class="recommend-img" src="${item.img || 'https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=400&q=80'}" alt="${item.title || 'Sản phẩm đề xuất'}" referrerPolicy="no-referrer">
+          </div>
+          <div class="recommend-info">
+            <div class="recommend-title" title="${item.title || ''}">${item.title || ''}</div>
+            <div class="recommend-meta">
+              <span class="recommend-price">${priceStr}</span>
+              <span class="recommend-area">${areaStr}</span>
+              <span class="recommend-ward" title="${wardStr}">${wardStr}</span>
+            </div>
+          </div>
+        `;
+        listContainer.appendChild(a);
+      });
     }
 
     /* --- TOAST NOTIFICATION UTILITIES --- */
