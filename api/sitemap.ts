@@ -87,7 +87,7 @@ function buildPropertyEntry(row: PropertyRow): string {
   // Skip row không có dữ liệu bắt buộc để tránh XML không hợp lệ
   if (!row.id || !row.title) return '';
 
-  const loc = `${SITE_URL}/?id=${row.id}`;
+  const loc = `${SITE_URL}/chitiet.html?id=${row.id}`;
   const lastmodStr = row.updated_at ?? row.created_at;
   let lastmod = '';
   try {
@@ -141,7 +141,7 @@ function buildFallbackXml(): string {
 function buildHtmlDiscoveryPage(properties: PropertyRow[]): string {
   const links = properties
     .filter(p => p.id && p.title)
-    .map(p => `  <li><a href="${SITE_URL}/?id=${p.id}">${p.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a></li>`)
+    .map(p => `  <li><a href="${SITE_URL}/chitiet.html?id=${p.id}">${p.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a></li>`)
     .join('\n');
 
   return `<!DOCTYPE html>
