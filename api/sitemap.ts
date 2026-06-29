@@ -38,6 +38,35 @@ interface PropertyRow {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+function createSlug(title: string): string {
+  const map: { [key: string]: string } = {
+    'à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ': 'a',
+    'è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ': 'e',
+    'ì|í|ị|ỉ|ĩ': 'i',
+    'ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ': 'o',
+    'ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ': 'u',
+    'ỳ|ý|ỵ|ỷ|ỹ': 'y',
+    'đ': 'd',
+    'À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ': 'a',
+    'È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ': 'e',
+    'Ì|Í|Ị|Ỉ|Ĩ': 'i',
+    'Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ': 'o',
+    'Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ': 'u',
+    'Ý|Ý|Ỵ|Ỷ|Ỹ': 'y',
+    'Đ': 'd'
+  };
+  let str = title || '';
+  for (const [pattern, replacement] of Object.entries(map)) {
+    str = str.replace(new RegExp(pattern, 'g'), replacement);
+  }
+  return str
+    .replace(/[^\w\s-]/g, '')   // bỏ ký tự đặc biệt và emoji
+    .replace(/[\s_]+/g, '-')    // khoảng trắng → gạch ngang
+    .replace(/-+/g, '-')        // nhiều gạch liên tiếp → 1 gạch
+    .replace(/^-+|-+$/g, '')    // bỏ gạch đầu/cuối
+    .toLowerCase();
+}
+
 function escapeXml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -87,7 +116,7 @@ function buildPropertyEntry(row: PropertyRow): string {
   // Skip row không có dữ liệu bắt buộc để tránh XML không hợp lệ
   if (!row.id || !row.title) return '';
 
-  const loc = `${SITE_URL}/chitiet.html?id=${row.id}`;
+  const loc = `${SITE_URL}/chitiet/${row.id}-${createSlug(row.title)}`;
   const lastmodStr = row.updated_at ?? row.created_at;
   let lastmod = '';
   try {
@@ -141,7 +170,7 @@ function buildFallbackXml(): string {
 function buildHtmlDiscoveryPage(properties: PropertyRow[]): string {
   const links = properties
     .filter(p => p.id && p.title)
-    .map(p => `  <li><a href="${SITE_URL}/chitiet.html?id=${p.id}">${p.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a></li>`)
+    .map(p => `  <li><a href="${SITE_URL}/chitiet/${p.id}-${createSlug(p.title)}">${p.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a></li>`)
     .join('\n');
 
   return `<!DOCTYPE html>

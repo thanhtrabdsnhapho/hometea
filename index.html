@@ -4362,6 +4362,39 @@
         return `${val} tầng`;
       }
 
+      function createSlug(title) {
+        // Bảng chuyển đổi tiếng Việt có dấu → không dấu
+        const map = {
+          'à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ': 'a',
+          'è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ': 'e',
+          'ì|í|ị|ỉ|ĩ': 'i',
+          'ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ': 'o',
+          'ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ': 'u',
+          'ỳ|ý|ỵ|ỷ|ỹ': 'y',
+          'đ': 'd',
+          'À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ': 'a',
+          'È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ': 'e',
+          'Ì|Í|Ị|Ỉ|Ĩ': 'i',
+          'Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ': 'o',
+          'Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ': 'u',
+          'Ỳ|Ý|Ỵ|Ỷ|Ỹ': 'y',
+          'Đ': 'd'
+        };
+        let str = title || '';
+        if (typeof str !== 'string') {
+          str = String(str);
+        }
+        for (const [pattern, replacement] of Object.entries(map)) {
+          str = str.replace(new RegExp(pattern, 'g'), replacement);
+        }
+        return str
+          .replace(/[^\w\s-]/g, '')   // bỏ ký tự đặc biệt và emoji
+          .replace(/[\s_]+/g, '-')    // khoảng trắng → gạch ngang
+          .replace(/-+/g, '-')        // nhiều gạch liên tiếp → 1 gạch
+          .replace(/^-+|-+$/g, '')    // bỏ gạch đầu/cuối
+          .toLowerCase();
+      }
+
       function getPublicDisplayAddress(p) {
         if (!p) return "";
         let streetVal = p.street ? p.street.trim() : "";
@@ -5237,6 +5270,15 @@
       }
 
       function openProductModal(id) {
+        const foundItem = propertyData.find(p => p.id == id);
+        if (foundItem) {
+          const slug = createSlug(foundItem.title);
+          window.location.href = `/chitiet/${foundItem.id}-${slug}`;
+        } else {
+          window.location.href = `/chitiet?id=${id}`;
+        }
+        return;
+
         const item = propertyData.find(p => p.id == id);
         if (!item) return;
 
@@ -6469,7 +6511,9 @@
           
           // Chuyển đổi mã số căn trong câu trả lời thành liên kết chi tiết trực quan tự động mở popup
           formattedText = formattedText.replace(/(?:\[?Căn\s*#(\d+)\]?)/gi, (match, propId) => {
-            const linkUrl = window.location.origin + window.location.pathname + '?id=' + propId;
+            const item = propertyData.find(p => p.id == propId);
+            const slug = item ? createSlug(item.title) : '';
+            const linkUrl = slug ? `${window.location.origin}/chitiet/${propId}-${slug}` : `${window.location.origin}/chitiet?id=${propId}`;
             return `<a href="${linkUrl}" onclick="event.preventDefault(); openProductModal('${propId}');" class="chat-product-link" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fff3eb; color: #ea580c; border: 1px solid #ffedd5; border-radius: 6px; font-weight: 700; font-size: 12.5px; text-decoration: none; margin: 4px 2px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff3eb'">🏡 Xem chi tiết Căn #${propId} ↗</a>`;
           });
           

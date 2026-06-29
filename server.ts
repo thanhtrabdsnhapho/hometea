@@ -989,6 +989,35 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
   const SITE_URL = 'https://thanhtrabds.vercel.app'; // TODO: đổi sang domain riêng khi có
   const MAX_IMAGES_PER_URL = 10;
 
+  function createSlug(title: string): string {
+    const map: { [key: string]: string } = {
+      'à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ': 'a',
+      'è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ': 'e',
+      'ì|í|ị|ỉ|ĩ': 'i',
+      'ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ': 'o',
+      'ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ': 'u',
+      'ỳ|ý|ỵ|ỷ|ỹ': 'y',
+      'đ': 'd',
+      'À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ': 'a',
+      'È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ': 'e',
+      'Ì|Í|Ị|Ỉ|Ĩ': 'i',
+      'Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ': 'o',
+      'Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ': 'u',
+      'Ý|Ý|Ỵ|Ỷ|Ỹ': 'y',
+      'Đ': 'd'
+    };
+    let str = title || '';
+    for (const [pattern, replacement] of Object.entries(map)) {
+      str = str.replace(new RegExp(pattern, 'g'), replacement);
+    }
+    return str
+      .replace(/[^\w\s-]/g, '')   // bỏ ký tự đặc biệt và emoji
+      .replace(/[\s_]+/g, '-')    // khoảng trắng → gạch ngang
+      .replace(/-+/g, '-')        // nhiều gạch liên tiếp → 1 gạch
+      .replace(/^-+|-+$/g, '')    // bỏ gạch đầu/cuối
+      .toLowerCase();
+  }
+
   function escapeXml(value: string): string {
     return value
       .replace(/&/g, '&amp;')
@@ -1027,7 +1056,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 
   function buildPropertyEntry(row: any): string {
     if (!row.id || !row.title) return '';
-    const loc = `${SITE_URL}/?id=${row.id}`;
+    const loc = `${SITE_URL}/chitiet/${row.id}-${createSlug(row.title)}`;
     const lastmodStr = row.updated_at ?? row.created_at;
     let lastmod = '';
     try {
@@ -1111,6 +1140,16 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
   app.get("/sitemap.xml", getSitemapXmlHandler);
   app.get("/robots.txt", getRobotsTxtHandler);
   app.get("/api/robots", getRobotsTxtHandler);
+
+  // Thêm rule rewrite /chitiet/:slug tương tự như vercel.json để chạy chuẩn trên cả dev/prod container
+  app.get("/chitiet/:slug", (req, res, next) => {
+    if (process.env.NODE_ENV !== "production") {
+      req.url = "/chitiet.html";
+      next();
+    } else {
+      res.sendFile(path.join(process.cwd(), 'dist', 'chitiet.html'));
+    }
+  });
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

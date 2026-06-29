@@ -30,6 +30,8 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     /* Reset & Base Styles */
@@ -764,6 +766,432 @@
         font-size: 20px;
       }
     }
+
+    /* --- TOAST NOTIFICATION --- */
+    .toast-notification {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 1100;
+      background-color: #065f46;
+      color: #fff;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      transform: translateX(120%);
+      transition: all 0.3s ease;
+      border-left: 5px solid #34d399;
+    }
+
+    .toast-notification.show {
+      transform: translateX(0);
+    }
+
+    /* --- CHATBOX AI CONSULTANT (CỐ ĐỊNH GÓC DƯỚI PHẢI) --- */
+    .ai-chat-trigger {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #fdba74);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(10, 31, 61, 0.4);
+      z-index: 1000;
+      border: 2px solid #f97316;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ai-chat-trigger:hover {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 12px 35px rgba(10, 31, 61, 0.5);
+    }
+
+    .pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid #f97316;
+      animation: pulseAnimation 2s infinite;
+    }
+
+    .ai-chat-window {
+      position: fixed;
+      bottom: 96px;
+      right: 24px;
+      width: 380px;
+      height: 520px;
+      background-color: #fff;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1040;
+      opacity: 0;
+      transform: translateY(30px) scale(0.9);
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ai-chat-window.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .chat-header {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #f97316;
+    }
+
+    .chat-header-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fbbf24;
+      border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+
+    .chat-header-title h5 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+
+    .chat-header-status {
+      font-size: 11px;
+      color: #fed7aa;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+
+    .chat-status-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #22c55e;
+      border-radius: 50%;
+    }
+
+    .chat-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .chat-actions button {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .chat-actions button:hover {
+      color: #fbbf24;
+    }
+
+    /* CẤU HÌNH API KEY */
+    .chat-key-setup {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+      background-color: var(--neutral-light);
+    }
+
+    .setup-icon {
+      width: 60px;
+      height: 60px;
+      background-color: rgba(249, 115, 22, 0.1);
+      color: #ea580c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .chat-key-setup h6 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .chat-key-setup p {
+      font-size: 13px;
+      color: var(--neutral-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .key-input-container {
+      width: 100%;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .key-input-container label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--neutral-dark);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .api-key-field {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      font-size: 13px;
+      background-color: #fff;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    .api-key-field:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    }
+
+    .btn-activate-ai {
+      width: 100%;
+      background-color: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-activate-ai:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-ai-server:hover {
+      border-color: #f97316 !important;
+      color: #ea580c !important;
+      background-color: rgba(249, 115, 22, 0.03) !important;
+    }
+
+    .btn-ai-server.active-btn {
+      border-color: #f97316 !important;
+      background-color: rgba(249, 115, 22, 0.08) !important;
+      color: #ea580c !important;
+      font-weight: 700 !important;
+      box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1) !important;
+    }
+
+    .key-guide-link {
+      font-size: 12px;
+      color: #c2410c;
+      text-decoration: underline;
+      margin-top: 12px;
+      font-weight: 500;
+    }
+
+    /* KHU VỰC CHAT HOẠT ĐỘNG */
+    .chat-playground {
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - 70px);
+      background-color: #fff;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      position: relative;
+      word-break: break-word;
+    }
+
+    .bubble-bot {
+      background-color: var(--neutral-light);
+      color: var(--neutral-dark);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .bubble-user {
+      background-color: var(--primary);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* HỘP GỢI Ý CÂU HỎI THÔNG MINH */
+    .chat-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 0;
+      background-color: transparent;
+    }
+
+    .suggestion-pill {
+      white-space: nowrap;
+      background-color: #fff;
+      border: 1px solid var(--border);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 30px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .suggestion-pill:hover {
+      border-color: #f97316;
+      background-color: rgba(249, 115, 22, 0.05);
+    }
+
+    /* HỘP NHẬP TIN NHẮN CHAT */
+    .chat-input-bar {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #fff;
+    }
+
+    .chat-input-field {
+      flex-grow: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      outline: none;
+      font-size: 13.5px;
+      transition: all 0.2s;
+    }
+
+    .chat-input-field:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    .btn-send-message {
+      width: 38px;
+      height: 38px;
+      background-color: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-send-message:hover {
+      background-color: var(--primary-hover);
+      transform: scale(1.05);
+    }
+
+    /* TYPING EFFECT LOADING */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 4px 8px;
+      align-items: center;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--neutral-muted);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes pulseAnimation {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1.4);
+        opacity: 0;
+      }
+    }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    @media (max-width: 480px) {
+      .ai-chat-window {
+        width: calc(100vw - 32px);
+        height: calc(100vh - 120px);
+        bottom: 80px;
+        right: 16px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -845,6 +1273,15 @@
             <div id="propAddress" class="address-row">
               <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
               <span>--</span>
+            </div>
+
+            <div class="info-action-row" style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
+              <button id="modalShareBtn" class="cta-button" style="background-color: #f1f5f9; color: var(--neutral-dark); border: 1.5px solid var(--border); box-shadow: none; font-size: 14.5px; padding: 10px 16px; border-radius: var(--radius-sm); flex: 1; min-width: 150px;">
+                <span>📘</span> Chia sẻ liên kết
+              </button>
+              <button id="modalDownloadImageBtn" class="cta-button" style="background-color: var(--primary); color: white; border: none; font-size: 14.5px; padding: 10px 16px; border-radius: var(--radius-sm); flex: 1; min-width: 150px;">
+                <span>📸</span> Chụp ảnh tin đăng
+              </button>
             </div>
           </div>
         </div>
@@ -966,6 +1403,143 @@
     </div>
   </main>
 
+  <!-- THÔNG BÁO THÀNH CÔNG (TOAST) -->
+  <div id="toastNotification" class="toast-notification">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toastMessage">Yêu cầu liên hệ được gửi thành công!</span>
+  </div>
+
+  <!-- CHATBOX AI CONSULTANT (BẤT ĐỘNG SẢN) -->
+  <!-- Nút kích hoạt nổi bật -->
+  <button class="ai-chat-trigger" id="aiChatTrigger" aria-label="Hỏi Trợ lý AI">
+    <div class="pulse-ring"></div>
+    <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l5.428-3.159c.531.14 1.09.213 1.662.213 5.022 0 9.09-3.729 9.09-8.324S21.1 1.406 16.07 1.406c-5.022 0-9.09 3.73-9.09 8.325 0 2.228.949 4.25 2.477 5.753z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M16 9h.01m-8.01 4h12c-.5 1-2.5 2-6 2s-5.5-1-6-2z" />
+    </svg>
+  </button>
+
+  <!-- Khung cửa sổ chat tư vấn -->
+  <div class="ai-chat-window" id="aiChatWindow">
+    <div class="chat-header">
+      <div class="chat-header-profile">
+        <div class="chat-avatar">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+          </svg>
+        </div>
+        <div class="chat-header-title">
+          <h5>AI Thanh Trà BĐS</h5>
+          <div class="chat-header-status">
+            <span class="chat-status-dot"></span>
+            Đang trực tuyến
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-actions">
+        <!-- Reset Key -->
+        <button id="btnAiConfigure" title="Thay đổi API Key" aria-label="Cấu hình API Key">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        <!-- Nút đóng -->
+        <button id="btnAiClose" aria-label="Ẩn chat">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- TRẠNG THÁI CHƯA LƯU API KEY (YÊU CẦU ĐĂNG NHẬP KEY) -->
+    <div class="chat-key-setup" id="chatAiKeySetup" style="display: none;">
+      <div class="setup-icon" style="margin-bottom: 8px;">
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <h6 style="font-weight: 700; font-size: 16px; margin-bottom: 4px; color: var(--primary);">Chọn Máy Chủ AI Hoạt Động</h6>
+      <p style="font-size: 12px; color: var(--neutral-muted); margin-bottom: 16px; line-height: 1.4; padding: 0 12px;">Các Máy chủ AI_1 đến AI_5 đại diện cho các kênh kết nối dịch vụ Gemini an toàn cao cấp của riêng bạn. Hãy chọn kênh phù hợp hoặc tắt chế độ để tự động xoay chuyển.</p>
+      
+      <!-- Hidden input for backwards compatibility -->
+      <input type="hidden" id="gm_ak_fld" value="">
+
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 20px;" id="aiServerButtonsContainer">
+        <button type="button" class="btn-ai-server active-btn" data-server-mode="auto" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px 12px; font-weight: 600; font-size: 13px; border-radius: 8px; border: 1.5px solid var(--primary); background: rgba(249, 115, 22, 0.08); color: var(--primary); cursor: pointer; transition: all 0.2s;">
+          <span>⚡ Tự động xoay chuyển (Khuyên dùng)</span>
+        </button>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%;">
+          <button type="button" class="btn-ai-server" data-server-mode="AI_1" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; font-weight: 500; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--neutral-light); color: var(--neutral-muted); cursor: pointer; transition: all 0.2s;">
+            🤖 Server AI_1
+          </button>
+          <button type="button" class="btn-ai-server" data-server-mode="AI_2" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; font-weight: 500; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--neutral-light); color: var(--neutral-muted); cursor: pointer; transition: all 0.2s;">
+            🤖 Server AI_2
+          </button>
+          <button type="button" class="btn-ai-server" data-server-mode="AI_3" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; font-weight: 500; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--neutral-light); color: var(--neutral-muted); cursor: pointer; transition: all 0.2s;">
+            🤖 Server AI_3
+          </button>
+          <button type="button" class="btn-ai-server" data-server-mode="AI_4" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; font-weight: 500; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--neutral-light); color: var(--neutral-muted); cursor: pointer; transition: all 0.2s;">
+            🤖 Server AI_4
+          </button>
+        </div>
+        
+        <button type="button" class="btn-ai-server" data-server-mode="AI_5" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 9px; font-weight: 500; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--neutral-light); color: var(--neutral-muted); cursor: pointer; transition: all 0.2s;">
+          🤖 Server AI_5
+        </button>
+      </div>
+
+      <button type="button" class="btn-activate-ai" id="btnActivateAi">Xác nhận Thiết lập AI</button>
+    </div>
+
+    <!-- TRẠNG THÁI KHU VỰC CHAT HOẠT ĐỘNG THỰC TẾ -->
+    <div class="chat-playground" id="chatAiPlayground">
+      <!-- HƯỚNG DẪN KHẮC PHỤC SỰ CỐ TINH TẾ -->
+      <div id="chatTroubleshootAlert" style="background-color: rgba(245, 158, 11, 0.05); border-bottom: 1px solid rgba(245, 158, 11, 0.12); padding: 6px 12px; font-size: 11px; color: #b45309; text-align: center; display: flex; align-items: center; justify-content: space-between; gap: 8px; line-height: 1.4; font-weight: 500; font-family: var(--font);">
+        <div style="display: flex; align-items: center; gap: 6px; text-align: left;">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink: 0; color: #ea580c;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>Bấm <strong>F5</strong> hoặc <strong>làm mới trang</strong> nếu không nhắn tin được.</span>
+        </div>
+        <button onclick="document.getElementById('chatTroubleshootAlert').style.display='none'" style="cursor: pointer; padding: 2px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; border: none; background: transparent;" onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.15)'" onmouseout="this.style.backgroundColor='transparent'" title="Đóng">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: #ea580c;">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="chat-messages" id="chatAiMessages">
+        <div class="chat-bubble bubble-bot">
+          Xin chào! Tôi là Trợ lý ảo của Thanh Trà BĐS. Tôi chuyên cung cấp thông tin nhà phố chính xác và hỗ trợ pháp lý nhanh chóng tại khu vực TP. Thủ Đức. Tôi có thể giải đáp gì cho quý anh chị hôm nay?
+        </div>
+
+        <!-- Các gợi ý tương tác nhanh -->
+        <div class="chat-suggestions" id="chatSuggestions">
+          <button class="suggestion-pill" data-question="Tìm nhà đất từ 1 đến 3 tỷ">Nhà đất 1 - 3 tỷ</button>
+          <button class="suggestion-pill" data-question="Tìm nhà đất từ 3 đến 6 tỷ">Nhà đất 3 - 6 tỷ</button>
+          <button class="suggestion-pill" data-question="Tìm nhà đất trên 6 tỷ">Nhà đất trên 6 tỷ</button>
+          <button class="suggestion-pill" data-question="Làm sao để gặp trực tiếp Thanh Trà BĐS?">Liên hệ Thanh Trà</button>
+        </div>
+      </div>
+
+      <div class="chat-input-bar">
+        <input type="text" id="chatInputField" class="chat-input-field" placeholder="Nhập câu hỏi tư vấn của bạn...">
+        <button class="btn-send-message" id="btnSendMessage" aria-label="Gửi tin">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MOBILE FIXED CTA BAR -->
   <div class="mobile-cta-bar">
     <button class="cta-button" onclick="window.location.href='tel:0854100036'">
@@ -999,6 +1573,8 @@
     // Global data references
     let images = [];
     let currentImgIndex = 0;
+    let currentProperty = null;
+    let propertyData = [];
 
     function showError(message) {
       document.getElementById('loadingOverlay').style.display = 'none';
@@ -1079,9 +1655,9 @@
       document.title = titleStr;
       
       // Set canonical and OG url
-      const currentUrl = window.location.href;
-      document.getElementById('canonical-link').href = currentUrl;
-      document.getElementById('og-url').setAttribute('content', currentUrl);
+      const cleanUrl = window.location.origin + window.location.pathname;
+      document.getElementById('canonical-link').href = cleanUrl;
+      document.getElementById('og-url').setAttribute('content', cleanUrl);
       
       // Set description
       const descSnippet = item.desc ? item.desc.substring(0, 150).replace(/\r?\n|\r/g, " ") + "..." : "Chi tiết bất động sản tại Thanh Trà BĐS.";
@@ -1232,6 +1808,8 @@
       document.getElementById('zaloLink').href = zaloUrl;
       document.getElementById('zaloLinkMobile').href = zaloUrl;
 
+      currentProperty = item;
+
       // Hide loading screen
       document.getElementById('loadingOverlay').style.display = 'none';
       
@@ -1241,9 +1819,18 @@
 
     // Initialize fetching on window load
     async function init() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const id = urlParams.get('id');
-      if (!id) {
+      // URL dạng /chitiet/1782643549-nha-vo-van-hat-...
+      const pathParts = window.location.pathname.split('/');
+      const slugPart = pathParts[pathParts.length - 1]; // lấy phần cuối
+      let id = slugPart ? slugPart.split('-')[0] : ''; // lấy số đầu tiên trước dấu "-"
+
+      // Fallback cho dạng ?id=123 (như khi Vercel redirect từ /?id=123 hoặc URL cũ)
+      if (!id || isNaN(id)) {
+        const urlParams = new URLSearchParams(window.location.search);
+        id = urlParams.get('id');
+      }
+
+      if (!id || isNaN(id)) {
         window.location.href = '/';
         return;
       }
@@ -1272,11 +1859,1096 @@
         }
 
         renderProperty(data[0]);
+
+        // Background fetch all other properties for AI chatbot recommendation
+        const allEndpoint = `${supabaseUrl}/rest/v1/properties_hometea?select=*`;
+        fetch(allEndpoint, {
+          method: 'GET',
+          headers: {
+            'apikey': apiKey,
+            'Authorization': `Bearer ${apiKey}`
+          }
+        })
+        .then(res => res.json())
+        .then(allData => {
+          if (Array.isArray(allData)) {
+            propertyData = allData;
+          }
+        })
+        .catch(err => console.warn('Could not load all properties for Chatbot:', err));
       } catch (error) {
         console.error('Lỗi fetch:', error);
         showError('Đã xảy ra lỗi trong quá trình tải thông tin bất động sản. Vui lòng kết nối mạng ổn định và thử lại.');
       }
     }
+
+    /* --- TOAST NOTIFICATION UTILITIES --- */
+    function showToast(message, isSuccess = true) {
+      const toast = document.getElementById('toastNotification');
+      const msgSpan = document.getElementById('toastMessage');
+      if (!toast || !msgSpan) return;
+
+      msgSpan.textContent = message;
+      toast.style.backgroundColor = isSuccess ? "#065f46" : "#991b1b";
+      toast.style.borderLeftColor = isSuccess ? "#34d399" : "#f87171";
+      toast.classList.add('show');
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    /* --- ADDRESS FORMATTING UTILITY --- */
+    function getPublicDisplayAddress(p) {
+      if (!p) return "";
+      let streetVal = p.street ? p.street.trim() : "";
+      let wardVal = p.ward ? p.ward.trim() : "";
+      if (streetVal !== "" || wardVal !== "") {
+        let parts = [];
+        if (streetVal !== "") {
+          parts.push(streetVal);
+        }
+        if (wardVal !== "") {
+          let w = wardVal;
+          if (!w.toLowerCase().startsWith("phường")) {
+            w = "Phường " + w;
+          }
+          parts.push(w);
+        }
+        parts.push("TP. Thủ Đức, TP.HCM");
+        return parts.join(", ");
+      }
+      let addr = p.address || "";
+      let hn = (p.houseNumber || p.house_number || "").trim();
+      if (hn !== "") {
+        let regex = new RegExp("^" + hn.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "\\s*,?\\s*", "i");
+        addr = addr.replace(regex, "");
+      }
+      return addr || "TP. Thủ Đức, TP.HCM";
+    }
+
+    /* --- SHARE LINK UTILITIES --- */
+    function fallbackCopyText(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.width = "2em";
+      textArea.style.height = "2em";
+      textArea.style.padding = "0";
+      textArea.style.border = "none";
+      textArea.style.outline = "none";
+      textArea.style.boxShadow = "none";
+      textArea.style.background = "transparent";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast("Đã sao chép liên kết chia sẻ của căn nhà này!", true);
+        } else {
+          showToast("Không thể tự động sao chép. Anh/Chị copy link trên trình duyệt nhé!", false);
+        }
+      } catch (err) {
+        showToast("Lỗi sao chép liên kết.", false);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    function copyShareLink(id) {
+      const shareUrl = window.location.origin + window.location.pathname;
+      if (!navigator.clipboard) {
+        fallbackCopyText(shareUrl);
+        return;
+      }
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast("Đã sao chép liên kết chia sẻ của căn nhà này!", true);
+      }).catch(err => {
+        fallbackCopyText(shareUrl);
+      });
+    }
+
+    // Attach click events to share and image download buttons
+    const modalShareBtn = document.getElementById('modalShareBtn');
+    if (modalShareBtn) {
+      modalShareBtn.onclick = () => {
+        if (currentProperty) {
+          copyShareLink(currentProperty.id);
+        }
+      };
+    }
+
+    const modalDownloadImageBtn = document.getElementById('modalDownloadImageBtn');
+    if (modalDownloadImageBtn) {
+      modalDownloadImageBtn.onclick = () => {
+        if (!currentProperty) return;
+        
+        const activeImgSrc = images[currentImgIndex] || currentProperty.img;
+        showToast('Đã bắt đầu chụp ảnh tin đăng dọc...', true);
+        
+        let imgList = images && images.length > 0 ? images : [currentProperty.img];
+        imgList = imgList.filter(src => src && typeof src === 'string' && src.trim() !== '');
+        
+        const absoluteImgList = imgList.map(src => {
+          try {
+            return new URL(src, window.location.href).href;
+          } catch (e) {
+            return src;
+          }
+        });
+        
+        const uniqueImgList = [...new Set(absoluteImgList)];
+        
+        let image1 = activeImgSrc;
+        try {
+          image1 = new URL(activeImgSrc, window.location.href).href;
+        } catch (e) {}
+        
+        let image2 = null;
+        if (uniqueImgList.length > 1) {
+          const otherImgs = uniqueImgList.filter(src => src !== image1);
+          if (otherImgs.length > 0) {
+            image2 = otherImgs[0];
+          }
+        }
+        
+        const img1 = new Image();
+        img1.crossOrigin = 'anonymous';
+        img1.src = image1;
+        
+        let img2 = null;
+        if (image2) {
+          img2 = new Image();
+          img2.crossOrigin = 'anonymous';
+          img2.src = image2;
+        }
+        
+        let loadedCount = 0;
+        const targetCount = image2 ? 2 : 1;
+        
+        const proceedWithCapture = () => {
+          const flyer = document.createElement('div');
+          flyer.id = 'dynamicShareCard';
+          flyer.style.position = 'fixed';
+          flyer.style.left = '-9999px';
+          flyer.style.top = '-9999px';
+          flyer.style.width = '480px';
+          flyer.style.height = '853.33px';
+          flyer.style.boxSizing = 'border-box';
+          flyer.style.background = 'linear-gradient(180deg, #020712 0%, #061124 50%, #020817 100%)'; 
+          flyer.style.color = '#f1f5f9';
+          flyer.style.fontFamily = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+          flyer.style.padding = '22px';
+          flyer.style.borderRadius = '16px';
+          flyer.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
+          flyer.style.display = 'flex';
+          flyer.style.flexDirection = 'column';
+          flyer.style.justifyContent = 'space-between';
+          flyer.style.gap = '10px';
+          flyer.style.border = '2.5px solid rgba(249, 115, 22, 0.4)';
+          flyer.style.zIndex = '-999';
+          
+          const header = document.createElement('div');
+          header.style.display = 'flex';
+          header.style.justifyContent = 'space-between';
+          header.style.alignItems = 'center';
+          header.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
+          header.style.paddingBottom = '10px';
+          header.style.width = '100%';
+          
+          const brandInfo = document.createElement('div');
+          brandInfo.innerHTML = `
+            <div style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+              <span style="background: #f97316; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 900; font-size: 16px;">T</span>
+              <span>THANH TRÀ BĐS</span>
+            </div>
+            <div style="font-size: 9px; font-weight: 700; color: #f97316; text-transform: uppercase; margin-top: 1px; letter-spacing: 1px;">MUA BÁN NHÀ PHỐ UY TÍN</div>
+          `;
+          
+          const phoneInfo = document.createElement('div');
+          phoneInfo.style.textAlign = 'right';
+          phoneInfo.innerHTML = `
+            <div style="font-size: 13px; font-weight: 800; color: #f97316; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
+              📞 0854.100.036
+            </div>
+            <div style="font-size: 8px; color: #94a3b8; font-weight: 600; margin-top: 1px; letter-spacing: 0.3px;">TƯ VẤN PHÁP LÝ LIÊN TỤC 24/7</div>
+          `;
+          
+          header.appendChild(brandInfo);
+          header.appendChild(phoneInfo);
+          flyer.appendChild(header);
+          
+          const heroRow = document.createElement('div');
+          heroRow.style.display = 'flex';
+          heroRow.style.justifyContent = 'space-between';
+          heroRow.style.alignItems = 'flex-start';
+          heroRow.style.width = '100%';
+          heroRow.style.gap = '10px';
+          
+          let titleMain = currentProperty.title;
+          let titleSub = "";
+          const sepMatch = currentProperty.title.match(/[-|]/);
+          if (sepMatch) {
+            const splitIndex = currentProperty.title.indexOf(sepMatch[0]);
+            titleMain = currentProperty.title.substring(0, splitIndex).trim();
+            titleSub = currentProperty.title.substring(splitIndex + 1).trim();
+          } else {
+            const words = currentProperty.title.split(' ');
+            if (words.length > 3) {
+              titleMain = words.slice(0, 3).join(' ');
+              titleSub = words.slice(3).join(' ');
+            }
+          }
+          
+          const leftTitleBlock = document.createElement('div');
+          leftTitleBlock.style.flex = '1';
+          leftTitleBlock.style.display = 'flex';
+          leftTitleBlock.style.flexDirection = 'column';
+          leftTitleBlock.style.gap = '2px';
+          
+          const mainTitleEl = document.createElement('h3');
+          mainTitleEl.textContent = '🔥 ' + titleMain;
+          mainTitleEl.style.fontSize = '18px';
+          mainTitleEl.style.fontWeight = '800';
+          mainTitleEl.style.fontStyle = 'italic';
+          mainTitleEl.style.lineHeight = '1.25';
+          mainTitleEl.style.color = '#ffffff';
+          mainTitleEl.style.margin = '0';
+          mainTitleEl.style.textTransform = 'uppercase';
+          leftTitleBlock.appendChild(mainTitleEl);
+          
+          if (titleSub) {
+            const subTitleEl = document.createElement('h4');
+            subTitleEl.textContent = titleSub;
+            subTitleEl.style.fontSize = '16px';
+            subTitleEl.style.fontWeight = '800';
+            subTitleEl.style.fontStyle = 'italic';
+            subTitleEl.style.lineHeight = '1.25';
+            subTitleEl.style.color = '#fbbf24';
+            subTitleEl.style.margin = '0';
+            subTitleEl.style.textTransform = 'uppercase';
+            leftTitleBlock.appendChild(subTitleEl);
+          }
+          
+          const priceBadge = document.createElement('div');
+          priceBadge.style.background = 'linear-gradient(90deg, rgba(249,115,22,0.25) 0%, rgba(249,115,22,0.05) 100%)';
+          priceBadge.style.border = '1.5px solid rgba(249, 115, 22, 0.7)';
+          priceBadge.style.borderRadius = '8px';
+          priceBadge.style.padding = '3px 12px';
+          priceBadge.style.fontSize = '18px';
+          priceBadge.style.fontWeight = '900';
+          priceBadge.style.color = '#fbbf24';
+          priceBadge.style.textShadow = '0 0 10px rgba(249,115,22,0.4)';
+          priceBadge.style.display = 'inline-block';
+          priceBadge.style.marginTop = '4px';
+          priceBadge.style.width = 'fit-content';
+          priceBadge.textContent = currentProperty.priceText || `${currentProperty.price} Tỷ`;
+          leftTitleBlock.appendChild(priceBadge);
+          
+          const rightStatsBlock = document.createElement('div');
+          rightStatsBlock.style.display = 'flex';
+          rightStatsBlock.style.gap = '8px';
+          rightStatsBlock.style.padding = '8px 10px';
+          rightStatsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
+          rightStatsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+          rightStatsBlock.style.borderRadius = '10px';
+          rightStatsBlock.style.alignItems = 'center';
+          rightStatsBlock.style.justifyContent = 'center';
+          rightStatsBlock.style.flexShrink = '0';
+          
+          rightStatsBlock.innerHTML = `
+            <div style="padding-right: 8px; border-right: 1px solid rgba(255,255,255,0.1); text-align: center;">
+              <div style="font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">MỨC GIÁ BÁN</div>
+              <div style="font-size: 14px; font-weight: 800; color: #fbbf24; margin-top: 1px;">${currentProperty.priceText || `${currentProperty.price} Tỷ`}</div>
+            </div>
+            <div style="text-align: center; padding-left: 2px;">
+              <div style="font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">DIỆN TÍCH SỔ</div>
+              <div style="font-size: 14px; font-weight: 800; color: #ffffff; margin-top: 1px;">${currentProperty.area}m²</div>
+            </div>
+          `;
+          
+          heroRow.appendChild(leftTitleBlock);
+          heroRow.appendChild(rightStatsBlock);
+          flyer.appendChild(heroRow);
+          
+          const addressEl = document.createElement('div');
+          addressEl.style.fontSize = '11px';
+          addressEl.style.color = '#cbd5e1';
+          addressEl.style.fontWeight = '500';
+          addressEl.style.display = 'flex';
+          addressEl.style.alignItems = 'center';
+          addressEl.style.gap = '4px';
+          addressEl.style.width = '100%';
+          addressEl.innerHTML = `📍 ${getPublicDisplayAddress(currentProperty)}`;
+          flyer.appendChild(addressEl);
+          
+          const imgContainer = document.createElement('div');
+          imgContainer.style.width = '100%';
+          imgContainer.style.height = '230px';
+          imgContainer.style.display = 'flex';
+          imgContainer.style.gap = '10px';
+          imgContainer.style.boxSizing = 'border-box';
+          
+          if (image2) {
+            const flyerImg1 = document.createElement('div');
+            flyerImg1.style.flex = '1';
+            flyerImg1.style.height = '100%';
+            flyerImg1.style.borderRadius = '14px';
+            flyerImg1.style.overflow = 'hidden';
+            flyerImg1.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
+            flyerImg1.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+            
+            const imgEl1 = document.createElement('img');
+            imgEl1.src = img1.src;
+            imgEl1.style.width = '100%';
+            imgEl1.style.height = '100%';
+            imgEl1.style.objectFit = 'cover';
+            flyerImg1.appendChild(imgEl1);
+            
+            const flyerImg2 = document.createElement('div');
+            flyerImg2.style.flex = '1';
+            flyerImg2.style.height = '100%';
+            flyerImg2.style.borderRadius = '14px';
+            flyerImg2.style.overflow = 'hidden';
+            flyerImg2.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
+            flyerImg2.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+            
+            const imgEl2 = document.createElement('img');
+            imgEl2.src = img2.src;
+            imgEl2.style.width = '100%';
+            imgEl2.style.height = '100%';
+            imgEl2.style.objectFit = 'cover';
+            flyerImg2.appendChild(imgEl2);
+            
+            imgContainer.appendChild(flyerImg1);
+            imgContainer.appendChild(flyerImg2);
+          } else {
+            const flyerImg1 = document.createElement('div');
+            flyerImg1.style.width = '100%';
+            flyerImg1.style.height = '100%';
+            flyerImg1.style.borderRadius = '14px';
+            flyerImg1.style.overflow = 'hidden';
+            flyerImg1.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
+            flyerImg1.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+            
+            const imgEl1 = document.createElement('img');
+            imgEl1.src = img1.src;
+            imgEl1.style.width = '100%';
+            imgEl1.style.height = '100%';
+            imgEl1.style.objectFit = 'cover';
+            flyerImg1.appendChild(imgEl1);
+            
+            imgContainer.appendChild(flyerImg1);
+          }
+          flyer.appendChild(imgContainer);
+          
+          const specsRow = document.createElement('div');
+          specsRow.style.display = 'flex';
+          specsRow.style.gap = '10px';
+          specsRow.style.width = '100%';
+          specsRow.style.boxSizing = 'border-box';
+          
+          const leftHighlightsBlock = document.createElement('div');
+          leftHighlightsBlock.style.flex = '1';
+          leftHighlightsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
+          leftHighlightsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+          leftHighlightsBlock.style.borderRadius = '12px';
+          leftHighlightsBlock.style.padding = '10px';
+          leftHighlightsBlock.style.display = 'flex';
+          leftHighlightsBlock.style.flexDirection = 'column';
+          
+          const highlightsTitle = document.createElement('div');
+          highlightsTitle.textContent = 'THÔNG TIN NỔI BẬT';
+          highlightsTitle.style.fontSize = '11px';
+          highlightsTitle.style.fontWeight = '800';
+          highlightsTitle.style.color = '#fbbf24';
+          highlightsTitle.style.textAlign = 'center';
+          highlightsTitle.style.letterSpacing = '0.5px';
+          highlightsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
+          highlightsTitle.style.paddingBottom = '5px';
+          highlightsTitle.style.marginBottom = '8px';
+          leftHighlightsBlock.appendChild(highlightsTitle);
+          
+          const bulletHTML = (icon, text) => `
+            <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; font-family: var(--font-sans);">
+              <div style="background: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px;">
+                ${icon}
+              </div>
+              <div style="font-size: 9.5px; line-height: 1.35; color: #cbd5e1; font-weight: 500;">
+                ${text}
+              </div>
+            </div>
+          `;
+          
+          const parsedFloors = formatFloors(currentProperty.floors);
+          leftHighlightsBlock.innerHTML += `
+            ${bulletHTML('📍', `Vị trí tại phường ${currentProperty.ward || 'Trường Thạnh'}, TP. Thủ Đức.`)}
+            ${bulletHTML('📐', `Diện tích đất ${currentProperty.area}m².`)}
+            ${bulletHTML('🏢', `Kết cấu gồm ${parsedFloors}, thiết kế ${currentProperty.bedrooms || 3} phòng ngủ.`)}
+            ${bulletHTML('🧭', `Hướng nhà: ${currentProperty.direction || 'Không xác định'}.`)}
+            ${bulletHTML('💰', `Giá bán: ${currentProperty.priceText || `${currentProperty.price} Tỷ`} đồng.`)}
+          `;
+          
+          const rightSpecsBlock = document.createElement('div');
+          rightSpecsBlock.style.flex = '1';
+          rightSpecsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
+          rightSpecsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+          rightSpecsBlock.style.borderRadius = '12px';
+          rightSpecsBlock.style.padding = '10px';
+          rightSpecsBlock.style.display = 'flex';
+          rightSpecsBlock.style.flexDirection = 'column';
+          
+          const specsTitle = document.createElement('div');
+          specsTitle.textContent = 'THÔNG TIN CHI TIẾT';
+          specsTitle.style.fontSize = '11px';
+          specsTitle.style.fontWeight = '800';
+          specsTitle.style.color = '#fbbf24';
+          specsTitle.style.textAlign = 'center';
+          specsTitle.style.letterSpacing = '0.5px';
+          specsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
+          specsTitle.style.paddingBottom = '5px';
+          specsTitle.style.marginBottom = '8px';
+          rightSpecsBlock.appendChild(specsTitle);
+          
+          const specGrid = document.createElement('div');
+          specGrid.style.display = 'grid';
+          specGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+          specGrid.style.gap = '6px 8px';
+          specGrid.style.width = '100%';
+          
+          const specItemHTML = (icon, label, value, valColor = '#ffffff') => `
+            <div style="display: flex; align-items: center; gap: 5px; padding: 2px 0;">
+              <span style="font-size: 13px; color: #f97316;">${icon}</span>
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 7px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">${label}</span>
+                <span style="font-size: 9.5px; font-weight: 700; color: ${valColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;">${value}</span>
+              </div>
+            </div>
+          `;
+          
+          specGrid.innerHTML = `
+            ${specItemHTML('📐', 'Diện Tích', `${currentProperty.area} m²`)}
+            ${specItemHTML('📏', 'C.Ngang', (currentProperty.width && currentProperty.width > 0) ? `${currentProperty.width} m` : "4 m")}
+            ${specItemHTML('🏢', 'Kết Cấu', parsedFloors)}
+            ${specItemHTML('🧭', 'Hướng Nhà', currentProperty.direction || "Không xác định")}
+            ${specItemHTML('🛏️', 'Phòng Ngủ', (currentProperty.bedrooms !== undefined && currentProperty.bedrooms !== null) ? `${currentProperty.bedrooms} PN` : "3 PN")}
+            ${specItemHTML('🚽', 'Phòng WC', (currentProperty.bathrooms !== undefined && currentProperty.bathrooms !== null) ? `${currentProperty.bathrooms} WC` : "3 WC")}
+          `;
+          
+          const legalRow = document.createElement('div');
+          legalRow.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
+          legalRow.style.paddingTop = '6px';
+          legalRow.style.marginTop = '4px';
+          legalRow.style.width = '100%';
+          legalRow.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 14px;">📜</span>
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 7px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">PHÁP LÝ BÁN ĐẰNG</span>
+                <span style="font-size: 10px; font-weight: 800; color: #22c55e;">${currentProperty.legal || "Sổ hồng riêng"}</span>
+              </div>
+            </div>
+          `;
+          
+          rightSpecsBlock.appendChild(specGrid);
+          rightSpecsBlock.appendChild(legalRow);
+          
+          specsRow.appendChild(leftHighlightsBlock);
+          specsRow.appendChild(rightSpecsBlock);
+          flyer.appendChild(specsRow);
+          
+          const appFooter = document.createElement('div');
+          appFooter.style.display = 'flex';
+          appFooter.style.alignItems = 'center';
+          appFooter.style.justifyContent = 'space-between';
+          appFooter.style.background = 'rgba(15, 23, 42, 0.45)';
+          appFooter.style.padding = '8px 12px';
+          appFooter.style.borderRadius = '12px';
+          appFooter.style.border = '1.5px solid rgba(249, 115, 22, 0.35)';
+          appFooter.style.marginTop = 'auto';
+          appFooter.style.position = 'relative';
+          appFooter.style.width = '100%';
+          
+          const leftContact = document.createElement('div');
+          leftContact.style.display = 'flex';
+          leftContact.style.alignItems = 'center';
+          leftContact.style.gap = '8px';
+          
+          const phoneIconContainer = document.createElement('div');
+          phoneIconContainer.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
+          phoneIconContainer.style.borderRadius = '50%';
+          phoneIconContainer.style.width = '32px';
+          phoneIconContainer.style.height = '32px';
+          phoneIconContainer.style.display = 'flex';
+          phoneIconContainer.style.alignItems = 'center';
+          phoneIconContainer.style.justifyContent = 'center';
+          phoneIconContainer.style.flexShrink = '0';
+          phoneIconContainer.style.fontSize = '12px';
+          phoneIconContainer.style.color = '#ffffff';
+          phoneIconContainer.textContent = '📞';
+          
+          const contactTexts = document.createElement('div');
+          contactTexts.style.display = 'flex';
+          contactTexts.style.flexDirection = 'column';
+          contactTexts.style.gap = '1px';
+          contactTexts.innerHTML = `
+            <div style="font-size: 11.5px; font-weight: 800; color: #ffffff; font-family: var(--font-sans);">Liên hệ: Mr. Thanh Trà</div>
+            <div style="font-size: 13px; font-weight: 950; color: #fbbf24; text-shadow: 0 0 6px rgba(249,115,22,0.3); font-family: var(--font-sans);">0854.100.036 <span style="font-size: 8px; font-weight: 600; color: #cbd5e1; text-shadow: none;">(Zalo kinh doanh)</span></div>
+            <div style="font-size: 8px; color: #94a3b8; font-weight: 600;">Quét mã QR để nhận sổ hồng và làm việc chính chủ!</div>
+          `;
+          
+          leftContact.appendChild(phoneIconContainer);
+          leftContact.appendChild(contactTexts);
+          appFooter.appendChild(leftContact);
+          
+          const qrPromoText = document.createElement('div');
+          qrPromoText.style.position = 'absolute';
+          qrPromoText.style.right = '74px';
+          qrPromoText.style.bottom = '12px';
+          qrPromoText.style.color = '#f97316';
+          qrPromoText.style.fontSize = '8px';
+          qrPromoText.style.fontWeight = '800';
+          qrPromoText.style.fontStyle = 'italic';
+          qrPromoText.style.transform = 'rotate(-8deg)';
+          qrPromoText.innerHTML = 'Quét mã ngay! ➔';
+          appFooter.appendChild(qrPromoText);
+          
+          const qrFrame = document.createElement('div');
+          qrFrame.style.border = '1.5px solid #f97316';
+          qrFrame.style.borderRadius = '6px';
+          qrFrame.style.padding = '3px';
+          qrFrame.style.background = '#ffffff';
+          qrFrame.style.width = '56px';
+          qrFrame.style.height = '56px';
+          qrFrame.style.display = 'flex';
+          qrFrame.style.alignItems = 'center';
+          qrFrame.style.justifyContent = 'center';
+          qrFrame.style.boxShadow = '0 0 8px rgba(249, 115, 22, 0.3)';
+          qrFrame.style.flexShrink = '0';
+          
+          const qrImg = document.createElement('img');
+          qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://zalo.me/0854100036')}`;
+          qrImg.style.width = '100%';
+          qrImg.style.height = '100%';
+          qrImg.style.objectFit = 'contain';
+          
+          qrFrame.appendChild(qrImg);
+          appFooter.appendChild(qrFrame);
+          flyer.appendChild(appFooter);
+          
+          const bottomBar = document.createElement('div');
+          bottomBar.style.display = 'flex';
+          bottomBar.style.justifyContent = 'space-around';
+          bottomBar.style.alignItems = 'center';
+          bottomBar.style.width = '100%';
+          bottomBar.style.borderTop = '1px solid rgba(255,255,255,0.08)';
+          bottomBar.style.paddingTop = '6px';
+          bottomBar.style.fontFamily = 'var(--font-sans)';
+          bottomBar.style.fontSize = '9px';
+          bottomBar.style.color = '#cbd5e1';
+          bottomBar.style.fontWeight = '700';
+          
+          bottomBar.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 3px;">🛡️ Pháp lý rõ ràng</div>
+            <div style="color: rgba(255,255,255,0.15);">|</div>
+            <div style="display: flex; align-items: center; gap: 3px;">🤝 Làm việc chính chủ</div>
+            <div style="color: rgba(255,255,255,0.15);">|</div>
+            <div style="display: flex; align-items: center; gap: 3px;">🕒 Hỗ trợ 24/7</div>
+          `;
+          flyer.appendChild(bottomBar);
+          
+          document.body.appendChild(flyer);
+          
+          setTimeout(() => {
+            html2canvas(flyer, {
+              useCORS: true,
+              allowTaint: false,
+              scale: 2.5,
+              backgroundColor: '#020712',
+              logging: false
+            }).then(canvas => {
+              const dataUrl = canvas.toDataURL('image/png');
+              const downloadLink = document.createElement('a');
+              const cleanTitle = currentProperty.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
+              downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || currentProperty.id}.png`;
+              downloadLink.href = dataUrl;
+              downloadLink.click();
+              
+              document.body.removeChild(flyer);
+              showToast('Đã chụp ảnh dọc tin đăng thành công! Hình ảnh đã được lưu về máy!', true);
+            }).catch(err => {
+              console.error('Lỗi khi chụp ảnh:', err);
+              if (document.body.contains(flyer)) {
+                document.body.removeChild(flyer);
+              }
+              showToast('Không tự động tải hình được do chặn quyền bảo mật của trình duyệt', false);
+            });
+          }, 400);
+        };
+        
+        const onImageLoaded = () => {
+          loadedCount++;
+          if (loadedCount === targetCount) {
+            proceedWithCapture();
+          }
+        };
+        
+        img1.onload = onImageLoaded;
+        img1.onerror = () => {
+          img1.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="100%25" height="100%25" fill="%231a2238"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="28" fill="%23f97316"%3EThanh Trà BĐS Nhà Phố Thủ Đức%3C/text%3E%3C/svg%3E';
+          onImageLoaded();
+        };
+        
+        if (img2) {
+          img2.onload = onImageLoaded;
+          img2.onerror = () => {
+            img2.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="100%25" height="100%25" fill="%231a2238"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="28" fill="%23f97316"%3EThanh Trà BĐS Nhà Phố Thủ Đức%3C/text%3E%3C/svg%3E';
+            onImageLoaded();
+          };
+        }
+      };
+    }
+
+    /* --- CHATBOX AI CONSULTANT CONTROLLER (GOOGLE GEMINI API) --- */
+    const aiChatTrigger = document.getElementById('aiChatTrigger');
+    const aiChatWindow = document.getElementById('aiChatWindow');
+    const btnAiClose = document.getElementById('btnAiClose');
+    const btnAiConfigure = document.getElementById('btnAiConfigure');
+    const chatAiKeySetup = document.getElementById('chatAiKeySetup');
+    const chatAiPlayground = document.getElementById('chatAiPlayground');
+    const geminiApiKey = document.getElementById('gm_ak_fld');
+    const btnActivateAi = document.getElementById('btnActivateAi');
+    const chatAiMessages = document.getElementById('chatAiMessages');
+    const chatInputField = document.getElementById('chatInputField');
+    const btnSendMessage = document.getElementById('btnSendMessage');
+    const chatSuggestions = document.getElementById('chatSuggestions');
+
+    const DEFAULT_FALLBACK_GEMINI_KEY = "";
+    const SECURE_EMBEDDED_KEY = "A358_gJzecH-yuX91MoEGs44icbbbIQDGaU7C2EtXzqJ6NR8bA.QA";
+
+    function decodeSecureKey(str) {
+      if (!str) return "";
+      const trimmed = str.trim();
+      if (trimmed === "" || trimmed.startsWith("%")) return "";
+      try {
+        const reversed = trimmed.split("").reverse().join("");
+        if (reversed.startsWith("AIzaSy") || reversed.startsWith("AQ.")) {
+          return reversed;
+        }
+        if (/^[A-Za-z0-9+/=]+$/.test(trimmed)) {
+          const decoded = atob(trimmed);
+          if (decoded && (decoded.startsWith("AIzaSy") || decoded.startsWith("AQ."))) {
+            return decoded;
+          }
+        }
+      } catch (e) {}
+      return trimmed;
+    }
+
+    const decodedEmbeddedKey = decodeSecureKey(SECURE_EMBEDDED_KEY);
+    const buildGeminiKey = decodedEmbeddedKey || DEFAULT_FALLBACK_GEMINI_KEY;
+
+    function isValidGeminiKey(keyString) {
+      if (!keyString || typeof keyString !== 'string') return true;
+      const keys = keyString.split(/[,\s;\n]+/).map(k => k.trim()).filter(Boolean);
+      if (keys.length === 0) return true;
+      return keys.some(k => {
+        const decK = decryptKeyIfNeeded(k);
+        const blockedKey = decryptKeyIfNeeded("QXQ0VDNwcGx2NHJxMlBNdVhrU044UlRhS09XYl9pR3k4eWMyY3JMbmkzYk9JblI4YkEuUUE=");
+        if (decK === blockedKey) return false;
+        return decK.length >= 8 || decK === 'auto' || decK.startsWith('AI_');
+      });
+    }
+
+    function decryptKeyIfNeeded(key) {
+      if (!key) return "";
+      const trimmed = key.trim();
+      if (trimmed.length > 20 && !trimmed.startsWith("AIzaSy") && !trimmed.startsWith("AQ.")) {
+        try {
+          const decodedB64 = atob(trimmed);
+          return decodedB64.split("").reverse().join("");
+        } catch (e) {}
+      }
+      return trimmed;
+    }
+
+    function getGeminiKeysArray() {
+      const stored = (localStorage.getItem('gemini_api_key') || buildGeminiKey || "").trim();
+      const keyMap = {
+        "AI_1": "QTM1OF9nSnplY0gteXVYOTFNb0VHczQ0aWNiYmJJUURHYVU3QzJFdFh6cUk2TlI4YkEuUUE=",
+        "AI_2": "QXpDbEljYVZoeGMwN0NiejgzeXlsRVdpNnJVT3BXNG5sTm1VMlpnMV9WQ0k2TlI4YkEuUUE=",
+        "AI_3": "ZzBzakRMMUo1Z3hJUkZfSXczN2QwcDVkNmhLUTVBNWVsbnNPb0d3MmZJSUk2TlI4YkEuUUE=",
+        "AI_4": "d2dmWjdZeU1icWlHV21rVHJwTUZvUnpEYnBHN1drLWc4RTdJTTN2ZlRaMEw2TlI4YkEuUUE=",
+        "AI_5": "UUk0bTF2T2hKcG5iem92S0FMYVBLUlZFOVJqa0NFdjJJeEFwdVNTQzZBTks2TlI4YkEuUUE="
+      };
+
+      if (keyMap[stored]) {
+        return [decryptKeyIfNeeded(keyMap[stored])];
+      }
+
+      let keys = stored
+        .split(/[,\s;\n]+/)
+        .map(k => k.trim())
+        .filter(k => k.length >= 8 && decryptKeyIfNeeded(k) !== decryptKeyIfNeeded("QXQ0VDNwcGx2NHJxMlBNdVhrU044UlRhS09XYl9pR3k4eWMyY3JMbmkzYk9JblI4YkEuUUE="));
+      
+      if (keys.length === 0 || stored === 'auto') {
+        keys = [
+          decryptKeyIfNeeded(keyMap["AI_1"]),
+          decryptKeyIfNeeded(keyMap["AI_2"]),
+          decryptKeyIfNeeded(keyMap["AI_3"]),
+          decryptKeyIfNeeded(keyMap["AI_4"]),
+          decryptKeyIfNeeded(keyMap["AI_5"])
+        ];
+      } else {
+        keys = keys.map(k => decryptKeyIfNeeded(k));
+      }
+      return keys;
+    }
+
+    (function cleanOnLoad() {
+      const storedKey = localStorage.getItem('gemini_api_key') || "";
+      const isStoredValid = isValidGeminiKey(storedKey);
+      const isBuildValid = isValidGeminiKey(buildGeminiKey);
+      if (isBuildValid && !isStoredValid) {
+        localStorage.setItem('gemini_api_key', buildGeminiKey);
+      } else if (!isBuildValid && (storedKey === "null" || storedKey === "undefined" || (storedKey && !isStoredValid))) {
+        localStorage.removeItem('gemini_api_key');
+      }
+    })();
+
+    function getActiveLocalKey() {
+      return localStorage.getItem('gemini_api_key') || "";
+    }
+
+    let serverHasKey = isValidGeminiKey(buildGeminiKey);
+
+    async function checkServerKey() {
+      if (isValidGeminiKey(buildGeminiKey)) {
+        serverHasKey = true;
+        initChatboxState();
+        return;
+      }
+      try {
+        const res = await fetch('/api/has-key');
+        if (res.ok) {
+          const data = await res.json();
+          serverHasKey = !!data.hasKey;
+        } else {
+          serverHasKey = false;
+        }
+      } catch (e) {
+        console.warn("Could not check server API key status:", e);
+        serverHasKey = false;
+      }
+      initChatboxState();
+    }
+
+    aiChatTrigger.addEventListener('click', () => {
+      aiChatWindow.classList.toggle('open');
+      if (aiChatWindow.classList.contains('open')) {
+        checkServerKey();
+        scrollChatToBottom();
+      }
+    });
+
+    btnAiClose.addEventListener('click', () => {
+      aiChatWindow.classList.remove('open');
+    });
+
+    function initChatboxState() {
+      const activeLocalKey = getActiveLocalKey();
+      const hasKey = isValidGeminiKey(activeLocalKey) || serverHasKey;
+      if (hasKey) {
+        chatAiKeySetup.style.display = 'none';
+        chatAiPlayground.style.display = 'flex';
+      } else {
+        chatAiKeySetup.style.display = 'flex';
+        chatAiPlayground.style.display = 'none';
+      }
+    }
+
+    const aiServerButtons = document.querySelectorAll('#aiServerButtonsContainer .btn-ai-server');
+    const rawToAliasMap = {
+      "QTM1OF9nSnplY0gteXVYOTFNb0VHczQ0aWNiYmJJUURHYVU3QzJFdFh6cUk2TlI4YkEuUUE=": "AI_1",
+      "QXpDbEljYVZoeGMwN0NiejgzeXlsRVdpNnJVT3BXNG5sTm1VMlpnMV9WQ0k2TlI4YkEuUUE=": "AI_2",
+      "ZzBzakRMMUo1Z3hJUkZfSXczN2QwcDVkNmhLUTVBNWVsbnNPb0d3MmZJSUk2TlI4YkEuUUE=": "AI_3",
+      "d2dmWjdZeU1icWlHV21rVHJwTUZvUnpEYnBHN1drLWc4RTdJTTN2ZlRaMEw2TlI4YkEuUUE=": "AI_4",
+      "UUk0bTF2T2hKcG5iem92S0FMYVBLUlZFOVJqa0NFdjJJeEFwdVNTQzZBTks2TlI4YkEuUUE=": "AI_5"
+    };
+
+    Object.keys(rawToAliasMap).forEach(encKey => {
+      const decKey = decryptKeyIfNeeded(encKey);
+      if (decKey && decKey !== encKey) {
+        rawToAliasMap[decKey] = rawToAliasMap[encKey];
+      }
+    });
+
+    function getPrettyServerName(mode) {
+      if (!mode) return "Server AI Tự Động";
+      const cleanMode = String(mode).trim();
+      if (cleanMode === 'auto') return "Server AI Tự Động";
+      if (rawToAliasMap[cleanMode]) {
+        return "Server " + rawToAliasMap[cleanMode];
+      }
+      if (cleanMode.startsWith("AI_")) {
+        return "Server " + cleanMode;
+      }
+      if (cleanMode.length > 8) {
+        return "Server AI Cá Nhân";
+      }
+      return "Server " + cleanMode;
+    }
+
+    let selectedServerMode = (localStorage.getItem('gemini_api_key') || 'auto').trim();
+    if (rawToAliasMap[selectedServerMode]) {
+      selectedServerMode = rawToAliasMap[selectedServerMode];
+    }
+
+    function updateActiveServerButtonUI() {
+      aiServerButtons.forEach(btn => {
+        if (btn.getAttribute('data-server-mode') === selectedServerMode) {
+          btn.classList.add('active-btn');
+        } else {
+          btn.classList.remove('active-btn');
+        }
+      });
+    }
+
+    aiServerButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedServerMode = btn.getAttribute('data-server-mode') || 'auto';
+        updateActiveServerButtonUI();
+      });
+    });
+
+    updateActiveServerButtonUI();
+
+    btnActivateAi.addEventListener('click', () => {
+      localStorage.setItem('gemini_api_key', selectedServerMode);
+      initChatboxState();
+      showToast(`Kết nối thành công qua ${getPrettyServerName(selectedServerMode)}!`, true);
+    });
+
+    btnAiConfigure.addEventListener('click', () => {
+      selectedServerMode = localStorage.getItem('gemini_api_key') || 'auto';
+      if (rawToAliasMap[selectedServerMode]) {
+        selectedServerMode = rawToAliasMap[selectedServerMode];
+      }
+      updateActiveServerButtonUI();
+      chatAiPlayground.style.display = 'none';
+      chatAiKeySetup.style.display = 'flex';
+      showToast("Đã chuyển sang chế độ cấu hình Server. Anh/Chị chọn Kênh rồi nhấn Xác nhận nhé!", true);
+    });
+
+    checkServerKey();
+
+    function scrollChatToBottom() {
+      chatAiMessages.scrollTop = chatAiMessages.scrollHeight;
+    }
+
+    function appendMessage(text, isUser = false) {
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${isUser ? 'bubble-user' : 'bubble-bot'}`;
+      
+      if (!isUser) {
+        let formattedText = text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/- (.*?)\n/g, '• $1<br>')
+          .replace(/\n/g, '<br>');
+        
+        formattedText = formattedText.replace(/(?:\[?Căn\s*#(\d+)\]?)/gi, (match, propId) => {
+          const linkUrl = '/chitiet?id=' + propId;
+          return `<a href="${linkUrl}" class="chat-product-link" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fff3eb; color: #ea580c; border: 1px solid #ffedd5; border-radius: 6px; font-weight: 700; font-size: 12.5px; text-decoration: none; margin: 4px 2px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff3eb'">🏡 Xem chi tiết Căn #${propId} ↗</a>`;
+        });
+        
+        bubble.innerHTML = formattedText;
+      } else {
+        bubble.textContent = text;
+      }
+
+      const suggestionsEl = document.getElementById('chatSuggestions');
+      if (suggestionsEl && suggestionsEl.parentNode === chatAiMessages) {
+        chatAiMessages.insertBefore(bubble, suggestionsEl);
+      } else {
+        chatAiMessages.appendChild(bubble);
+      }
+      scrollChatToBottom();
+      return bubble;
+    }
+
+    function appendLoader() {
+      const loader = document.createElement('div');
+      loader.className = 'chat-bubble bubble-bot';
+      loader.id = 'aiTypingLoader';
+      loader.innerHTML = `
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      const suggestionsEl = document.getElementById('chatSuggestions');
+      if (suggestionsEl && suggestionsEl.parentNode === chatAiMessages) {
+        chatAiMessages.insertBefore(loader, suggestionsEl);
+      } else {
+        chatAiMessages.appendChild(loader);
+      }
+      scrollChatToBottom();
+    }
+
+    function removeLoader() {
+      const loader = document.getElementById('aiTypingLoader');
+      if (loader) {
+        loader.remove();
+      }
+    }
+
+    function getWarehouseContext() {
+      let text = "Dưới đây là danh sách giỏ hàng sản phẩm nhà đất phố đang có sẵn tại Thanh Trà BĐS TP. Thủ Đức để bạn tham khảo giới thiệu đúng chuẩn cho khách:\n";
+      propertyData.forEach(p => {
+        text += `- [Căn #${p.id}]: ${p.title}. Giá bán: ${p.priceText}, Phường: ${p.ward}, Diện tích: ${p.area}m², Số tầng: ${p.floors} tầng, Hướng: ${p.direction}. Địa chỉ: ${getPublicDisplayAddress(p)}. Mô tả ngắn: ${p.badge}.\n`;
+      });
+      return text;
+    }
+
+    async function askGeminiAPI(userQuestion) {
+      const keysList = getGeminiKeysArray();
+      const activeClientKeyString = localStorage.getItem('gemini_api_key') || buildGeminiKey || "";
+      
+      if (keysList.length === 0 && !serverHasKey) {
+        initChatboxState();
+        return;
+      }
+
+      appendLoader();
+
+      const systemInstruction = `Bạn là Trợ lý AI chuyên nghiệp và thân thiện của thương hiệu "Thanh Trà BĐS" (đại diện cho nhà môi giới Thanh Trà).
+Nhiệm vụ chính: Tư vấn môi giới, định hướng, giải đáp pháp lý về bất động sản nhà phố CHỈ tại khu vực TP. Thủ Đức, TP. Hồ Chí Minh.
+Thông tin liên hệ chính thống bắt buộc để cung cấp cho người dùng:
+- Hotline/Zalo: 0854.100.036
+- Địa chỉ văn phòng: Lò Lu, Trường Thạnh, TP. Thủ Đức
+- Email: thanhtra1996st@gmail.com
+- Link chat Zalo: https://zalo.me/0854100036
+
+Nguyên tắc trả lời:
+1. Thân thiện, tận tâm, trung thực và cực kỳ ngắn gọn, súc tích (mỗi câu trả lời không quá 3-4 câu ngắn).
+2. Khi khách hỏi tìm nơi ở hoặc tầm giá, hãy đối chiếu và đề xuất KHỚP chính xác căn nhà nào đang có sẵn trong Giỏ Hàng do Thanh Trà đang bán. Khi đề cập đến một căn cụ thể, BẮT BUỘC phải ghi mã số căn ở định dạng "[Căn #ID]" (ví dụ: [Căn #1], [Căn #15]) để hệ thống lập tức chèn liên kết xem chi tiết sản phẩm trực tiếp. Nếu không có căn trùng khít hoàn hảo, hãy giới thiệu căn gần giống nhất ở dạng "[Căn #ID]" và mời họ kết nối Hotline để Thanh Trà đi tìm thêm sản phẩm ở giỏ hàng kín khác.
+3. Luôn luôn lồng ghép khéo léo lời mời khách gọi điện/Zalo số 0854.100.036 để xem nhà trực tiếp hoặc tư vấn cụ thể.
+4. Tránh luyên thuyên lý thuyết suông.
+5. TUYỆT ĐỐI KHÔNG DÙNG CÁC TỪ NGỮ QUẢNG CÁO TỰ PHONG, KHẲNG ĐỊNH THỨ HẠNG HOẶC ĐỘC QUYỀN TRÊN NỀN TẢNG (LUẬT QUẢNG CÁO):
+   - KHÔNG bao giờ dùng từ khẳng định thứ hạng/chất lượng: "Số 1", "No.1", "Top 1", "Nhất", "Tốt nhất", "Uy tín nhất", "Hiệu quả nhất", "Chất lượng nhất", "Dẫn đầu", "Hàng đầu" hoặc các biến thể so sánh nhất.
+   - KHÔNG bao giờ dùng nhóm từ khẳng định độc quyền: "Duy nhất", "Độc nhất", "Chỉ có tại...".
+   - KHÔNG bao giờ dùng mô tả cam kết quá đà về Bất động sản: "Đẹp nhất khu vực", "Vị trí đắc địa nhất", "Giá tốt nhất thị trường", "Cam kết sinh lời cao nhất", "Sinh lời tốt nhất".
+   - Hãy ưu tiên dùng các tính từ biểu đạt khách quan, thanh lịch: "tiềm năng tốt", "vị trí thuận lợi", "mức giá cực kỳ cạnh tranh, hợp lý", "không gian sang trọng thoáng đãng", "thiết kế hiện đại chuẩn chỉnh".`;
+
+      const warehouseData = getWarehouseContext();
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userQuestion,
+            warehouseData,
+            systemInstruction,
+            localKey: activeClientKeyString
+          })
+        });
+
+        if (response.ok) {
+          const resData = await response.json();
+          removeLoader();
+          if (resData.reply) {
+            appendMessage(resData.reply, false);
+            return;
+          }
+        }
+        throw new Error("Proxy backend response is not OK");
+      } catch (error) {
+        console.warn("Máy chủ proxy local không phản hồi hoặc đang chạy tĩnh trên Hosting. Đang tự động gọi trực tiếp Google Gemini API qua Client-side key pool...", error);
+        
+        if (keysList.length > 0) {
+          let lastError = null;
+          for (let i = 0; i < keysList.length; i++) {
+            const currentKey = keysList[i];
+            try {
+              console.log(`[Info] Client-side thử gọi Gemini bằng Key ${i + 1}/${keysList.length}...`);
+              const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      role: 'user',
+                      parts: [
+                        { text: systemInstruction + "\n\n=== DỮ LIỆU RỔ HÀNG HIỆN TẠI ===\n" + warehouseData + "\n\n=== CÂU HỎI CỦA KHÁCH HÀNG ===\n" + userQuestion }
+                      ]
+                    }
+                  ],
+                  generationConfig: {
+                    temperature: 0.7
+                  }
+                })
+              });
+
+              if (directResponse.ok) {
+                 const directData = await directResponse.json();
+                 removeLoader();
+                 if (directData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                   const replyText = directData.candidates[0].content.parts[0].text;
+                   appendMessage(replyText, false);
+                   return;
+                 }
+              }
+              const errorDetails = await directResponse.json().catch(() => ({}));
+              console.error(`Direct Gemini API Key #${i + 1} error:`, errorDetails);
+              lastError = errorDetails;
+            } catch (innerError) {
+              console.error(`Client API Key #${i + 1} call error:`, innerError);
+              lastError = innerError;
+            }
+          }
+        }
+        
+        removeLoader();
+        appendMessage("Không thể nhận diện câu trả lời. Có thể các API Key của bạn đã đạt giới hạn quota hôm nay hoặc bận bách khoa. Anh/Chị vui lòng cấu hình/bổ sung thêm mã khóa API Key của riêng mình trong tiện ích Thiết lập để tiếp tục nhé!", false);
+      }
+    }
+
+    function triggerUserMessage() {
+      const text = chatInputField.value.trim();
+      if (!text) return;
+
+      appendMessage(text, true);
+      chatInputField.value = '';
+      askGeminiAPI(text);
+    }
+
+    btnSendMessage.addEventListener('click', triggerUserMessage);
+    chatInputField.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        triggerUserMessage();
+      }
+    });
+
+    chatSuggestions.addEventListener('click', (e) => {
+      const btn = e.target.closest('.suggestion-pill');
+      if (!btn) return;
+      
+      const question = btn.getAttribute('data-question');
+      appendMessage(question, true);
+      askGeminiAPI(question);
+    });
 
     // Navigating gallery buttons
     document.getElementById('prevBtn').onclick = () => {
