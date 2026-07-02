@@ -8,7 +8,9 @@
   <link id="canonical-link" rel="canonical" href="">
   
   <!-- Favicon thương hiệu T. tinh tế và sang trọng -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%230c1524'/%3E%3Cpath d='M16 20c0-1.1.9-2 2-2h28c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2H36v20c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2V26H18c-1.1 0-2-.9-2-2v-4z' fill='%23f97316'/%3E%3Ccircle cx='48' cy='44' r='4' fill='%23f97316'/%3E%3C/svg%3E">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
@@ -2238,7 +2240,7 @@
         if (!currentProperty) return;
         
         const activeImgSrc = images[currentImgIndex] || currentProperty.img;
-        showToast('Đã bắt đầu chụp ảnh tin đăng dọc...', true);
+        showToast('Đang tải hình ảnh chuẩn bị chụp...', true);
         
         let imgList = images && images.length > 0 ? images : [currentProperty.img];
         imgList = imgList.filter(src => src && typeof src === 'string' && src.trim() !== '');
@@ -2279,26 +2281,145 @@
         
         let loadedCount = 0;
         const targetCount = image2 ? 2 : 1;
+
+        const showFormatSelector = () => {
+          const dialogOverlay = document.createElement('div');
+          dialogOverlay.style.position = 'fixed';
+          dialogOverlay.style.top = '0';
+          dialogOverlay.style.left = '0';
+          dialogOverlay.style.width = '100vw';
+          dialogOverlay.style.height = '100vh';
+          dialogOverlay.style.backgroundColor = 'rgba(2, 6, 23, 0.85)';
+          dialogOverlay.style.backdropFilter = 'blur(8px)';
+          dialogOverlay.style.display = 'flex';
+          dialogOverlay.style.alignItems = 'center';
+          dialogOverlay.style.justifyContent = 'center';
+          dialogOverlay.style.zIndex = '99999';
+          dialogOverlay.style.fontFamily = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+          dialogOverlay.style.animation = 'fadeIn 0.25s ease-out';
+
+          if (!document.getElementById('capture-modal-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'capture-modal-styles';
+            styles.innerHTML = `
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes slideUp {
+                from { transform: translateY(30px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+              }
+              .capture-option-card {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+                border: 2px solid rgba(255, 255, 255, 0.08);
+              }
+              .capture-option-card:hover {
+                transform: translateY(-4px);
+                border-color: #f97316 !important;
+                background: rgba(249, 115, 22, 0.08) !important;
+                box-shadow: 0 12px 20px -8px rgba(249, 115, 22, 0.3);
+              }
+            `;
+            document.head.appendChild(styles);
+          }
+
+          dialogOverlay.innerHTML = `
+            <div style="background: #0f172a; border: 2px solid rgba(249, 115, 22, 0.3); border-radius: 20px; width: 90%; max-width: 520px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: #f1f5f9; box-sizing: border-box;">
+              <!-- Header -->
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: rgba(249, 115, 22, 0.1); border-radius: 50%; color: #f97316; font-size: 24px; margin-bottom: 12px;">📸</div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">Chụp ảnh tin đăng siêu nét</h3>
+                <p style="margin: 6px 0 0; font-size: 13px; color: #94a3b8; font-weight: 500;">Tùy chỉnh kích thước và độ phân giải tối ưu hóa cho từng nền tảng</p>
+              </div>
+
+              <!-- Options -->
+              <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+                <!-- Option 1: Facebook Feed (4:5) -->
+                <div id="captureOptFB" class="capture-option-card" style="background: rgba(30, 41, 59, 0.5); padding: 16px; border-radius: 12px; display: flex; align-items: flex-start; gap: 14px; position: relative;">
+                  <span style="font-size: 24px; margin-top: 2px; flex-shrink: 0;">📘</span>
+                  <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 15px; font-weight: 700; color: #ffffff;">Đăng bài Facebook (Tỷ lệ đứng 4:5)</span>
+                      <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Tối ưu FB</span>
+                    </div>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #94a3b8; line-height: 1.4;">Hiển thị nguyên vẹn, chiếm diện tích lớn nhất trên Bảng tin Facebook di động mà không bị cắt xén.</p>
+                    <div style="margin-top: 8px; font-size: 11px; color: #fbbf24; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                      🔍 Độ phân giải: 1680 x 2100 px (Nét gấp 3.5 lần)
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Option 2: Stories / Zalo (9:16) -->
+                <div id="captureOptStory" class="capture-option-card" style="background: rgba(30, 41, 59, 0.5); padding: 16px; border-radius: 12px; display: flex; align-items: flex-start; gap: 14px; position: relative;">
+                  <span style="font-size: 24px; margin-top: 2px; flex-shrink: 0;">📱</span>
+                  <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 15px; font-weight: 700; color: #ffffff;">Đăng Story / Gửi Zalo (Tỷ lệ 9:16)</span>
+                    </div>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #94a3b8; line-height: 1.4;">Phù hợp chia sẻ lên Facebook/Instagram Stories, tin nhắn Zalo, Viber hoặc Reels dọc.</p>
+                    <div style="margin-top: 8px; font-size: 11px; color: #fbbf24; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                      🔍 Độ phân giải: 1680 x 2986 px (Nét gấp 3.5 lần)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div style="display: flex; gap: 10px;">
+                <button id="captureCancelBtn" style="flex: 1; padding: 12px; background: transparent; border: 1.5px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #cbd5e1; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Hủy</button>
+              </div>
+            </div>
+          `;
+
+          document.body.appendChild(dialogOverlay);
+
+          // Click Handlers
+          document.getElementById('captureOptFB').onclick = () => {
+            document.body.removeChild(dialogOverlay);
+            showToast('Đang tạo ảnh bài đăng Facebook độ phân giải cao...', true);
+            proceedWithCapture(true);
+          };
+
+          document.getElementById('captureOptStory').onclick = () => {
+            document.body.removeChild(dialogOverlay);
+            showToast('Đang tạo ảnh đứng Story / Zalo độ phân giải cao...', true);
+            proceedWithCapture(false);
+          };
+
+          document.getElementById('captureCancelBtn').onclick = () => {
+            document.body.removeChild(dialogOverlay);
+          };
+        };
         
-        const proceedWithCapture = () => {
+        const proceedWithCapture = (isFacebookRatio) => {
           const flyer = document.createElement('div');
           flyer.id = 'dynamicShareCard';
           flyer.style.position = 'fixed';
           flyer.style.left = '-9999px';
           flyer.style.top = '-9999px';
-          flyer.style.width = '480px';
-          flyer.style.height = '853.33px';
+          
+          if (isFacebookRatio) {
+            flyer.style.width = '480px';
+            flyer.style.height = '600px'; // Tỷ lệ 4:5
+            flyer.style.padding = '14px 18px';
+            flyer.style.gap = '6px';
+          } else {
+            flyer.style.width = '480px';
+            flyer.style.height = '853.33px'; // Tỷ lệ 9:16
+            flyer.style.padding = '22px';
+            flyer.style.gap = '10px';
+          }
           flyer.style.boxSizing = 'border-box';
           flyer.style.background = 'linear-gradient(180deg, #020712 0%, #061124 50%, #020817 100%)'; 
           flyer.style.color = '#f1f5f9';
           flyer.style.fontFamily = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
-          flyer.style.padding = '22px';
           flyer.style.borderRadius = '16px';
           flyer.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
           flyer.style.display = 'flex';
           flyer.style.flexDirection = 'column';
           flyer.style.justifyContent = 'space-between';
-          flyer.style.gap = '10px';
           flyer.style.border = '2.5px solid rgba(249, 115, 22, 0.4)';
           flyer.style.zIndex = '-999';
           
@@ -2307,7 +2428,7 @@
           header.style.justifyContent = 'space-between';
           header.style.alignItems = 'center';
           header.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
-          header.style.paddingBottom = '10px';
+          header.style.paddingBottom = isFacebookRatio ? '6px' : '10px';
           header.style.width = '100%';
           
           const brandInfo = document.createElement('div');
@@ -2337,7 +2458,7 @@
           heroRow.style.justifyContent = 'space-between';
           heroRow.style.alignItems = 'flex-start';
           heroRow.style.width = '100%';
-          heroRow.style.gap = '10px';
+          heroRow.style.gap = isFacebookRatio ? '6px' : '10px';
           
           let titleMain = currentProperty.title;
           let titleSub = "";
@@ -2362,7 +2483,7 @@
           
           const mainTitleEl = document.createElement('h3');
           mainTitleEl.textContent = '🔥 ' + titleMain;
-          mainTitleEl.style.fontSize = '18px';
+          mainTitleEl.style.fontSize = isFacebookRatio ? '14px' : '18px';
           mainTitleEl.style.fontWeight = '800';
           mainTitleEl.style.fontStyle = 'italic';
           mainTitleEl.style.lineHeight = '1.25';
@@ -2374,7 +2495,7 @@
           if (titleSub) {
             const subTitleEl = document.createElement('h4');
             subTitleEl.textContent = titleSub;
-            subTitleEl.style.fontSize = '16px';
+            subTitleEl.style.fontSize = isFacebookRatio ? '12px' : '16px';
             subTitleEl.style.fontWeight = '800';
             subTitleEl.style.fontStyle = 'italic';
             subTitleEl.style.lineHeight = '1.25';
@@ -2388,8 +2509,8 @@
           priceBadge.style.background = 'linear-gradient(90deg, rgba(249,115,22,0.25) 0%, rgba(249,115,22,0.05) 100%)';
           priceBadge.style.border = '1.5px solid rgba(249, 115, 22, 0.7)';
           priceBadge.style.borderRadius = '8px';
-          priceBadge.style.padding = '3px 12px';
-          priceBadge.style.fontSize = '18px';
+          priceBadge.style.padding = isFacebookRatio ? '2px 8px' : '3px 12px';
+          priceBadge.style.fontSize = isFacebookRatio ? '14px' : '18px';
           priceBadge.style.fontWeight = '900';
           priceBadge.style.color = '#fbbf24';
           priceBadge.style.textShadow = '0 0 10px rgba(249,115,22,0.4)';
@@ -2401,8 +2522,8 @@
           
           const rightStatsBlock = document.createElement('div');
           rightStatsBlock.style.display = 'flex';
-          rightStatsBlock.style.gap = '8px';
-          rightStatsBlock.style.padding = '8px 10px';
+          rightStatsBlock.style.gap = isFacebookRatio ? '6px' : '8px';
+          rightStatsBlock.style.padding = isFacebookRatio ? '6px 8px' : '8px 10px';
           rightStatsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
           rightStatsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
           rightStatsBlock.style.borderRadius = '10px';
@@ -2411,13 +2532,13 @@
           rightStatsBlock.style.flexShrink = '0';
           
           rightStatsBlock.innerHTML = `
-            <div style="padding-right: 8px; border-right: 1px solid rgba(255,255,255,0.1); text-align: center;">
-              <div style="font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">MỨC GIÁ BÁN</div>
-              <div style="font-size: 14px; font-weight: 800; color: #fbbf24; margin-top: 1px;">${currentProperty.priceText || `${currentProperty.price} Tỷ`}</div>
+            <div style="padding-right: ${isFacebookRatio ? '6px' : '8px'}; border-right: 1px solid rgba(255,255,255,0.1); text-align: center;">
+              <div style="font-size: ${isFacebookRatio ? '7px' : '8px'}; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">MỨC GIÁ BÁN</div>
+              <div style="font-size: ${isFacebookRatio ? '11px' : '14px'}; font-weight: 800; color: #fbbf24; margin-top: 1px;">${currentProperty.priceText || `${currentProperty.price} Tỷ`}</div>
             </div>
             <div style="text-align: center; padding-left: 2px;">
-              <div style="font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">DIỆN TÍCH SỔ</div>
-              <div style="font-size: 14px; font-weight: 800; color: #ffffff; margin-top: 1px;">${currentProperty.area}m²</div>
+              <div style="font-size: ${isFacebookRatio ? '7px' : '8px'}; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">DIỆN TÍCH SỔ</div>
+              <div style="font-size: ${isFacebookRatio ? '11px' : '14px'}; font-weight: 800; color: #ffffff; margin-top: 1px;">${currentProperty.area}m²</div>
             </div>
           `;
           
@@ -2426,7 +2547,7 @@
           flyer.appendChild(heroRow);
           
           const addressEl = document.createElement('div');
-          addressEl.style.fontSize = '11px';
+          addressEl.style.fontSize = isFacebookRatio ? '10px' : '11px';
           addressEl.style.color = '#cbd5e1';
           addressEl.style.fontWeight = '500';
           addressEl.style.display = 'flex';
@@ -2438,7 +2559,7 @@
           
           const imgContainer = document.createElement('div');
           imgContainer.style.width = '100%';
-          imgContainer.style.height = '230px';
+          imgContainer.style.height = isFacebookRatio ? '155px' : '230px';
           imgContainer.style.display = 'flex';
           imgContainer.style.gap = '10px';
           imgContainer.style.boxSizing = 'border-box';
@@ -2507,28 +2628,28 @@
           leftHighlightsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
           leftHighlightsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
           leftHighlightsBlock.style.borderRadius = '12px';
-          leftHighlightsBlock.style.padding = '10px';
+          leftHighlightsBlock.style.padding = isFacebookRatio ? '6px 8px' : '10px';
           leftHighlightsBlock.style.display = 'flex';
           leftHighlightsBlock.style.flexDirection = 'column';
           
           const highlightsTitle = document.createElement('div');
           highlightsTitle.textContent = 'THÔNG TIN NỔI BẬT';
-          highlightsTitle.style.fontSize = '11px';
+          highlightsTitle.style.fontSize = isFacebookRatio ? '9.5px' : '11px';
           highlightsTitle.style.fontWeight = '800';
           highlightsTitle.style.color = '#fbbf24';
           highlightsTitle.style.textAlign = 'center';
           highlightsTitle.style.letterSpacing = '0.5px';
           highlightsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
           highlightsTitle.style.paddingBottom = '5px';
-          highlightsTitle.style.marginBottom = '8px';
+          highlightsTitle.style.marginBottom = isFacebookRatio ? '4px' : '8px';
           leftHighlightsBlock.appendChild(highlightsTitle);
           
           const bulletHTML = (icon, text) => `
-            <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; font-family: var(--font-sans);">
-              <div style="background: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px;">
+            <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: ${isFacebookRatio ? '3px' : '6px'}; font-family: var(--font-sans);">
+              <div style="background: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 50%; width: ${isFacebookRatio ? '16px' : '20px'}; height: ${isFacebookRatio ? '16px' : '20px'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: ${isFacebookRatio ? '8.5px' : '10px'};">
                 ${icon}
               </div>
-              <div style="font-size: 9.5px; line-height: 1.35; color: #cbd5e1; font-weight: 500;">
+              <div style="font-size: ${isFacebookRatio ? '8.5px' : '9.5px'}; line-height: 1.35; color: #cbd5e1; font-weight: 500;">
                 ${text}
               </div>
             </div>
@@ -2548,34 +2669,34 @@
           rightSpecsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
           rightSpecsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
           rightSpecsBlock.style.borderRadius = '12px';
-          rightSpecsBlock.style.padding = '10px';
+          rightSpecsBlock.style.padding = isFacebookRatio ? '6px 8px' : '10px';
           rightSpecsBlock.style.display = 'flex';
           rightSpecsBlock.style.flexDirection = 'column';
           
           const specsTitle = document.createElement('div');
           specsTitle.textContent = 'THÔNG TIN CHI TIẾT';
-          specsTitle.style.fontSize = '11px';
+          specsTitle.style.fontSize = isFacebookRatio ? '9.5px' : '11px';
           specsTitle.style.fontWeight = '800';
           specsTitle.style.color = '#fbbf24';
           specsTitle.style.textAlign = 'center';
           specsTitle.style.letterSpacing = '0.5px';
           specsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
           specsTitle.style.paddingBottom = '5px';
-          specsTitle.style.marginBottom = '8px';
+          specsTitle.style.marginBottom = isFacebookRatio ? '4px' : '8px';
           rightSpecsBlock.appendChild(specsTitle);
           
           const specGrid = document.createElement('div');
           specGrid.style.display = 'grid';
           specGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-          specGrid.style.gap = '6px 8px';
+          specGrid.style.gap = isFacebookRatio ? '4px 6px' : '6px 8px';
           specGrid.style.width = '100%';
           
           const specItemHTML = (icon, label, value, valColor = '#ffffff') => `
-            <div style="display: flex; align-items: center; gap: 5px; padding: 2px 0;">
-              <span style="font-size: 13px; color: #f97316;">${icon}</span>
+            <div style="display: flex; align-items: center; gap: 4px; padding: 1px 0;">
+              <span style="font-size: ${isFacebookRatio ? '11px' : '13px'}; color: #f97316;">${icon}</span>
               <div style="display: flex; flex-direction: column;">
-                <span style="font-size: 7px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">${label}</span>
-                <span style="font-size: 9.5px; font-weight: 700; color: ${valColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;">${value}</span>
+                <span style="font-size: 6.5px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.2px;">${label}</span>
+                <span style="font-size: ${isFacebookRatio ? '8.5px' : '9.5px'}; font-weight: 700; color: ${valColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: ${isFacebookRatio ? '70px' : '80px'};">${value}</span>
               </div>
             </div>
           `;
@@ -2591,15 +2712,15 @@
           
           const legalRow = document.createElement('div');
           legalRow.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
-          legalRow.style.paddingTop = '6px';
-          legalRow.style.marginTop = '4px';
+          legalRow.style.paddingTop = isFacebookRatio ? '4px' : '6px';
+          legalRow.style.marginTop = isFacebookRatio ? '2px' : '4px';
           legalRow.style.width = '100%';
           legalRow.innerHTML = `
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 14px;">📜</span>
+              <span style="font-size: ${isFacebookRatio ? '12px' : '14px'};">📜</span>
               <div style="display: flex; flex-direction: column;">
-                <span style="font-size: 7px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.3px;">PHÁP LÝ BÁN ĐẰNG</span>
-                <span style="font-size: 10px; font-weight: 800; color: #22c55e;">${currentProperty.legal || "Sổ hồng riêng"}</span>
+                <span style="font-size: 6.5px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.2px;">PHÁP LÝ BÁN ĐẰNG</span>
+                <span style="font-size: ${isFacebookRatio ? '9px' : '10px'}; font-weight: 800; color: #22c55e;">${currentProperty.legal || "Sổ hồng riêng"}</span>
               </div>
             </div>
           `;
@@ -2616,7 +2737,7 @@
           appFooter.style.alignItems = 'center';
           appFooter.style.justifyContent = 'space-between';
           appFooter.style.background = 'rgba(15, 23, 42, 0.45)';
-          appFooter.style.padding = '8px 12px';
+          appFooter.style.padding = isFacebookRatio ? '6px 10px' : '8px 12px';
           appFooter.style.borderRadius = '12px';
           appFooter.style.border = '1.5px solid rgba(249, 115, 22, 0.35)';
           appFooter.style.marginTop = 'auto';
@@ -2631,13 +2752,13 @@
           const phoneIconContainer = document.createElement('div');
           phoneIconContainer.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
           phoneIconContainer.style.borderRadius = '50%';
-          phoneIconContainer.style.width = '32px';
-          phoneIconContainer.style.height = '32px';
+          phoneIconContainer.style.width = isFacebookRatio ? '26px' : '32px';
+          phoneIconContainer.style.height = isFacebookRatio ? '26px' : '32px';
           phoneIconContainer.style.display = 'flex';
           phoneIconContainer.style.alignItems = 'center';
           phoneIconContainer.style.justifyContent = 'center';
           phoneIconContainer.style.flexShrink = '0';
-          phoneIconContainer.style.fontSize = '12px';
+          phoneIconContainer.style.fontSize = isFacebookRatio ? '10px' : '12px';
           phoneIconContainer.style.color = '#ffffff';
           phoneIconContainer.textContent = '📞';
           
@@ -2646,9 +2767,9 @@
           contactTexts.style.flexDirection = 'column';
           contactTexts.style.gap = '1px';
           contactTexts.innerHTML = `
-            <div style="font-size: 11.5px; font-weight: 800; color: #ffffff; font-family: var(--font-sans);">Liên hệ: Mr. Thanh Trà</div>
-            <div style="font-size: 13px; font-weight: 950; color: #fbbf24; text-shadow: 0 0 6px rgba(249,115,22,0.3); font-family: var(--font-sans);">0854.100.036 <span style="font-size: 8px; font-weight: 600; color: #cbd5e1; text-shadow: none;">(Zalo kinh doanh)</span></div>
-            <div style="font-size: 8px; color: #94a3b8; font-weight: 600;">Quét mã QR để nhận sổ hồng và làm việc chính chủ!</div>
+            <div style="font-size: ${isFacebookRatio ? '10px' : '11.5px'}; font-weight: 800; color: #ffffff; font-family: var(--font-sans);">Liên hệ: Mr. Thanh Trà</div>
+            <div style="font-size: ${isFacebookRatio ? '11px' : '13px'}; font-weight: 950; color: #fbbf24; text-shadow: 0 0 6px rgba(249,115,22,0.3); font-family: var(--font-sans);">0854.100.036 <span style="font-size: ${isFacebookRatio ? '7px' : '8px'}; font-weight: 600; color: #cbd5e1; text-shadow: none;">(Zalo)</span></div>
+            <div style="font-size: ${isFacebookRatio ? '7px' : '8px'}; color: #94a3b8; font-weight: 600;">Quét QR nhận sổ hồng chính chủ!</div>
           `;
           
           leftContact.appendChild(phoneIconContainer);
@@ -2657,14 +2778,14 @@
           
           const qrPromoText = document.createElement('div');
           qrPromoText.style.position = 'absolute';
-          qrPromoText.style.right = '74px';
-          qrPromoText.style.bottom = '12px';
+          qrPromoText.style.right = isFacebookRatio ? '64px' : '74px';
+          qrPromoText.style.bottom = isFacebookRatio ? '8px' : '12px';
           qrPromoText.style.color = '#f97316';
-          qrPromoText.style.fontSize = '8px';
+          qrPromoText.style.fontSize = '7.5px';
           qrPromoText.style.fontWeight = '800';
           qrPromoText.style.fontStyle = 'italic';
           qrPromoText.style.transform = 'rotate(-8deg)';
-          qrPromoText.innerHTML = 'Quét mã ngay! ➔';
+          qrPromoText.innerHTML = 'Quét mã! ➔';
           appFooter.appendChild(qrPromoText);
           
           const qrFrame = document.createElement('div');
@@ -2672,8 +2793,8 @@
           qrFrame.style.borderRadius = '6px';
           qrFrame.style.padding = '3px';
           qrFrame.style.background = '#ffffff';
-          qrFrame.style.width = '56px';
-          qrFrame.style.height = '56px';
+          qrFrame.style.width = isFacebookRatio ? '44px' : '56px';
+          qrFrame.style.height = isFacebookRatio ? '44px' : '56px';
           qrFrame.style.display = 'flex';
           qrFrame.style.alignItems = 'center';
           qrFrame.style.justifyContent = 'center';
@@ -2696,9 +2817,9 @@
           bottomBar.style.alignItems = 'center';
           bottomBar.style.width = '100%';
           bottomBar.style.borderTop = '1px solid rgba(255,255,255,0.08)';
-          bottomBar.style.paddingTop = '6px';
+          bottomBar.style.paddingTop = isFacebookRatio ? '4px' : '6px';
           bottomBar.style.fontFamily = 'var(--font-sans)';
-          bottomBar.style.fontSize = '9px';
+          bottomBar.style.fontSize = isFacebookRatio ? '8px' : '9px';
           bottomBar.style.color = '#cbd5e1';
           bottomBar.style.fontWeight = '700';
           
@@ -2713,23 +2834,25 @@
           
           document.body.appendChild(flyer);
           
+          // Chạy html2canvas để kết xuất ảnh siêu nét với scale 3.5
           setTimeout(() => {
             html2canvas(flyer, {
               useCORS: true,
               allowTaint: false,
-              scale: 2.5,
+              scale: 3.5,
               backgroundColor: '#020712',
               logging: false
             }).then(canvas => {
               const dataUrl = canvas.toDataURL('image/png');
               const downloadLink = document.createElement('a');
               const cleanTitle = currentProperty.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
-              downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || currentProperty.id}.png`;
+              const ratioSuffix = isFacebookRatio ? 'facebook-feed' : 'story-zalo';
+              downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || currentProperty.id}-${ratioSuffix}.png`;
               downloadLink.href = dataUrl;
               downloadLink.click();
               
               document.body.removeChild(flyer);
-              showToast('Đã chụp ảnh dọc tin đăng thành công! Hình ảnh đã được lưu về máy!', true);
+              showToast('Đã chụp và lưu ảnh đăng thành công!', true);
             }).catch(err => {
               console.error('Lỗi khi chụp ảnh:', err);
               if (document.body.contains(flyer)) {
@@ -2743,7 +2866,7 @@
         const onImageLoaded = () => {
           loadedCount++;
           if (loadedCount === targetCount) {
-            proceedWithCapture();
+            showFormatSelector();
           }
         };
         
