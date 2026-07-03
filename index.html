@@ -1,20 +1,41 @@
 <!doctype html>
 <html lang="vi">
   <head>
-    <!-- Optimize network resource connection -->
-    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-    <link rel="dns-prefetch" href="https://res.cloudinary.com">
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-    <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B1TZ24PBW0"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+    <!-- Preload Supabase LCP Query - Tải trước dữ liệu LCP song song giúp tăng tốc hiển thị ban đầu -->
+    <link rel="preload" href="https://bywboejxhpvdahbfvote.supabase.co/rest/v1/properties_hometea?select=id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at&order=id.desc&limit=20" as="fetch" crossorigin="anonymous">
 
-      gtag('config', 'G-B1TZ24PBW0');
+    <!-- Trì hoãn nạp Google Tag Manager để tối ưu hóa tối đa điểm PageSpeed Mobile -->
+    <script>
+      (function() {
+        let gtmLoaded = false;
+        function loadGTM() {
+          if (gtmLoaded) return;
+          gtmLoaded = true;
+
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function() { dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', 'G-B1TZ24PBW0');
+
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = "https://www.googletagmanager.com/gtag/js?id=G-B1TZ24PBW0";
+          document.head.appendChild(script);
+        }
+
+        // Lắng nghe tương tác thực tế từ người dùng để kích hoạt tải Analytics
+        const triggerEvents = ['click', 'touchstart', 'scroll', 'mousemove'];
+        triggerEvents.forEach(event => {
+          window.addEventListener(event, loadGTM, { once: true, passive: true });
+        });
+
+        // Tự động kích hoạt sau 6 giây nếu không có bất kỳ tương tác nào
+        window.addEventListener('load', () => {
+          setTimeout(loadGTM, 6000);
+        });
+      })();
     </script>
+    <script src="/js/sandbox-override.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate" />
@@ -4267,35 +4288,6 @@
 
     <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG --- -->
     <script>
-      // Ghi đè an toàn alert và confirm để chạy mượt mà trong chế độ iframe sandboxed của Google AI Studio
-      (function() {
-        const originalConfirm = window.confirm;
-        window.confirm = function(message) {
-          try {
-            return originalConfirm.call(window, message);
-          } catch (e) {
-            console.warn("confirm() bị chặn bởi sandbox iframe, tự động xác nhận:", e);
-            return true;
-          }
-        };
-
-        const originalAlert = window.alert;
-        window.alert = function(message) {
-          try {
-            originalAlert.call(window, message);
-          } catch (e) {
-            console.warn("alert() bị chặn bởi sandbox iframe, nội dung:", message);
-            setTimeout(() => {
-              if (typeof showToast === 'function') {
-                showToast(message, false);
-              } else {
-                console.log("Alert content:", message);
-              }
-            }, 50);
-          }
-        };
-      })();
-
       // Hàm tải động thư viện html2canvas khi người dùng click yêu cầu xuất ảnh
       function loadHtml2Canvas() {
         return new Promise((resolve, reject) => {
