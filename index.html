@@ -62,12 +62,13 @@
       "sameAs": ["https://zalo.me/0854100036"]
     }
     </script>
-    <!-- ✅ Thư viện html2canvas để hỗ trợ Chụp ảnh tin đăng chất lượng cao -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Favicon thương hiệu T. tinh tế và sang trọng -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <!-- Google Fonts: Plus Jakarta Sans & Playfair Display cho phong cách sang trọng và hỗ trợ Tiếng Việt cực tốt -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
       /* --- THIẾT LẬP BIẾN MÀU SẮC & GIAO DIỆN --- */
       :root {
@@ -862,6 +863,13 @@
         gap: 48px;
       }
 
+      .contact-info-block {
+        min-height: 415px; /* Tránh layout shift khi render */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
       .contact-info-block h3 {
         font-family: var(--font-serif);
         font-size: 32px;
@@ -934,6 +942,7 @@
         border-radius: 20px;
         backdrop-filter: blur(10px);
         box-shadow: var(--shadow-lg);
+        min-height: 415px; /* Tránh layout shift khi render */
       }
 
       .contact-form-block h4 {
@@ -4287,6 +4296,21 @@
         };
       })();
 
+      // Hàm tải động thư viện html2canvas khi người dùng click yêu cầu xuất ảnh
+      function loadHtml2Canvas() {
+        return new Promise((resolve, reject) => {
+          if (window.html2canvas) {
+            resolve(window.html2canvas);
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+          script.onload = () => resolve(window.html2canvas);
+          script.onerror = () => reject(new Error("Không thể nạp thư viện html2canvas"));
+          document.head.appendChild(script);
+        });
+      }
+
       // Hàm hiện thông báo xác nhận tự chế sang trọng, tương thích hoàn hảo trong iframe sandbox
       function showCustomConfirm(title, message) {
         return new Promise((resolve) => {
@@ -6116,31 +6140,40 @@
               document.body.appendChild(flyer);
               
               // Chạy html2canvas để kết xuất ảnh siêu nét với scale 3.5
-              setTimeout(() => {
-                html2canvas(flyer, {
-                  useCORS: true,
-                  allowTaint: false,
-                  scale: 3.5,
-                  backgroundColor: '#020712',
-                  logging: false
-                }).then(canvas => {
-                  const dataUrl = canvas.toDataURL('image/png');
-                  const downloadLink = document.createElement('a');
-                  const cleanTitle = item.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
-                  const ratioSuffix = isFacebookRatio ? 'facebook-feed' : 'story-zalo';
-                  downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || item.id}-${ratioSuffix}.png`;
-                  downloadLink.href = dataUrl;
-                  downloadLink.click();
-                  
-                  document.body.removeChild(flyer);
-                  showToast('Đã chụp và lưu ảnh đăng thành công!', true);
-                }).catch(err => {
-                  console.error('Lỗi khi chụp ảnh:', err);
+              setTimeout(async () => {
+                try {
+                  await loadHtml2Canvas();
+                  html2canvas(flyer, {
+                    useCORS: true,
+                    allowTaint: false,
+                    scale: 3.5,
+                    backgroundColor: '#020712',
+                    logging: false
+                  }).then(canvas => {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const downloadLink = document.createElement('a');
+                    const cleanTitle = item.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
+                    const ratioSuffix = isFacebookRatio ? 'facebook-feed' : 'story-zalo';
+                    downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || item.id}-${ratioSuffix}.png`;
+                    downloadLink.href = dataUrl;
+                    downloadLink.click();
+                    
+                    document.body.removeChild(flyer);
+                    showToast('Đã chụp và lưu ảnh đăng thành công!', true);
+                  }).catch(err => {
+                    console.error('Lỗi khi chụp ảnh:', err);
+                    if (document.body.contains(flyer)) {
+                      document.body.removeChild(flyer);
+                    }
+                    showToast('Không tự động tải hình được do chặn quyền bảo mật của trình duyệt', false);
+                  });
+                } catch (loadErr) {
+                  console.error('Lỗi tải html2canvas:', loadErr);
                   if (document.body.contains(flyer)) {
                     document.body.removeChild(flyer);
                   }
-                  showToast('Không tự động tải hình được do chặn quyền bảo mật của trình duyệt', false);
-                });
+                  showToast('Không thể nạp thư viện chụp ảnh', false);
+                }
               }, 400);
             };
 
@@ -10098,7 +10131,9 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
       }
 
-      async function fetchPropertiesFromSupabase(silent = false) {
+      let hasLoadedAllProperties = false;
+
+      async function fetchPropertiesFromSupabase(silent = false, limitCount = 20) {
         if (!supabaseUrl || !supabaseAnonKey) {
           applyFilters();
           renderAdminTable();
@@ -10111,7 +10146,15 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
         
         try {
-          const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?select=*&order=id.desc`, {
+          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at';
+          const urlParams = new URLSearchParams({
+            select: selectCols,
+            order: 'id.desc'
+          });
+          if (limitCount && !hasLoadedAllProperties) {
+            urlParams.append('limit', limitCount.toString());
+          }
+          const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?${urlParams.toString()}`, {
             method: 'GET',
             headers: {
               'apikey': supabaseAnonKey,
@@ -10126,7 +10169,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                 // Ánh xạ chuỗi từ snake_case của PostgreSQL về camelCase của React app
                 const localViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
                 const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
-                propertyData = data.map(item => ({
+                const mappedData = data.map(item => ({
                   id: item.id,
                   title: item.title,
                   price: parseFloat(item.price) || 0,
@@ -10190,6 +10233,13 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   created_at: item.created_at || null,
                   updated_at: item.updated_at || null
                 }));
+
+                if (limitCount && !hasLoadedAllProperties) {
+                  propertyData = mappedData;
+                } else {
+                  propertyData = mappedData;
+                  hasLoadedAllProperties = true;
+                }
                 
                 // Lưu dự phòng cục bộ
                 savePropertyDataToStorage();
@@ -10203,6 +10253,13 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                 
                 if (!silent) {
                   showToast(`Đã đồng bộ thành công ${data.length} bất động sản từ Supabase Cloud!`, true);
+                }
+
+                // Nếu vừa tải lần đầu (có limit), thiết lập tải toàn bộ danh sách ngầm sau 2 giây để tối ưu SEO và trải nghiệm cuộn/tìm kiếm
+                if (limitCount && !hasLoadedAllProperties) {
+                  setTimeout(() => {
+                    fetchPropertiesFromSupabase(true, null);
+                  }, 2000);
                 }
               } else {
                 console.log("Supabase table is currently empty. Local records will take precedence upon creation.");

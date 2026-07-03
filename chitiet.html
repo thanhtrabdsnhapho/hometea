@@ -20,7 +20,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-B1TZ24PBW0"></script>
@@ -33,8 +33,6 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     /* Reset & Base Styles */
@@ -1951,6 +1949,21 @@
       lucide.createIcons();
     }
 
+    // Hàm tải động thư viện html2canvas khi người dùng click yêu cầu xuất ảnh
+    function loadHtml2Canvas() {
+      return new Promise((resolve, reject) => {
+        if (window.html2canvas) {
+          resolve(window.html2canvas);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+        script.onload = () => resolve(window.html2canvas);
+        script.onerror = () => reject(new Error("Không thể nạp thư viện html2canvas"));
+        document.head.appendChild(script);
+      });
+    }
+
     // Initialize fetching on window load
     async function init() {
       // URL dạng /chitiet/1782643549-nha-vo-van-hat-...
@@ -1971,7 +1984,8 @@
 
       const supabaseUrl = 'https://bywboejxhpvdahbfvote.supabase.co';
       const apiKey = 'sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r';
-      const endpoint = `${supabaseUrl}/rest/v1/properties_hometea?id=eq.${id}&select=*`;
+      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at';
+      const endpoint = `${supabaseUrl}/rest/v1/properties_hometea?id=eq.${id}&select=${selectCols}`;
 
       try {
         const response = await fetch(endpoint, {
@@ -1994,8 +2008,8 @@
 
         renderProperty(data[0]);
 
-        // Background fetch all other properties for AI chatbot recommendation
-        const allEndpoint = `${supabaseUrl}/rest/v1/properties_hometea?select=*`;
+        // Background fetch other properties for AI chatbot recommendation (Optimized & limited to 20)
+        const allEndpoint = `${supabaseUrl}/rest/v1/properties_hometea?select=id,title,price,price_text,ward,area,img,img_list,created_at,updated_at&limit=20`;
         fetch(allEndpoint, {
           method: 'GET',
           headers: {
@@ -2833,31 +2847,40 @@
           document.body.appendChild(flyer);
           
           // Chạy html2canvas để kết xuất ảnh siêu nét với scale 3.5
-          setTimeout(() => {
-            html2canvas(flyer, {
-              useCORS: true,
-              allowTaint: false,
-              scale: 3.5,
-              backgroundColor: '#020712',
-              logging: false
-            }).then(canvas => {
-              const dataUrl = canvas.toDataURL('image/png');
-              const downloadLink = document.createElement('a');
-              const cleanTitle = currentProperty.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
-              const ratioSuffix = isFacebookRatio ? 'facebook-feed' : 'story-zalo';
-              downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || currentProperty.id}-${ratioSuffix}.png`;
-              downloadLink.href = dataUrl;
-              downloadLink.click();
-              
-              document.body.removeChild(flyer);
-              showToast('Đã chụp và lưu ảnh đăng thành công!', true);
-            }).catch(err => {
-              console.error('Lỗi khi chụp ảnh:', err);
+          setTimeout(async () => {
+            try {
+              await loadHtml2Canvas();
+              html2canvas(flyer, {
+                useCORS: true,
+                allowTaint: false,
+                scale: 3.5,
+                backgroundColor: '#020712',
+                logging: false
+              }).then(canvas => {
+                const dataUrl = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                const cleanTitle = currentProperty.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
+                const ratioSuffix = isFacebookRatio ? 'facebook-feed' : 'story-zalo';
+                downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || currentProperty.id}-${ratioSuffix}.png`;
+                downloadLink.href = dataUrl;
+                downloadLink.click();
+                
+                document.body.removeChild(flyer);
+                showToast('Đã chụp và lưu ảnh đăng thành công!', true);
+              }).catch(err => {
+                console.error('Lỗi khi chụp ảnh:', err);
+                if (document.body.contains(flyer)) {
+                  document.body.removeChild(flyer);
+                }
+                showToast('Không tự động tải hình được do chặn quyền bảo mật của trình duyệt', false);
+              });
+            } catch (loadErr) {
+              console.error('Lỗi tải html2canvas:', loadErr);
               if (document.body.contains(flyer)) {
                 document.body.removeChild(flyer);
               }
-              showToast('Không tự động tải hình được do chặn quyền bảo mật của trình duyệt', false);
-            });
+              showToast('Không thể nạp thư viện chụp ảnh', false);
+            }
           }, 400);
         };
         
