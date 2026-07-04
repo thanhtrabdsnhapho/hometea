@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
@@ -1141,13 +1142,89 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
   app.get("/robots.txt", getRobotsTxtHandler);
   app.get("/api/robots", getRobotsTxtHandler);
 
-  // Thêm rule rewrite /chitiet/:slug tương tự như vercel.json để chạy chuẩn trên cả dev/prod container
-  app.get("/chitiet/:slug", (req, res, next) => {
-    if (process.env.NODE_ENV !== "production") {
-      req.url = "/chitiet.html";
-      next();
-    } else {
-      res.sendFile(path.join(process.cwd(), 'dist', 'chitiet.html'));
+  // Thêm rule rewrite /chitiet/:slug để chạy chuẩn trên cả dev/prod container với SSR meta tags cho SEO
+  app.get("/chitiet/:slug", async (req, res, next) => {
+    const slug = req.params.slug || "";
+    const match = slug.match(/^(\d+)-/);
+
+    const sendHtmlFallback = () => {
+      if (process.env.NODE_ENV !== "production") {
+        req.url = "/chitiet.html";
+        next();
+      } else {
+        res.sendFile(path.join(process.cwd(), 'dist', 'chitiet.html'));
+      }
+    };
+
+    if (!match) {
+      return sendHtmlFallback();
+    }
+
+    const propertyId = parseInt(match[1], 10);
+
+    try {
+      // Query database Supabase từ bảng properties_hometea
+      const { data, error } = await supabase
+        .from('properties_hometea')
+        .select('id, title, description, price_text, ward, img')
+        .eq('id', propertyId);
+
+      if (error) {
+        console.error(`[SSR-SEO] Error querying property ID ${propertyId}:`, error);
+        return sendHtmlFallback();
+      }
+
+      const p = data && data[0];
+      if (!p) {
+        console.warn(`[SSR-SEO] Property with ID ${propertyId} not found.`);
+        return sendHtmlFallback();
+      }
+
+      // Xác định đường dẫn tập tin chitiet.html tương ứng môi trường phát triển/sản xuất
+      const filePath = process.env.NODE_ENV !== "production"
+        ? path.join(process.cwd(), 'chitiet.html')
+        : path.join(process.cwd(), 'dist', 'chitiet.html');
+
+      if (!fs.existsSync(filePath)) {
+        console.error(`[SSR-SEO] Template file not found: ${filePath}`);
+        return sendHtmlFallback();
+      }
+
+      let html = fs.readFileSync(filePath, 'utf8');
+
+      // Tạo nội dung meta tags an toàn
+      const titleStr = `${p.title} | Thanh Trà BĐS`;
+      
+      let descText = p.description || `${p.title}. Giá: ${p.price_text || 'Thỏa thuận'}. Phường ${p.ward || ''}, TP. Thủ Đức, TP.HCM`;
+      if (descText.length > 160) {
+        descText = descText.substring(0, 157) + '...';
+      }
+
+      const escapeHtmlAttr = (str: string): string => {
+        if (!str) return "";
+        return str.replace(/"/g, '&quot;');
+      };
+
+      const escapedTitle = escapeHtmlAttr(titleStr);
+      const escapedDesc = escapeHtmlAttr(descText);
+      const canonicalUrl = `https://thanhtrabds.vercel.app/chitiet/${slug}`;
+      const imageUrl = p.img || 'https://thanhtrabds.vercel.app/og-default.jpg';
+
+      // Thay thế chính xác các meta tags trong mã HTML
+      html = html.replace(/<title>.*?<\/title>/gi, `<title>${titleStr}</title>`);
+      html = html.replace(/<meta\s+name="description"\s+content=".*?"/gi, `<meta name="description" content="${escapedDesc}"`);
+      html = html.replace(/<link\s+id="canonical-link"\s+rel="canonical"\s+href=".*?"/gi, `<link id="canonical-link" rel="canonical" href="${canonicalUrl}"`);
+      html = html.replace(/<meta\s+id="og-url"\s+property="og:url"\s+content=".*?"/gi, `<meta id="og-url" property="og:url" content="${canonicalUrl}"`);
+      html = html.replace(/<meta\s+id="og-title"\s+property="og:title"\s+content=".*?"/gi, `<meta id="og-title" property="og:title" content="${escapedTitle}"`);
+      html = html.replace(/<meta\s+id="og-description"\s+property="og:description"\s+content=".*?"/gi, `<meta id="og-description" property="og:description" content="${escapedDesc}"`);
+      html = html.replace(/<meta\s+id="og-image"\s+property="og:image"\s+content=".*?"/gi, `<meta id="og-image" property="og:image" content="${imageUrl}"`);
+
+      res.header('Content-Type', 'text/html; charset=utf-8');
+      return res.send(html);
+
+    } catch (err) {
+      console.error(`[SSR-SEO] Unexpected error serving SSR page for slug '${slug}':`, err);
+      return sendHtmlFallback();
     }
   });
 
