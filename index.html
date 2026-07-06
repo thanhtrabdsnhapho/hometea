@@ -1439,7 +1439,7 @@
         right: 24px;
         width: 380px;
         height: 520px;
-        background-color: #fff;
+        background-color: var(--card-bg);
         border-radius: 20px;
         box-shadow: var(--shadow-lg);
         border: 1px solid var(--border);
@@ -1631,7 +1631,7 @@
         display: flex;
         flex-direction: column;
         height: calc(100% - 70px);
-        background-color: #fff;
+        background-color: var(--card-bg);
       }
 
       .chat-messages {
@@ -1679,7 +1679,7 @@
 
       .suggestion-pill {
         white-space: nowrap;
-        background-color: #fff;
+        background-color: var(--bg-secondary);
         border: 1px solid var(--border);
         color: var(--primary);
         font-size: 12px;
@@ -1701,7 +1701,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        background-color: #fff;
+        background-color: var(--card-bg);
       }
 
       .chat-input-field {
@@ -1712,6 +1712,8 @@
         outline: none;
         font-size: 13.5px;
         transition: var(--transition);
+        background-color: var(--bg-secondary);
+        color: var(--text-dark);
       }
 
       .chat-input-field:focus {
