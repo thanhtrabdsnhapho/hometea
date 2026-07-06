@@ -1941,6 +1941,16 @@
         badgeRow.appendChild(defaultSecBadge);
       }
 
+      // Thêm badge đếm số lượt xem thực tế
+      const viewsBadge = document.createElement('span');
+      viewsBadge.className = 'badge';
+      viewsBadge.style.backgroundColor = '#f1f5f9';
+      viewsBadge.style.color = '#475569';
+      viewsBadge.style.borderColor = '#cbd5e1';
+      viewsBadge.style.borderWidth = '1px';
+      viewsBadge.innerHTML = `👁️ ${item.views || 0} lượt xem`;
+      badgeRow.appendChild(viewsBadge);
+
       // 5. Specs panel mapping
       // Bedrooms
       const bedEl = document.getElementById('specBedrooms');
@@ -2065,7 +2075,44 @@
           return;
         }
 
-        renderProperty(data[0]);
+        const property = data[0];
+        
+        // Tăng lượt xem thực tế của tin đăng và lưu trữ
+        let currentViews = (property.views !== undefined && property.views !== null) ? parseInt(property.views) : 0;
+        
+        // Dùng sessionStorage để tránh tăng liên tục khi người dùng F5 tải lại trang liên tục trong cùng phiên
+        const sessionKey = `viewed_prop_${property.id}`;
+        if (!sessionStorage.getItem(sessionKey)) {
+          currentViews += 1;
+          property.views = currentViews;
+          sessionStorage.setItem(sessionKey, 'true');
+          
+          // Lưu trữ cục bộ dự phòng
+          try {
+            const localViews = JSON.parse(localStorage.getItem('local_property_views') || '{}');
+            localViews[property.id] = currentViews;
+            localStorage.setItem('local_property_views', JSON.stringify(localViews));
+          } catch (e) {
+            console.warn("Lỗi lưu trữ local_property_views:", e);
+          }
+          
+          // Đồng bộ số lượt xem mới lên Supabase Cloud
+          fetch(`${supabaseUrl}/rest/v1/properties_hometea?id=eq.${property.id}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': apiKey,
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ views: currentViews })
+          }).then(res => {
+            if (!res.ok) console.warn("Lỗi đồng bộ lượt xem lên Supabase:", res.status);
+          }).catch(err => {
+            console.error("Lỗi đồng bộ lượt xem lên Supabase:", err);
+          });
+        }
+
+        renderProperty(property);
 
         // Background fetch other properties for AI chatbot recommendation (Optimized & limited to 20)
         const allEndpoint = `${supabaseUrl}/rest/v1/properties_hometea?select=id,title,price,price_text,ward,area,img,img_list,created_at,updated_at&limit=20`;
