@@ -1166,7 +1166,7 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
       // Query database Supabase từ bảng properties_hometea
       const { data, error } = await supabase
         .from('properties_hometea')
-        .select('id, title, description, price_text, ward, img')
+        .select('id, title, desc, price_text, ward, img')
         .eq('id', propertyId);
 
       if (error) {
@@ -1195,7 +1195,7 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
       // Tạo nội dung meta tags an toàn
       const titleStr = `${p.title} | Thanh Trà BĐS`;
       
-      let descText = p.description || `${p.title}. Giá: ${p.price_text || 'Thỏa thuận'}. Phường ${p.ward || ''}, TP. Thủ Đức, TP.HCM`;
+      let descText = p.desc || `${p.title}. Giá: ${p.price_text || 'Thỏa thuận'}. Phường ${p.ward || ''}, TP. Thủ Đức, TP.HCM`;
       if (descText.length > 160) {
         descText = descText.substring(0, 157) + '...';
       }
