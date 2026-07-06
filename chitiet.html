@@ -54,6 +54,13 @@
     })();
   </script>
   <script defer src="/js/sandbox-override.js"></script>
+  <script>
+    // Khởi tạo theme tức thì để tránh giật lag nhấp nháy giao diện Sáng/Tối
+    (function() {
+      const savedTheme = localStorage.getItem('app-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 
   <!-- Lucide Icons -->
   <script defer src="https://unpkg.com/lucide@latest"></script>
@@ -67,32 +74,54 @@
     }
     
     :root {
-      --primary: #ea580c;
-      --primary-hover: #c2410c;
-      --secondary: #1e3a8a;
-      --secondary-light: #eff6ff;
-      --neutral-dark: #0f172a;
-      --neutral-muted: #475569;
-      --neutral-light: #f8fafc;
-      --border: #e2e8f0;
+      --primary: #f4a623;
+      --primary-hover: #ea580c;
+      --secondary: #f8f9fa;
+      --secondary-light: #f8f9fa;
+      --neutral-dark: #202124;
+      --neutral-muted: #5f6368;
+      --neutral-light: #f8f9fa;
+      --border: #dadce0;
       --radius-lg: 16px;
       --radius-md: 12px;
       --radius-sm: 8px;
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
       --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       --font-serif: 'Playfair Display', serif;
+      --body-bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --navbar-bg: #ffffff;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    :root[data-theme="dark"] {
+      --primary: #f4a623;
+      --primary-hover: #e09112;
+      --secondary: #282a2d;
+      --secondary-light: #282a2d;
+      --neutral-dark: #e8eaed;
+      --neutral-muted: #9aa0a6;
+      --neutral-light: #1a1a1a;
+      --border: #3c4043;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+      --body-bg: #1a1a1a;
+      --card-bg: #282a2d;
+      --navbar-bg: #282a2d;
     }
     
     body {
       font-family: var(--font);
-      background-color: #f1f5f9;
+      background-color: var(--body-bg);
       color: var(--neutral-dark);
       line-height: 1.6;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: var(--transition);
     }
 
     a {
@@ -109,12 +138,13 @@
 
     /* Header styling */
     header {
-      background-color: #ffffff;
+      background-color: var(--navbar-bg);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 100;
       box-shadow: var(--shadow-sm);
+      transition: var(--transition);
     }
 
     header .header-content {
@@ -174,7 +204,7 @@
       padding: 8px 14px;
       border-radius: var(--radius-sm);
       border: 1.5px solid var(--border);
-      background-color: #ffffff;
+      background-color: var(--card-bg);
     }
 
     .back-home-btn:hover {
@@ -211,7 +241,7 @@
 
     /* Card styling */
     .card {
-      background-color: #ffffff;
+      background-color: var(--card-bg);
       border-radius: var(--radius-lg);
       padding: 24px;
       box-shadow: var(--shadow-sm);
@@ -290,7 +320,7 @@
       display: flex;
       gap: 10px;
       padding: 16px;
-      background-color: #ffffff;
+      background-color: var(--card-bg);
       border-top: 1px solid var(--border);
       overflow-x: auto;
       scrollbar-width: thin;
@@ -472,16 +502,16 @@
     .spec-box-full {
       grid-column: 1 / -1;
       border: 1px solid rgba(34, 197, 94, 0.2);
-      background-color: #f0fdf4;
+      background-color: rgba(34, 197, 94, 0.08);
     }
 
     .spec-box-full .spec-icon-wrapper {
-      background-color: #dcfce7;
-      color: #15803d;
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
     }
 
     .spec-box-full .spec-value {
-      color: #15803d;
+      color: #22c55e;
     }
 
     /* Description styling */
@@ -498,14 +528,14 @@
     .desc-text {
       font-size: 15px;
       line-height: 1.8;
-      color: #334155;
+      color: var(--neutral-dark);
       white-space: pre-line;
     }
 
     /* Sidebar cards */
     .contact-card {
-      background-color: var(--secondary-light);
-      border: 1px solid rgba(30, 58, 138, 0.15);
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
       position: sticky;
       top: 94px;
     }
@@ -515,7 +545,7 @@
       align-items: center;
       gap: 14px;
       margin-bottom: 20px;
-      border-bottom: 1px solid rgba(30, 58, 138, 0.1);
+      border-bottom: 1px solid var(--border);
       padding-bottom: 16px;
     }
 
@@ -1344,38 +1374,43 @@
     <div class="container header-content">
       <a href="/" class="logo-group" style="display: inline-flex; align-items: center; gap: 14px; text-decoration: none;">
         <!-- T. Logo Icon -->
-        <div class="brand-logo-container" style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: #0c1524; border-radius: 10px; border: 1.5px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);">
+        <div class="brand-logo-container" style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 10px; border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);">
           <svg width="26" height="26" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Geometric Slab T -->
-            <path d="M12 18C12 16.8954 12.8954 16 14 16H50C51.1046 16 52 16.8954 52 18V24C52 25.1046 51.1046 26 50 26H38V48C38 49.1046 37.1046 50 36 50H28C26.8954 50 26 49.1046 26 48V26H14C12.8954 26 12 25.1046 12 24V18Z" fill="#f97316" />
+            <path d="M12 18C12 16.8954 12.8954 16 14 16H50C51.1046 16 52 16.8954 52 18V24C52 25.1046 51.1046 26 50 26H38V48C38 49.1046 37.1046 50 36 50H28C26.8954 50 26 49.1046 26 48V26H14C12.8954 26 12 25.1046 12 24V18Z" fill="#ffffff" />
             <!-- Round dot -->
-            <circle cx="50" cy="45" r="5.5" fill="#f97316" />
+            <circle cx="50" cy="45" r="5.5" fill="#ffffff" />
           </svg>
         </div>
         
         <!-- Thin vertical separator line -->
-        <div class="brand-vertical-divider" style="height: 38px; width: 1.5px; background: rgba(249, 115, 22, 0.4); flex-shrink: 0;"></div>
+        <div class="brand-vertical-divider" style="height: 38px; width: 1.5px; background: var(--border); flex-shrink: 0;"></div>
         
         <!-- Brand wordmark area -->
         <div class="brand-wordmark" style="display: flex; flex-direction: column; justify-content: center; text-align: left;">
           <!-- THANH TRÀ (Premium Serif) -->
-          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 850; color: #0f172a; letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
+          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 850; color: var(--neutral-dark); letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
             Thanh Trà
           </div>
           <!-- B Đ S with border under -->
-          <div style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid rgba(249, 115, 22, 0.35); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font); font-size: 10px; font-weight: 800; color: #ea580c; letter-spacing: 5px; line-height: 1; text-transform: uppercase;">
+          <div style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid var(--primary); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font); font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 5px; line-height: 1; text-transform: uppercase;">
             B Đ S
           </div>
           <!-- Mua bán nhà phố - TP. Thủ Đức -->
-          <div style="font-family: var(--font); font-size: 7.5px; font-weight: 600; color: #475569; letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
+          <div style="font-family: var(--font); font-size: 7.5px; font-weight: 600; color: var(--neutral-muted); letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
             Mua bán nhà phố - TP. Thủ Đức
           </div>
         </div>
       </a>
-      <a href="/" class="back-home-btn">
-        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-        Trang chủ
-      </a>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button id="themeToggleBtn" aria-label="Đổi giao diện Sáng/Tối" title="Đổi giao diện Sáng/Tối" class="back-home-btn" style="padding: 0; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;">
+          <span id="themeToggleIcon" style="font-size: 16px;">🌙</span>
+        </button>
+        <a href="/" class="back-home-btn">
+          <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+          Trang chủ
+        </a>
+      </div>
     </div>
   </header>
 
@@ -3383,8 +3418,36 @@ Nguyên tắc trả lời:
       updateGallery();
     };
 
+    function setupThemeToggle() {
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeToggleIcon = document.getElementById('themeToggleIcon');
+      if (!themeToggleBtn || !themeToggleIcon) return;
+
+      const currentTheme = localStorage.getItem('app-theme') || 'light';
+      if (currentTheme === 'dark') {
+        themeToggleIcon.textContent = '☀️';
+      } else {
+        themeToggleIcon.textContent = '🌙';
+      }
+
+      themeToggleBtn.addEventListener('click', () => {
+        const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const newTheme = activeTheme === 'light' ? 'dark' : 'light';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('app-theme', newTheme);
+        
+        if (newTheme === 'dark') {
+          themeToggleIcon.textContent = '☀️';
+        } else {
+          themeToggleIcon.textContent = '🌙';
+        }
+      });
+    }
+
     window.onload = () => {
       init();
+      setupThemeToggle();
     };
   </script>
 </body>
