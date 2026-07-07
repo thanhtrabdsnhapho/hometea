@@ -3559,6 +3559,42 @@
               </div>
             </div>
           </div>
+
+          <!-- Card Phân Tích Giá Thị Trường -->
+          <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+              <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                📊 Phân Tích Giá Thị Trường (TP. Thủ Đức)
+              </h5>
+              <!-- Tabs -->
+              <div style="display: flex; gap: 4px; background: var(--bg-light); padding: 4px; border-radius: 8px; border: 1px solid var(--border);">
+                <button id="adminPriceAnalysisTabLand" onclick="switchPriceAnalysisTab('land')" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: var(--primary); color: #fff; transition: all 0.15s;">
+                  Đất Nền
+                </button>
+                <button id="adminPriceAnalysisTabHouse" onclick="switchPriceAnalysisTab('house')" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-dark); transition: all 0.15s;">
+                  Nhà Phố
+                </button>
+              </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="admin-table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th style="padding: 12px 16px;">Phường</th>
+                    <th style="padding: 12px 16px; text-align: right;">TB (tr/m²)</th>
+                    <th style="padding: 12px 16px; text-align: right;">Thấp nhất (tr/m²)</th>
+                    <th style="padding: 12px 16px; text-align: right;">Cao nhất (tr/m²)</th>
+                    <th style="padding: 12px 16px; text-align: right;">Số mẫu</th>
+                  </tr>
+                </thead>
+                <tbody id="adminPriceAnalysisTableBody">
+                  <!-- JS dynamic injection -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- ==================== TAB 3: HỘP THƯ TƯ VẤN ==================== -->
@@ -5262,9 +5298,9 @@
         const foundItem = propertyData.find(p => p.id == id);
         if (foundItem) {
           const slug = createSlug(foundItem.title);
-          window.location.href = `/chitiet/${foundItem.id}-${slug}`;
+          window.open(`/chitiet/${foundItem.id}-${slug}`, '_blank');
         } else {
-          window.location.href = `/chitiet?id=${id}`;
+          window.open(`/chitiet?id=${id}`, '_blank');
         }
         return;
 
@@ -7378,10 +7414,123 @@ Nguyên tắc trả lời:
             }
           }
 
+          // 7. Phân tích giá thị trường
+          renderPriceAnalysisTable();
+
         } catch (e) {
           console.error("Lỗi vẽ báo cáo admin:", e);
         }
       }
+
+      window.currentPriceAnalysisTab = 'land';
+
+      function renderPriceAnalysisTable() {
+        try {
+          const tbody = document.getElementById('adminPriceAnalysisTableBody');
+          if (!tbody) return;
+          tbody.innerHTML = '';
+
+          const isLandTab = window.currentPriceAnalysisTab === 'land';
+
+          // Group by ward
+          const wardGroups = {};
+
+          propertyData.forEach(p => {
+            if (!p) return;
+            const price = parseFloat(p.price);
+            const area = parseFloat(p.area);
+
+            // Bỏ qua listing có area = 0 hoặc price = 0 khi tính
+            if (isNaN(price) || price <= 0 || isNaN(area) || area <= 0) return;
+
+            // Ward name
+            const ward = p.ward ? p.ward.trim() : '';
+            if (!ward) return;
+
+            // Determine if Land vs Townhouse (Đất nền: sotang === "0" hoặc sotang === 0. Nhà phố: sotang khác 0)
+            const floorsVal = p.floors;
+            const floorsInt = parseInt(floorsVal);
+            const isLand = (floorsVal === 0 || floorsVal === '0' || floorsInt === 0);
+
+            // Filter based on selected tab
+            if (isLandTab && !isLand) return;
+            if (!isLandTab && isLand) return;
+
+            // Compute price_per_m2 (price is in Billion, area is in m2 -> price * 1000 / area is Million/m2)
+            const pricePerM2 = (price * 1000) / area;
+
+            if (!wardGroups[ward]) {
+              wardGroups[ward] = {
+                sum: 0,
+                min: pricePerM2,
+                max: pricePerM2,
+                count: 0
+              };
+            }
+
+            wardGroups[ward].sum += pricePerM2;
+            if (pricePerM2 < wardGroups[ward].min) wardGroups[ward].min = pricePerM2;
+            if (pricePerM2 > wardGroups[ward].max) wardGroups[ward].max = pricePerM2;
+            wardGroups[ward].count++;
+          });
+
+          const sortedWards = Object.keys(wardGroups).sort((a, b) => a.localeCompare(b));
+
+          if (sortedWards.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px 0;">
+                  Không có dữ liệu phân tích cho danh mục này.
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          sortedWards.forEach(ward => {
+            const data = wardGroups[ward];
+            const avg = data.sum / data.count;
+            
+            // Làm tròn số đến 1 chữ số thập phân
+            const avgStr = avg.toFixed(1);
+            const minStr = data.min.toFixed(1);
+            const maxStr = data.max.toFixed(1);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding: 12px 16px; font-weight: 700; color: var(--text-dark);">📌 Phường ${ward}</td>
+              <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: var(--accent);">${avgStr}</td>
+              <td style="padding: 12px 16px; text-align: right; color: var(--text-dark);">${minStr}</td>
+              <td style="padding: 12px 16px; text-align: right; color: var(--text-dark);">${maxStr}</td>
+              <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: var(--text-muted);">${data.count}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+        } catch (e) {
+          console.error("Lỗi vẽ bảng phân tích giá:", e);
+        }
+      }
+
+      window.switchPriceAnalysisTab = function(tab) {
+        window.currentPriceAnalysisTab = tab;
+        const btnLand = document.getElementById('adminPriceAnalysisTabLand');
+        const btnHouse = document.getElementById('adminPriceAnalysisTabHouse');
+        if (btnLand && btnHouse) {
+          if (tab === 'land') {
+            btnLand.style.background = 'var(--primary)';
+            btnLand.style.color = '#fff';
+            btnHouse.style.background = 'transparent';
+            btnHouse.style.color = 'var(--text-dark)';
+          } else {
+            btnHouse.style.background = 'var(--primary)';
+            btnHouse.style.color = '#fff';
+            btnLand.style.background = 'transparent';
+            btnLand.style.color = 'var(--text-dark)';
+          }
+        }
+        renderPriceAnalysisTable();
+      };
 
       function renderAdminInbox() {
         try {
