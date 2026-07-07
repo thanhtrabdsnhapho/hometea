@@ -3003,6 +3003,44 @@
       </div>
     </main>
 
+    <!-- SECTION GIÁ THAM KHẢO THỊ TRƯỜNG -->
+    <section class="market-price-section" id="market-price" style="padding: 60px 0; background: var(--bg-dark); border-top: 1px solid var(--border);">
+      <div style="max-width: 1200px; margin: 0 auto; padding: 0 16px;">
+        <div class="section-header" style="margin-bottom: 32px; text-align: center;">
+          <h3 style="font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 8px; text-transform: uppercase;">📊 Giá Tham Khảo Thị Trường Thủ Đức</h3>
+          <p style="color: var(--text-muted); font-size: 14px; max-width: 600px; margin: 0 auto;">Tổng hợp biến động giá đất nền và nhà phố trung bình tại từng phường dựa trên dữ liệu tin đăng thực tế.</p>
+        </div>
+
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow);">
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+              <thead>
+                <tr style="background: rgba(244, 166, 35, 0.08); border-bottom: 2px solid var(--border);">
+                  <th style="padding: 16px; font-weight: 700; color: var(--accent);">Phường</th>
+                  <th style="padding: 16px; font-weight: 700; color: var(--accent); text-align: right;">Giá TB/m²</th>
+                  <th style="padding: 16px; font-weight: 700; color: var(--accent); text-align: right;">Dao động</th>
+                  <th style="padding: 16px; font-weight: 700; color: var(--accent); text-align: right;">Số tin</th>
+                </tr>
+              </thead>
+              <tbody id="publicMarketPriceTableBody">
+                <!-- Sẽ được điền bằng JS -->
+              </tbody>
+            </table>
+          </div>
+          
+          <div id="marketPriceLoadMoreContainer" style="display: none; justify-content: center; padding: 16px; border-top: 1px solid var(--border); background: rgba(0, 0, 0, 0.1);">
+            <button id="btnMarketPriceLoadMore" onclick="toggleMarketPriceRows()" style="display: flex; align-items: center; gap: 8px; padding: 8px 24px; font-size: 13px; font-weight: 700; border-radius: 99px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; transition: all 0.2s;">
+              Xem thêm các phường khác <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display: inline-block;"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+        
+        <p style="margin-top: 16px; text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic;">
+          * Ghi chú: Giá tham khảo tính từ các tin đăng hiện tại. Giá nhà bao gồm giá trị xây dựng.
+        </p>
+      </div>
+    </section>
+
     <!-- SECTION LIÊN HỆ -->
     <section class="contact-section" id="contact">
       <div class="contact-container">
@@ -5108,6 +5146,9 @@
         }
 
         renderProducts(filtered);
+        if (typeof renderPublicMarketPriceTable === 'function') {
+          renderPublicMarketPriceTable();
+        }
       }
 
       // Hàm chuyển đổi các Tab điều hướng bên ngoài (Tất cả, Giảm giá, Mới đăng, Xem nhiều nhất)
@@ -7541,6 +7582,108 @@ Nguyên tắc trả lời:
           }
         }
         renderPriceAnalysisTable();
+      };
+
+      window.isMarketPriceExpanded = false;
+
+      window.renderPublicMarketPriceTable = function() {
+        try {
+          const tbody = document.getElementById('publicMarketPriceTableBody');
+          if (!tbody) return;
+          tbody.innerHTML = '';
+
+          // Group by ward
+          const wardGroups = {};
+
+          propertyData.forEach(p => {
+            if (!p) return;
+            const price = parseFloat(p.price);
+            const area = parseFloat(p.area);
+
+            // loại bỏ listing có price = 0 hoặc area = 0
+            if (isNaN(price) || price <= 0 || isNaN(area) || area <= 0) return;
+
+            const ward = p.ward ? p.ward.trim() : '';
+            if (!ward) return;
+
+            const pricePerM2 = (price * 1000) / area; // triệu/m²
+
+            if (!wardGroups[ward]) {
+              wardGroups[ward] = {
+                sum: 0,
+                count: 0,
+                prices: []
+              };
+            }
+            wardGroups[ward].sum += pricePerM2;
+            wardGroups[ward].count++;
+            wardGroups[ward].prices.push(pricePerM2);
+          });
+
+          // Sắp xếp các phường có nhiều listing nhất (theo count giảm dần)
+          const sortedWards = Object.keys(wardGroups).sort((a, b) => {
+            return wardGroups[b].count - wardGroups[a].count;
+          });
+
+          if (sortedWards.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px 0;">
+                  Không có dữ liệu phân tích giá thị trường.
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          const showCount = window.isMarketPriceExpanded ? sortedWards.length : 6;
+          const visibleWards = sortedWards.slice(0, showCount);
+
+          visibleWards.forEach(ward => {
+            const group = wardGroups[ward];
+            const avg = group.sum / group.count;
+            const min = Math.min(...group.prices);
+            const max = Math.max(...group.prices);
+
+            const avgStr = avg.toFixed(1) + " tr";
+            const rangeStr = `${min.toFixed(1)}–${max.toFixed(1)} tr`;
+            const countStr = `${group.count} tin`;
+
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid var(--border)';
+            tr.innerHTML = `
+              <td style="padding: 16px; font-weight: 700; color: var(--text-dark);">📍 Phường ${ward}</td>
+              <td style="padding: 16px; text-align: right; font-weight: 800; color: var(--accent);">${avgStr}/m²</td>
+              <td style="padding: 16px; text-align: right; color: var(--text-muted);">${rangeStr}</td>
+              <td style="padding: 16px; text-align: right; font-weight: 600; color: var(--text-dark);">${countStr}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          // Hiển thị / ẩn nút Xem thêm
+          const loadMoreContainer = document.getElementById('marketPriceLoadMoreContainer');
+          const btnLoadMore = document.getElementById('btnMarketPriceLoadMore');
+          if (loadMoreContainer && btnLoadMore) {
+            if (sortedWards.length > 6) {
+              loadMoreContainer.style.display = 'flex';
+              if (window.isMarketPriceExpanded) {
+                btnLoadMore.innerHTML = `Thu gọn bớt <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display: inline-block; transform: rotate(180deg);"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+              } else {
+                btnLoadMore.innerHTML = `Xem thêm các phường khác <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display: inline-block;"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+              }
+            } else {
+              loadMoreContainer.style.display = 'none';
+            }
+          }
+
+        } catch (e) {
+          console.error("Lỗi vẽ bảng giá công cộng:", e);
+        }
+      };
+
+      window.toggleMarketPriceRows = function() {
+        window.isMarketPriceExpanded = !window.isMarketPriceExpanded;
+        window.renderPublicMarketPriceTable();
       };
 
       function renderAdminInbox() {
