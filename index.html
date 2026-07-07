@@ -4933,12 +4933,14 @@
           const pSlug = createSlug(p.title);
           const pUrl = `/chitiet/${p.id}-${pSlug}`;
           const cardHtml = `
-            <a href="${pUrl}" class="product-card" id="prop-${p.id}" style="cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
+            <article class="product-card" id="prop-${p.id}" style="cursor: pointer; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
               <!-- Slider hình ảnh -->
-              <div class="card-slider-container">
-                <img class="card-slider-img" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
-                ${sliderNavHtml}
-              </div>
+              <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="display: block; text-decoration: none; color: inherit; width: 100%;">
+                <div class="card-slider-container">
+                  <img class="card-slider-img" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+                  ${sliderNavHtml}
+                </div>
+              </a>
               
               <!-- Thân card -->
               <div class="product-body" style="padding: 12px; display: flex; flex-direction: column; flex-grow: 1;">
@@ -4951,7 +4953,9 @@
                 </div>
 
                 <!-- Tiêu đề đóng vai trò viết hoa in đậm -->
-                <h4 class="card-title-upper" title="${p.title}" style="height: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;">${p.title.toUpperCase()}</h4>
+                <h4 class="card-title-upper" title="${p.title}" style="height: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;">
+                  <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="color: inherit; text-decoration: none; display: block;">${p.title.toUpperCase()}</a>
+                </h4>
                 
                 <!-- Địa chỉ đầy đủ hiển thị dưới tiêu đề như trong ảnh -->
                 <div class="card-address-full" style="display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px; font-size: 13px; color: #4b5563;" title="${getPublicDisplayAddress(p)}">
@@ -5024,7 +5028,7 @@
                   </button>
                 </div>
               </div>
-            </a>
+            </article>
           `;
           productsGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
