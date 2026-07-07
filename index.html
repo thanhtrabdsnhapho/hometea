@@ -2,7 +2,7 @@
 <html lang="vi">
   <head>
     <!-- Preload Supabase LCP Query - Tải trước dữ liệu LCP song song giúp tăng tốc hiển thị ban đầu -->
-    <link rel="preload" href="https://bywboejxhpvdahbfvote.supabase.co/rest/v1/properties_hometea?select=id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at&order=id.desc&limit=20" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="https://bywboejxhpvdahbfvote.supabase.co/rest/v1/properties_hometea?select=id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,loai_vi_tri&order=id.desc&limit=20" as="fetch" crossorigin="anonymous">
 
     <!-- Trì hoãn nạp Google Tag Manager để tối ưu hóa tối đa điểm PageSpeed Mobile -->
     <script>
@@ -3369,6 +3369,7 @@
     "desc" TEXT,
     area INT,
     house_number TEXT,
+    loai_vi_tri TEXT DEFAULT 'hem',
     street TEXT,
     width NUMERIC,
     bedrooms INT,
@@ -3378,8 +3379,9 @@
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
 
-  -- Nếu bảng đã tồn tại sẵn, chạy lệnh này để thêm trường đếm lượt xem:
+  -- Nếu bảng đã tồn tại sẵn, chạy lệnh này để thêm trường đếm lượt xem & loại vị trí:
   ALTER TABLE properties_hometea ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
+  ALTER TABLE properties_hometea ADD COLUMN IF NOT EXISTS loai_vi_tri TEXT DEFAULT 'hem';
 
   -- Bật phân quyền truy cập thuận tiện trực tiếp từ Client app
   ALTER TABLE properties_hometea ENABLE ROW LEVEL SECURITY;
@@ -3605,12 +3607,21 @@
                 📊 Phân Tích Giá Thị Trường (TP. Thủ Đức)
               </h5>
               <!-- Tabs -->
-              <div style="display: flex; gap: 4px; background: var(--bg-light); padding: 4px; border-radius: 8px; border: 1px solid var(--border);">
+              <div style="display: flex; gap: 4px; flex-wrap: wrap; background: var(--bg-light); padding: 4px; border-radius: 8px; border: 1px solid var(--border);">
                 <button id="adminPriceAnalysisTabLand" onclick="switchPriceAnalysisTab('land')" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: var(--primary); color: #fff; transition: all 0.15s;">
                   Đất Nền
                 </button>
                 <button id="adminPriceAnalysisTabHouse" onclick="switchPriceAnalysisTab('house')" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-dark); transition: all 0.15s;">
                   Nhà Phố
+                </button>
+                <button id="adminPriceAnalysisTabFrontage" onclick="switchPriceAnalysisTab('frontage')" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-dark); transition: all 0.15s;">
+                  Mặt Tiền
+                </button>
+                <button id="adminPriceAnalysisTabAlleyCar" onclick="switchPriceAnalysisTab('alley_car')" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-dark); transition: all 0.15s;">
+                  Hẻm Xe Hơi
+                </button>
+                <button id="adminPriceAnalysisTabAlleyMoto" onclick="switchPriceAnalysisTab('alley_moto')" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-dark); transition: all 0.15s;">
+                  Hẻm Xe Máy
                 </button>
               </div>
             </div>
@@ -3735,8 +3746,20 @@
 
             <div class="admin-form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
               <div class="admin-form-group">
-                <label for="ap_hn_fld" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Số nh<span style="display:none">_</span>à</label>
-                <input type="text" id="ap_hn_fld" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="..." autocomplete="off" data-lpignore="true">
+                <div style="display: flex; gap: 12px; width: 100%;">
+                  <div style="width: calc(30% - 6px); flex-shrink: 0;">
+                    <label for="ap_hn_fld" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Số nh<span style="display:none">_</span>à</label>
+                    <input type="text" id="ap_hn_fld" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="..." autocomplete="off" data-lpignore="true">
+                  </div>
+                  <div style="width: calc(70% - 6px); flex-shrink: 0;">
+                    <label for="formLoaiViTri" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loại vị trí</label>
+                    <select id="formLoaiViTri" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
+                      <option value="hem_xe_hoi" selected>Hẻm xe hơi</option>
+                      <option value="hem_xe_may">Hẻm xe máy</option>
+                      <option value="mat_tien">Mặt tiền</option>
+                    </select>
+                  </div>
+                </div>
               </div>
               <div class="admin-form-group">
                 <label for="ap_st_fld" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Tên đường phố (Để trống nếu không muốn đăng địa chỉ)</label>
@@ -7482,7 +7505,7 @@ Nguyên tắc trả lời:
           if (!tbody) return;
           tbody.innerHTML = '';
 
-          const isLandTab = window.currentPriceAnalysisTab === 'land';
+          const activeTab = window.currentPriceAnalysisTab || 'land';
 
           // Group by ward
           const wardGroups = {};
@@ -7502,11 +7525,26 @@ Nguyên tắc trả lời:
             // Determine if Land vs Townhouse (Đất nền: sotang === "0" hoặc sotang === 0. Nhà phố: sotang khác 0)
             const floorsVal = p.floors;
             const floorsInt = parseInt(floorsVal);
-            const isLand = (floorsVal === 0 || floorsVal === '0' || floorsInt === 0);
+            const isLand = (floorsVal === 0 || floorsVal === '0' || floorsInt === 0 || isNaN(floorsInt));
 
             // Filter based on selected tab
-            if (isLandTab && !isLand) return;
-            if (!isLandTab && isLand) return;
+            if (activeTab === 'land') {
+              if (!isLand) return;
+            } else if (activeTab === 'house') {
+              if (isLand || isNaN(floorsInt) || floorsInt <= 0) return;
+            } else {
+              // Tab 3, 4, 5 gộp chung cả đất lẫn nhà (không lọc theo sotang), bỏ qua listing có loai_vi_tri null/rỗng
+              const lvt = p.loaiViTri || p.loai_vi_tri;
+              if (!lvt || lvt.trim() === '') return;
+
+              if (activeTab === 'frontage') {
+                if (lvt !== 'mat_tien') return;
+              } else if (activeTab === 'alley_car') {
+                if (lvt !== 'hem_xe_hoi' && lvt !== 'hem') return;
+              } else if (activeTab === 'alley_moto') {
+                if (lvt !== 'hem_xe_may') return;
+              }
+            }
 
             // Compute price_per_m2 (price is in Billion, area is in m2 -> price * 1000 / area is Million/m2)
             const pricePerM2 = (price * 1000) / area;
@@ -7526,18 +7564,21 @@ Nguyên tắc trả lời:
             wardGroups[ward].count++;
           });
 
-          const sortedWards = Object.keys(wardGroups).sort((a, b) => a.localeCompare(b));
+          // Calculate total samples across all wards
+          const totalSamples = Object.values(wardGroups).reduce((sum, g) => sum + g.count, 0);
 
-          if (sortedWards.length === 0) {
+          if (totalSamples < 2) {
             tbody.innerHTML = `
               <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px 0;">
-                  Không có dữ liệu phân tích cho danh mục này.
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px 0; font-size: 11px; font-style: italic;">
+                  Chưa đủ dữ liệu
                 </td>
               </tr>
             `;
             return;
           }
+
+          const sortedWards = Object.keys(wardGroups).sort((a, b) => a.localeCompare(b));
 
           sortedWards.forEach(ward => {
             const data = wardGroups[ward];
@@ -7566,19 +7607,23 @@ Nguyên tắc trả lời:
 
       window.switchPriceAnalysisTab = function(tab) {
         window.currentPriceAnalysisTab = tab;
-        const btnLand = document.getElementById('adminPriceAnalysisTabLand');
-        const btnHouse = document.getElementById('adminPriceAnalysisTabHouse');
-        if (btnLand && btnHouse) {
-          if (tab === 'land') {
-            btnLand.style.background = 'var(--primary)';
-            btnLand.style.color = '#fff';
-            btnHouse.style.background = 'transparent';
-            btnHouse.style.color = 'var(--text-dark)';
-          } else {
-            btnHouse.style.background = 'var(--primary)';
-            btnHouse.style.color = '#fff';
-            btnLand.style.background = 'transparent';
-            btnLand.style.color = 'var(--text-dark)';
+        const tabs = {
+          'land': 'adminPriceAnalysisTabLand',
+          'house': 'adminPriceAnalysisTabHouse',
+          'frontage': 'adminPriceAnalysisTabFrontage',
+          'alley_car': 'adminPriceAnalysisTabAlleyCar',
+          'alley_moto': 'adminPriceAnalysisTabAlleyMoto'
+        };
+        for (const [key, id] of Object.entries(tabs)) {
+          const btn = document.getElementById(id);
+          if (btn) {
+            if (key === tab) {
+              btn.style.background = 'var(--primary)';
+              btn.style.color = '#fff';
+            } else {
+              btn.style.background = 'transparent';
+              btn.style.color = 'var(--text-dark)';
+            }
           }
         }
         renderPriceAnalysisTable();
@@ -9156,6 +9201,7 @@ Nguyên tắc trả lời:
         if (oldPriceFld) oldPriceFld.value = '';
 
         const houseNumberInput = document.getElementById('ap_hn_fld');
+        const loaiViTriInput = document.getElementById('formLoaiViTri');
         const streetInput = document.getElementById('ap_st_fld');
         const widthInput = document.getElementById('formWidth');
         const bedroomsInput = document.getElementById('formBedrooms');
@@ -9163,6 +9209,7 @@ Nguyên tắc trả lời:
         const legalInput = document.getElementById('formLegal');
 
         if (houseNumberInput) houseNumberInput.value = '';
+        if (loaiViTriInput) loaiViTriInput.value = 'hem_xe_hoi'; // Default khi tạo mới: chọn sẵn Hẻm xe hơi
         if (streetInput) streetInput.value = '';
         if (widthInput) widthInput.value = '';
         if (bedroomsInput) bedroomsInput.value = '';
@@ -9195,6 +9242,7 @@ Nguyên tắc trả lời:
             }
 
             if (houseNumberInput) houseNumberInput.value = item.houseNumber || '';
+            if (loaiViTriInput) loaiViTriInput.value = item.loaiViTri || 'hem_xe_hoi';
             if (streetInput) streetInput.value = item.street || '';
             if (widthInput) widthInput.value = (item.width !== undefined && item.width !== null) ? item.width : '';
             if (bedroomsInput) bedroomsInput.value = (item.bedrooms !== undefined && item.bedrooms !== null) ? item.bedrooms : '';
@@ -9514,6 +9562,7 @@ Nguyên tắc trả lời:
         const descVal = document.getElementById('formDesc').value;
         
         const houseNumberVal = document.getElementById('ap_hn_fld').value.trim();
+        const loaiViTriVal = document.getElementById('formLoaiViTri').value;
         const streetVal = document.getElementById('ap_st_fld').value.trim();
         const widthRawText = document.getElementById('formWidth').value.trim();
         const widthVal = widthRawText !== "" ? (parseFloat(widthRawText) || 0) : 4;
@@ -9621,6 +9670,7 @@ Nguyên tắc trả lời:
             item.img = imgVal;
             item.imgList = imgListVal;
             item.houseNumber = houseNumberVal;
+            item.loaiViTri = loaiViTriVal;
             item.street = streetVal;
             item.width = widthVal;
             item.bedrooms = bedroomsVal;
@@ -9664,6 +9714,7 @@ Nguyên tắc trả lời:
             img: imgVal,
             imgList: imgListVal,
             houseNumber: houseNumberVal,
+            loaiViTri: loaiViTriVal,
             street: streetVal,
             width: widthVal,
             bedrooms: bedroomsVal,
@@ -9698,6 +9749,7 @@ Nguyên tắc trả lời:
               desc: finalItem.desc,
               area: finalItem.area,
               house_number: finalItem.houseNumber,
+              loai_vi_tri: finalItem.loaiViTri,
               street: finalItem.street,
               width: finalItem.width,
               bedrooms: finalItem.bedrooms,
@@ -9829,6 +9881,7 @@ Nguyên tắc trả lời:
 
         const formTitle = document.getElementById('formTitle');
         const formHouseNumber = document.getElementById('ap_hn_fld');
+        const formLoaiViTri = document.getElementById('formLoaiViTri');
         const formStreet = document.getElementById('ap_st_fld');
         const formWard = document.getElementById('ap_wd_fld');
         const formArea = document.getElementById('formArea');
@@ -9853,6 +9906,7 @@ Nhiệm vụ của bạn là nhận thông tin thô do người dùng cung cấp
 Yêu cầu bóc tách các thông số cụ thể:
 - Tiêu đề (title): Phải viết hoa toàn bộ, bắt đầu bằng icon (🔥), tóm tắt được điểm nhấn (Loại hình – Vị trí – Diện tích – Giá).
 - Số nhà (houseNumber): Số nhà/số căn (nếu nhắc tới trong dữ liệu thô, nếu không thì để trống "").
+- Loại vị trí (loaiViTri): Một trong ba giá trị chính xác sau: "hem_xe_hoi", "hem_xe_may", "mat_tien". (Hẻm xe hơi, xe tải, ô tô vào -> "hem_xe_hoi"; Hẻm xe máy, hẻm ba gác, hẻm nhỏ -> "hem_xe_may"; Nhà mặt tiền, mặt phố -> "mat_tien"). Nếu không có thông tin chi tiết, đặt mặc định là "hem_xe_hoi".
 - Tên đường (street): Tên đường phố, hẻm chính (nếu nhắc tới, không thì bỏ trống).
 - Phường/xã (ward): Tên phường tại TP. Thủ Đức (VD: Trường Thạnh, Long Phước, Hiệp Phú, Thạnh Mỹ Lợi, Cát Lái...). Nếu không nhắc tới phường nhưng có tên đường, hãy suy đoán phường tương ứng hoặc ghi "Thủ Đức".
 - Diện tích (area): Giá trị số diện tích đất hoặc sử dụng (m²), phải là số nguyên.
@@ -9905,6 +9959,7 @@ Hãy trả về kết quả hoàn chỉnh dưới định dạng JSON duy nhất
 {
   "title": "...",
   "houseNumber": "...",
+  "loaiViTri": "hem_xe_hoi / hem_xe_may / mat_tien",
   "street": "...",
   "ward": "...",
   "area": 0,
@@ -9926,6 +9981,11 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
           if (!data) return;
           if (data.title && formTitle) formTitle.value = cleanCaptionFromExaggerations(data.title);
           if (data.houseNumber !== undefined && formHouseNumber) formHouseNumber.value = data.houseNumber;
+          if (formLoaiViTri) {
+            let mappedVal = data.loaiViTri || 'hem_xe_hoi';
+            if (mappedVal === 'hem') mappedVal = 'hem_xe_hoi';
+            formLoaiViTri.value = mappedVal;
+          }
           if (data.street && formStreet) formStreet.value = data.street;
           if (data.ward && formWard) formWard.value = data.ward;
           if (data.area && formArea) formArea.value = data.area;
@@ -10448,7 +10508,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
         
         try {
-          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at';
+          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri';
           const urlParams = new URLSearchParams({
             select: selectCols,
             order: 'id.desc'
@@ -10510,6 +10570,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   desc: item.desc || "",
                   area: parseInt(item.area) || 0,
                   houseNumber: item.house_number || "",
+                  loaiViTri: (item.loai_vi_tri === "hem" ? "hem_xe_hoi" : (item.loai_vi_tri || "hem_xe_hoi")),
                   street: item.street || "",
                   width: parseFloat(item.width) || 0,
                   bedrooms: (() => {
@@ -11211,6 +11272,8 @@ DỮ LIỆU THÔ: "${textToParse}"`;
         document.getElementById('formDesc').value = normDesc.trim();
 
         document.getElementById('ap_hn_fld').value = parsedData.houseNumber || '';
+        const parsedLoaiViTri = parsedData.loaiViTri || 'hem_xe_hoi';
+        document.getElementById('formLoaiViTri').value = parsedLoaiViTri === 'hem' ? 'hem_xe_hoi' : parsedLoaiViTri;
         document.getElementById('ap_st_fld').value = parsedData.street || '';
         document.getElementById('formWidth').value = (parsedData.width !== undefined && parsedData.width !== null) ? parsedData.width : 4;
         document.getElementById('formBedrooms').value = (parsedData.bedrooms !== undefined && parsedData.bedrooms !== null) ? parsedData.bedrooms : 3;
