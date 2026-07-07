@@ -1896,7 +1896,22 @@
 
       // 3. Info rendering
       document.getElementById('propTitle').textContent = item.title;
-      document.getElementById('propPrice').textContent = item.priceText || `${item.price} Tỷ`;
+
+      const showGiamGia = (item.is_price_reduced === true || item.is_price_reduced === 'true') && 
+        item.price_updated_at &&
+        (Date.now() - new Date(item.price_updated_at).getTime()) < 2 * 24 * 60 * 60 * 1000;
+
+      const hasOldPrice = item.old_price !== undefined && item.old_price !== null ? parseFloat(item.old_price) : null;
+      if (showGiamGia && hasOldPrice) {
+        document.getElementById('propPrice').innerHTML = `
+          <span style="text-decoration: line-through; color: #999; font-size: 0.75em; margin-right: 8px;">${hasOldPrice} Tỷ</span>
+          <span style="color: #f97316; font-weight: bold;">${item.price_text || (item.price + " Tỷ")}</span>
+          <span style="background-color: #ef4444; color: #ffffff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; margin-left: 8px; text-transform: uppercase; display: inline-block; line-height: 1.1; vertical-align: middle;">NEW</span>
+        `;
+      } else {
+        document.getElementById('propPrice').textContent = item.price_text || (item.price + " Tỷ");
+      }
+
       document.getElementById('propArea').textContent = `${item.area} m²`;
       
       // Calculate unit price if area and price are valid
@@ -1922,6 +1937,30 @@
       // 4. Badges mapping
       const badgeRow = document.getElementById('badgeRow');
       badgeRow.innerHTML = '';
+
+      const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+      const createdTime = item.created_at ? new Date(item.created_at).getTime() : 0;
+      const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
+      if (isNew) {
+        const newBadge = document.createElement('span');
+        newBadge.className = 'badge';
+        newBadge.style.backgroundColor = '#ef4444';
+        newBadge.style.color = '#ffffff';
+        newBadge.style.fontWeight = '700';
+        newBadge.textContent = '🔥 MỚI ĐĂNG';
+        badgeRow.appendChild(newBadge);
+      }
+
+      if (showGiamGia) {
+        const discountBadge = document.createElement('span');
+        discountBadge.className = 'badge';
+        discountBadge.style.backgroundColor = '#ea580c';
+        discountBadge.style.color = '#ffffff';
+        discountBadge.style.fontWeight = '700';
+        discountBadge.textContent = '📉 GIẢM GIÁ';
+        badgeRow.appendChild(discountBadge);
+      }
+
       if (item.badge && item.badge.trim() !== '') {
         const mainBadge = document.createElement('span');
         mainBadge.className = 'badge badge-primary';
@@ -2053,7 +2092,7 @@
 
       const supabaseUrl = 'https://bywboejxhpvdahbfvote.supabase.co';
       const apiKey = 'sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r';
-      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at';
+      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at';
       const endpoint = `${supabaseUrl}/rest/v1/properties_hometea?id=eq.${id}&select=${selectCols}`;
 
       try {

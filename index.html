@@ -3696,7 +3696,16 @@
                 <input type="number" id="formWidth" step="any" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 4.5" required>
               </div>
               <div class="admin-form-group">
-                <label for="formPrice" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Giá bán (Tỷ đồng) *</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label for="formPrice" style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin: 0;">Giá bán (Tỷ đồng) *</label>
+                  <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--accent); cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="formIsPriceReduced" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--accent);"> Giảm giá
+                  </label>
+                </div>
+                <div id="oldPriceGroup" style="display: none; margin-bottom: 8px;">
+                  <label for="formOldPrice" style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Giá cũ (để gạch ngang)</label>
+                  <input type="number" id="formOldPrice" step="any" class="admin-form-control" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; background-color: var(--bg-secondary);" placeholder="Giá cũ trước giảm">
+                </div>
                 <input type="number" id="formPrice" step="any" class="admin-form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" placeholder="Ví dụ: 5.5" required>
               </div>
             </div>
@@ -4767,15 +4776,13 @@
           // Với lựa chọn "all" (Mặc định): Đưa các sản phẩm Giảm giá nổi bật lên hàng đầu
           const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
 
-          const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const aUpdated = a.updated_at ? new Date(a.updated_at).getTime() : 0;
-          const aWasEdited = aUpdated > 0 && (aUpdated - aCreated) > 60000;
-          const aReduced = aWasEdited && (Date.now() - aUpdated) <= twoDaysMs;
+          const aReduced = a.isPriceReduced && 
+            a.priceUpdatedAt &&
+            (Date.now() - new Date(a.priceUpdatedAt).getTime()) < twoDaysMs;
 
-          const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
-          const bUpdated = b.updated_at ? new Date(b.updated_at).getTime() : 0;
-          const bWasEdited = bUpdated > 0 && (bUpdated - bCreated) > 60000;
-          const bReduced = bWasEdited && (Date.now() - bUpdated) <= twoDaysMs;
+          const bReduced = b.isPriceReduced && 
+            b.priceUpdatedAt &&
+            (Date.now() - new Date(b.priceUpdatedAt).getTime()) < twoDaysMs;
 
           if (aReduced && !bReduced) return -1;
           if (!aReduced && bReduced) return 1;
@@ -4874,12 +4881,18 @@
           // "Mới đăng": dùng created_at thực từ Supabase
           const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
           const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
-          // "Giảm giá": updated_at phải SAU created_at ít nhất 60 giây
-          // (tránh trường hợp tất cả record có cùng updated_at khi mới thêm cột)
-          const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
-          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-          const wasEdited = updatedTime > 0 && (updatedTime - createdTime) > 60000;
-          const isReduced = wasEdited && (Date.now() - updatedTime) <= twoDaysMs;
+          const isReduced = p.isPriceReduced && 
+            p.priceUpdatedAt &&
+            (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
+
+          let priceDisplayHtml = `<span>${p.price} tỷ</span>`;
+          if (isReduced && p.oldPrice) {
+            priceDisplayHtml = `
+              <span style="text-decoration: line-through; color: #999; font-size: 0.85em; margin-right: 4px;">${p.oldPrice} tỷ</span>
+              <span style="color: #f97316; font-weight: bold; font-size: 1.1em;">${p.price} tỷ</span>
+              <span style="background-color: #ef4444; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
+            `;
+          }
 
           const cardHtml = `
             <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal('${p.id}')">
@@ -4950,7 +4963,7 @@
                 <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                   <div style="display: flex; align-items: center; gap: 4px;">
                     <span class="card-price-symbol">💰</span>
-                    <span>${p.price} tỷ</span>
+                    ${priceDisplayHtml}
                   </div>
                   ${(() => {
                     const rawPrice = parseFloat(p.price);
@@ -5046,9 +5059,9 @@
         // Áp dụng bộ lọc Tab hiện tại (ví dụ tab Có tag giảm giá)
         if (currentHomeTab === 'discount') {
           filtered = filtered.filter(p => {
-            const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
-            const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
-            return updatedTime > 0 && (updatedTime - createdTime) > 60000;
+            return p.isPriceReduced && 
+              p.priceUpdatedAt &&
+              (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
           });
         }
 
@@ -5344,11 +5357,24 @@
         `;
         const rawModalPrice = parseFloat(item.price);
         const rawModalArea = parseFloat(item.area);
+        const isReducedModal = item.isPriceReduced && 
+          item.priceUpdatedAt &&
+          (Date.now() - new Date(item.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
+
+        let modalPriceHtml = `<span>${item.priceText}</span>`;
+        if (isReducedModal && item.oldPrice) {
+          modalPriceHtml = `
+            <span style="text-decoration: line-through; color: #999; font-size: 0.85em; margin-right: 8px;">${item.oldPrice} Tỷ</span>
+            <span style="color: #f97316; font-weight: bold; font-size: 1.1em;">${item.price} Tỷ</span>
+            <span style="background-color: #ef4444; color: #ffffff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; margin-left: 8px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
+          `;
+        }
+
         if (!isNaN(rawModalPrice) && !isNaN(rawModalArea) && rawModalArea > 0) {
           const perM2 = (rawModalPrice * 1000) / rawModalArea;
-          mPrice.innerHTML = `${item.priceText} <span style="font-size: 15px; font-weight: 500; color: #64748b; font-family: var(--font-sans); display: inline-block; margin-left: 8px;">(${perM2.toFixed(1)} triệu/m²)</span>`;
+          mPrice.innerHTML = `${modalPriceHtml} <span style="font-size: 15px; font-weight: 500; color: #64748b; font-family: var(--font-sans); display: inline-block; margin-left: 8px;">(${perM2.toFixed(1)} triệu/m²)</span>`;
         } else {
-          mPrice.textContent = item.priceText;
+          mPrice.innerHTML = modalPriceHtml;
         }
         mArea.textContent = `${item.area} m²`;
         mFloors.textContent = formatFloors(item.floors);
@@ -6825,6 +6851,8 @@ Nguyên tắc trả lời:
           this.querySelectorAll('input, select, textarea').forEach(el => {
             if (el.type === 'hidden') {
               el.value = '';
+            } else if (el.type === 'checkbox') {
+              el.checked = false;
             } else if (el.id === 'formBedrooms' || el.id === 'formBathrooms') {
               el.value = '3';
             } else if (el.id === 'formFloors') {
@@ -6837,12 +6865,32 @@ Nguyên tắc trả lời:
               el.value = '';
             }
           });
+          const oldPriceGroup = document.getElementById('oldPriceGroup');
+          if (oldPriceGroup) oldPriceGroup.style.display = 'none';
         };
+      }
+
+      // Lắng nghe sự kiện check giảm giá
+      const formIsPriceReduced = document.getElementById('formIsPriceReduced');
+      const oldPriceGroup = document.getElementById('oldPriceGroup');
+      const formOldPrice = document.getElementById('formOldPrice');
+      const formPrice = document.getElementById('formPrice');
+
+      if (formIsPriceReduced && oldPriceGroup && formOldPrice && formPrice) {
+        formIsPriceReduced.addEventListener('change', function() {
+          if (this.checked) {
+            oldPriceGroup.style.display = 'block';
+            if (!formOldPrice.value) {
+              formOldPrice.value = formPrice.value;
+            }
+          } else {
+            oldPriceGroup.style.display = 'none';
+          }
+        });
       }
       
       const formPropId = document.getElementById('formPropId');
       const formTitle = document.getElementById('formTitle');
-      const formPrice = document.getElementById('formPrice');
       const formArea = document.getElementById('formArea');
       const formWard = document.getElementById('ap_wd_fld');
       const formDirection = document.getElementById('formDirection');
@@ -8709,9 +8757,9 @@ Nguyên tắc trả lời:
           filtered.sort((a, b) => (parseInt(b.area) || 0) - (parseInt(a.area) || 0));
         } else if (sortVal === "discount") {
           filtered = filtered.filter(p => {
-            const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
-            const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
-            return updatedTime > 0 && (updatedTime - createdTime) > 60000;
+            return p.isPriceReduced && 
+              p.priceUpdatedAt &&
+              (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
           });
         }
 
@@ -8797,6 +8845,13 @@ Nguyên tắc trả lời:
         if (formImg) formImg.value = '';
         if (formDesc) formDesc.value = '';
 
+        const isReducedCheck = document.getElementById('formIsPriceReduced');
+        const oldPriceGrp = document.getElementById('oldPriceGroup');
+        const oldPriceFld = document.getElementById('formOldPrice');
+        if (isReducedCheck) isReducedCheck.checked = false;
+        if (oldPriceGrp) oldPriceGrp.style.display = 'none';
+        if (oldPriceFld) oldPriceFld.value = '';
+
         const houseNumberInput = document.getElementById('ap_hn_fld');
         const streetInput = document.getElementById('ap_st_fld');
         const widthInput = document.getElementById('formWidth');
@@ -8827,6 +8882,14 @@ Nguyên tắc trả lời:
             if (formAddress) formAddress.value = item.address || '';
             if (formImg) formImg.value = item.img || '';
             if (formDesc) formDesc.value = item.desc || '';
+
+            if (isReducedCheck) {
+              isReducedCheck.checked = !!item.isPriceReduced;
+              if (item.isPriceReduced) {
+                if (oldPriceGrp) oldPriceGrp.style.display = 'block';
+                if (oldPriceFld) oldPriceFld.value = item.oldPrice || '';
+              }
+            }
 
             if (houseNumberInput) houseNumberInput.value = item.houseNumber || '';
             if (streetInput) streetInput.value = item.street || '';
@@ -9158,6 +9221,10 @@ Nguyên tắc trả lời:
         const legalVal = document.getElementById('formLegal').value.trim() || 'Sổ hồng riêng';
         const formImg = document.getElementById('formImg');
 
+        const isPriceReducedChecked = document.getElementById('formIsPriceReduced') ? document.getElementById('formIsPriceReduced').checked : false;
+        const oldPriceVal = isPriceReducedChecked ? (parseFloat(document.getElementById('formOldPrice').value) || null) : null;
+        const priceUpdatedAtVal = isPriceReducedChecked ? new Date().toISOString() : null;
+
         // Tự động lắp ráp cấu trúc địa chỉ đầy đủ
         let addressVal = "";
         let addressParts = [];
@@ -9256,6 +9323,9 @@ Nguyên tắc trả lời:
             item.bedrooms = bedroomsVal;
             item.bathrooms = bathroomsVal;
             item.legal = legalVal;
+            item.isPriceReduced = isPriceReducedChecked;
+            item.oldPrice = oldPriceVal;
+            item.priceUpdatedAt = priceUpdatedAtVal;
             finalItem = item;
             lastSavedPropertyId = idVal;
           }
@@ -9296,7 +9366,10 @@ Nguyên tắc trả lời:
             bedrooms: bedroomsVal,
             bathrooms: bathroomsVal,
             legal: legalVal,
-            views: 0
+            views: 0,
+            isPriceReduced: isPriceReducedChecked,
+            oldPrice: oldPriceVal,
+            priceUpdatedAt: priceUpdatedAtVal
           };
           propertyData.unshift(newItem);
           finalItem = newItem;
@@ -9327,7 +9400,10 @@ Nguyên tắc trả lời:
               bedrooms: finalItem.bedrooms,
               bathrooms: finalItem.bathrooms,
               legal: finalItem.legal,
-              views: finalItem.views
+              views: finalItem.views,
+              is_price_reduced: finalItem.isPriceReduced,
+              old_price: finalItem.oldPrice,
+              price_updated_at: finalItem.priceUpdatedAt
             };
 
             if (!supabaseHasViewsColumn) {
@@ -10069,7 +10145,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
         
         try {
-          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at';
+          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at';
           const urlParams = new URLSearchParams({
             select: selectCols,
             order: 'id.desc'
@@ -10157,7 +10233,10 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   views: Math.max(parseInt(item.views) || 0, localViews[item.id] || 0),
                   priceReducedAt: localPriceReductions[item.id] || null,
                   created_at: item.created_at || null,
-                  updated_at: item.updated_at || null
+                  updated_at: item.updated_at || null,
+                  isPriceReduced: item.is_price_reduced === true || item.is_price_reduced === 'true',
+                  oldPrice: (item.old_price !== undefined && item.old_price !== null) ? parseFloat(item.old_price) : null,
+                  priceUpdatedAt: item.price_updated_at || null
                 }));
 
                 if (limitCount && !hasLoadedAllProperties) {
