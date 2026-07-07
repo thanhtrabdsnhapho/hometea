@@ -4930,8 +4930,10 @@
             `;
           }
 
+          const pSlug = createSlug(p.title);
+          const pUrl = `/chitiet/${p.id}-${pSlug}`;
           const cardHtml = `
-            <article class="product-card" id="prop-${p.id}" style="cursor: pointer;" onclick="openProductModal('${p.id}')">
+            <a href="${pUrl}" class="product-card" id="prop-${p.id}" style="cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
               <!-- Slider hình ảnh -->
               <div class="card-slider-container">
                 <img class="card-slider-img" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
@@ -4939,7 +4941,7 @@
               </div>
               
               <!-- Thân card -->
-              <div class="product-body" style="padding: 12px;">
+              <div class="product-body" style="padding: 12px; display: flex; flex-direction: column; flex-grow: 1;">
                 <!-- Hàng Badge mới: Mới đăng và Lượt xem giống hệt như ảnh -->
                 <div class="card-badges-row">
                   ${isNew ? '<span class="card-badge-item card-badge-new">🔥 Mới đăng</span>' : ''}
@@ -4996,7 +4998,7 @@
                 <hr class="card-divider-line">
                 
                 <!-- Giá rực rỡ đã chỉnh sửa trùng tỷ -->
-                <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: auto;">
                   <div style="display: flex; align-items: center; gap: 4px;">
                     <span class="card-price-symbol">💰</span>
                     ${priceDisplayHtml}
@@ -5013,7 +5015,7 @@
                 </div>
                 
                 <!-- Nút Zalo & Chia sẻ song song rộng 50% -->
-                <div class="card-ctas-row">
+                <div class="card-ctas-row" style="margin-top: 12px;">
                   <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
                     <span style="font-size: 14px;">💬</span> Zalo
                   </a>
@@ -5022,7 +5024,7 @@
                   </button>
                 </div>
               </div>
-            </article>
+            </a>
           `;
           productsGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
@@ -5294,14 +5296,19 @@
         });
       }
 
-      function openProductModal(id) {
+      function openProductModal(id, event) {
         const foundItem = propertyData.find(p => p.id == id);
-        if (foundItem) {
-          const slug = createSlug(foundItem.title);
-          window.open(`/chitiet/${foundItem.id}-${slug}`, '_blank');
-        } else {
-          window.open(`/chitiet?id=${id}`, '_blank');
+        const slug = foundItem ? createSlug(foundItem.title) : '';
+        const url = foundItem ? `/chitiet/${foundItem.id}-${slug}` : `/chitiet?id=${id}`;
+
+        if (event) {
+          // Nếu click bằng chuột giữa hoặc giữ phím Ctrl/Cmd/Shift thì để trình duyệt tự mở tab mới theo href
+          if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) {
+            return;
+          }
+          event.preventDefault();
         }
+        window.location.href = url;
         return;
 
         const item = propertyData.find(p => p.id == id);
@@ -6681,7 +6688,7 @@
             const item = propertyData.find(p => p.id == propId);
             const slug = item ? createSlug(item.title) : '';
             const linkUrl = slug ? `${window.location.origin}/chitiet/${propId}-${slug}` : `${window.location.origin}/chitiet?id=${propId}`;
-            return `<a href="${linkUrl}" onclick="event.preventDefault(); openProductModal('${propId}');" class="chat-product-link" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fff3eb; color: #ea580c; border: 1px solid #ffedd5; border-radius: 6px; font-weight: 700; font-size: 12.5px; text-decoration: none; margin: 4px 2px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff3eb'">🏡 Xem chi tiết Căn #${propId} ↗</a>`;
+            return `<a href="${linkUrl}" onclick="openProductModal('${propId}', event);" class="chat-product-link" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fff3eb; color: #ea580c; border: 1px solid #ffedd5; border-radius: 6px; font-weight: 700; font-size: 12.5px; text-decoration: none; margin: 4px 2px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff3eb'">🏡 Xem chi tiết Căn #${propId} ↗</a>`;
           });
           
           bubble.innerHTML = formattedText;
