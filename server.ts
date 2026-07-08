@@ -23,26 +23,34 @@ const upload = multer({
   }
 });
 
-// Helper function to safely call Gemini with a fallback model if the primary one is unavailable (e.g. 503 high demand)
+// Helper function to safely call Gemini with automatic retries and exponential backoff
 async function generateContentWithRetry(ai: any, config: { model: string; contents: any; config?: any }) {
-  const primaryModel = config.model === "gemini-2.5-flash" ? "gemini-3.5-flash" : config.model;
-  try {
-    return await ai.models.generateContent({
-      ...config,
-      model: primaryModel
-    });
-  } catch (err: any) {
-    console.log(`[Info] Primary model was busy, requesting content using fallback model... Lỗi: ${err?.message || err}`);
-    const fallbackModel = "gemini-3.1-flash-lite";
+  let targetModel = config.model;
+  // Use gemini-2.5-flash as the primary recommended model
+  if (!targetModel || targetModel === "gemini-3.5-flash" || targetModel === "gemini-3.1-flash-lite") {
+    targetModel = "gemini-2.5-flash";
+  }
+
+  const maxRetries = 3;
+  let delayMs = 1000;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await ai.models.generateContent({
         ...config,
-        model: fallbackModel
+        model: targetModel
       });
-    } catch (fallbackError: any) {
-      console.log(`[Info] Fallback path completed with error.`);
-      const origError = fallbackError?.message || String(fallbackError);
-      throw new Error(`Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt. (Lỗi gốc: ${origError})`);
+    } catch (err: any) {
+      const errStr = err?.message || String(err);
+      console.warn(`[Attempt ${attempt}/${maxRetries}] Lỗi gọi model ${targetModel}: ${errStr}`);
+      
+      if (attempt === maxRetries) {
+        throw new Error(`Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt. (Lỗi gốc: ${errStr})`);
+      }
+      
+      console.log(`[Info] Thử lại sau ${delayMs}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      delayMs *= 2;
     }
   }
 }
@@ -783,7 +791,7 @@ async function startServer() {
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const prompt = `${systemInstruction}\n\n${warehouseData}\n\nCâu hỏi/Yêu cầu của khách hàng: ${userQuestion}`;
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: prompt
         });
         return response.text || "";
@@ -859,7 +867,7 @@ async function startServer() {
 
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: promptInput
         });
         return response.text || "";
@@ -971,7 +979,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 "${sanitizedRawInput}"`;
 
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: promptInput,
           config: {
             responseMimeType: "application/json"

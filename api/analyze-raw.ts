@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { callGeminiWithKeyPool, generateContentWithRetry } from './_gemini';
+import { callGeminiWithKeyPool, generateContentWithRetry } from './_gemini.js';
 import { jsonrepair } from 'jsonrepair';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
