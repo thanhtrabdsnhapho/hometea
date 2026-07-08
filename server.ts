@@ -33,7 +33,7 @@ async function generateContentWithRetry(ai: any, config: { model: string; conten
     });
   } catch (err: any) {
     console.log(`[Info] Primary model was busy, requesting content using fallback model... Lỗi: ${err?.message || err}`);
-    const fallbackModel = "gemini-3.5-flash";
+    const fallbackModel = "gemini-3.1-flash-lite";
     try {
       return await ai.models.generateContent({
         ...config,
