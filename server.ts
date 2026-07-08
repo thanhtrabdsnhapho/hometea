@@ -25,7 +25,7 @@ const upload = multer({
 
 // Helper function to safely call Gemini with a fallback model if the primary one is unavailable (e.g. 503 high demand)
 async function generateContentWithRetry(ai: any, config: { model: string; contents: any; config?: any }) {
-  const primaryModel = config.model === "gemini-3.5-flash" ? "gemini-2.5-flash" : config.model;
+  const primaryModel = config.model === "gemini-2.5-flash" ? "gemini-3.5-flash" : config.model;
   try {
     return await ai.models.generateContent({
       ...config,
@@ -33,7 +33,7 @@ async function generateContentWithRetry(ai: any, config: { model: string; conten
     });
   } catch (err: any) {
     console.log(`[Info] Primary model was busy, requesting content using fallback model... Lỗi: ${err?.message || err}`);
-    const fallbackModel = "gemini-2.5-flash";
+    const fallbackModel = "gemini-3.5-flash";
     try {
       return await ai.models.generateContent({
         ...config,
@@ -783,7 +783,7 @@ async function startServer() {
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const prompt = `${systemInstruction}\n\n${warehouseData}\n\nCâu hỏi/Yêu cầu của khách hàng: ${userQuestion}`;
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-2.5-flash",
+          model: "gemini-3.5-flash",
           contents: prompt
         });
         return response.text || "";
@@ -859,7 +859,7 @@ async function startServer() {
 
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-2.5-flash",
+          model: "gemini-3.5-flash",
           contents: promptInput
         });
         return response.text || "";
@@ -971,7 +971,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
 "${sanitizedRawInput}"`;
 
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-2.5-flash",
+          model: "gemini-3.5-flash",
           contents: promptInput,
           config: {
             responseMimeType: "application/json"

@@ -1444,6 +1444,9 @@
             <div id="badgeRow" class="badge-row">
               <!-- Badges injected here -->
             </div>
+            <div id="soldBanner" style="display: none; background-color: #fef2f2; border: 1.5px solid #fee2e2; color: #ef4444; padding: 12px 16px; border-radius: 8px; font-weight: 700; font-size: 14.5px; margin-bottom: 16px; align-items: center; gap: 8px; box-shadow: 0 1px 2px rgba(239, 68, 68, 0.05);">
+              🔴 Bất động sản này đã được giao dịch thành công
+            </div>
             <h1 id="propTitle" class="property-title">Đang tải...</h1>
             
             <div class="price-area-row">
@@ -2053,6 +2056,27 @@
       const zaloMobileEl = document.getElementById('zaloLinkMobile');
       if (zaloMobileEl) zaloMobileEl.href = zaloUrl;
 
+      // Handle is_sold / isSold state
+      const isSold = item.is_sold === true || item.is_sold === 'true' || item.isSold === true;
+      const soldBanner = document.getElementById('soldBanner');
+      const mobileCtaBar = document.querySelector('.mobile-cta-bar');
+      
+      if (isSold) {
+        if (soldBanner) {
+          soldBanner.style.display = 'flex'; // Show sold banner
+        }
+        if (mobileCtaBar) {
+          mobileCtaBar.style.display = 'none'; // Hide mobile contact buttons
+        }
+      } else {
+        if (soldBanner) {
+          soldBanner.style.display = 'none'; // Hide sold banner
+        }
+        if (mobileCtaBar) {
+          mobileCtaBar.style.display = 'flex'; // Show mobile contact buttons
+        }
+      }
+
       currentProperty = item;
 
       // Hide loading screen
@@ -2187,7 +2211,7 @@
 
       const supabaseUrl = 'https://bywboejxhpvdahbfvote.supabase.co';
       const apiKey = 'sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r';
-      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri';
+      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold';
       const endpoint = `${supabaseUrl}/rest/v1/properties_hometea?id=eq.${id}&select=${selectCols}`;
 
       try {

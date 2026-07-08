@@ -362,7 +362,7 @@
         display: block;
         width: 100%;
         height: 3px;
-        background-color: #fff;
+        background-color: var(--text-dark);
         border-radius: 2px;
         transition: var(--transition);
       }
@@ -1814,11 +1814,11 @@
           top: 70px;
           left: 0;
           right: 0;
-          background-color: #0c1524; /* Sử dụng màu xanh đen tối sẫm lịch lãm bảo đảm chữ trắng hiển thị hoàn hảo ở cả 2 chế độ */
+          background-color: var(--card-bg); /* Hoàn toàn tương thích và đẹp mắt ở cả 2 chế độ Sáng/Tối */
           flex-direction: column;
           gap: 0;
           padding: 20px 0;
-          border-bottom: 1px solid rgba(249, 115, 22, 0.3);
+          border-bottom: 1px solid var(--border);
           transform: translateY(-120%);
           opacity: 0;
           pointer-events: none;
@@ -1837,7 +1837,7 @@
         .nav-link {
           display: block;
           padding: 16px 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          border-bottom: 1px solid var(--border);
         }
         .nav-link::after {
           display: none;
@@ -2865,7 +2865,7 @@
           <!-- Brand wordmark area -->
           <div class="brand-wordmark" style="display: flex; flex-direction: column; justify-content: center; text-align: left;">
             <!-- THANH TRÀ (Premium Serif) -->
-            <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 850; color: #ffffff; letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
+            <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 850; color: var(--text-dark); letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
               Thanh Trà
             </div>
             <!-- B Đ S with border under -->
@@ -2873,7 +2873,7 @@
               B Đ S
             </div>
             <!-- Mua bán nhà phố - TP. Thủ Đức -->
-            <div style="font-family: var(--font-sans); font-size: 7.5px; font-weight: 600; color: #94a3b8; letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
+            <div style="font-family: var(--font-sans); font-size: 7.5px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
               Mua bán nhà phố - TP. Thủ Đức
             </div>
           </div>
@@ -3594,6 +3594,16 @@
             </div>
           </div>
 
+          <!-- Hai tab con: Đang bán & Đã bán -->
+          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <button id="adminSubTab_selling" onclick="switchAdminSubTab('selling')" style="border: none; padding: 8px 16px; font-weight: 700; font-size: 13.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--accent); color: #ffffff; display: flex; align-items: center; gap: 6px;">
+              🟢 Đang bán (<span id="adminSellingCount">0</span>)
+            </button>
+            <button id="adminSubTab_sold" onclick="switchAdminSubTab('sold')" style="border: none; padding: 8px 16px; font-weight: 700; font-size: 13.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--bg-light); color: var(--text-dark); display: flex; align-items: center; gap: 6px; border: 1px solid var(--border);">
+              🔴 Đã bán (<span id="adminSoldCount">0</span>)
+            </button>
+          </div>
+
           <div class="admin-table-container" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; box-shadow: var(--shadow); margin-bottom: 24px;">
             <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left;">
               <thead>
@@ -3685,6 +3695,34 @@
               </div>
               <div style="background: #f0fdf4; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #16a34a; font-size: 18px; border: 1px solid #bbf7d0;">
                 📈
+              </div>
+            </div>
+
+            <!-- KPI 5: Tổng đã bán -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: flex-start; transition: var(--transition);">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font-size: 13.5px; color: var(--text-muted); font-weight: 600;">Tổng Đã Bán</span>
+                <span id="kpiValueTotalSold" style="font-size: 32px; font-weight: 800; color: #ef4444; line-height: 1;">0</span>
+                <span style="font-size: 11.5px; color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 2px; margin-top: 4px;">
+                  🤝 Đã giao dịch thành công
+                </span>
+              </div>
+              <div style="background: #fef2f2; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 18px; border: 1px solid #fee2e2;">
+                🔴
+              </div>
+            </div>
+
+            <!-- KPI 6: Doanh số ước tính -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: flex-start; transition: var(--transition);">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font-size: 13.5px; color: var(--text-muted); font-weight: 600;">Doanh Số Ước Tính</span>
+                <span id="kpiValueEstimatedRevenue" style="font-size: 32px; font-weight: 800; color: #22c55e; line-height: 1;">0 Tỷ</span>
+                <span style="font-size: 11.5px; color: #16a34a; font-weight: 600; display: flex; align-items: center; gap: 2px; margin-top: 4px;">
+                  💰 Tổng giá trị đã bán
+                </span>
+              </div>
+              <div style="background: #f0fdf4; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #22c55e; font-size: 18px; border: 1px solid #bbf7d0;">
+                💵
               </div>
             </div>
           </div>
@@ -4016,6 +4054,7 @@
             </div>
 
             <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" id="formSoldBtn" style="display: none; border: none; padding: 10px 24px; background: #ef4444; color: #ffffff; font-weight: 700; border-radius: 8px; cursor: pointer; transition: background 0.2s;" onclick="toggleFormSoldStatus(event)">Đánh dấu đã bán</button>
               <button type="button" class="btn-admin-logout" style="border: 1px solid var(--border); background: transparent; color: var(--text-dark); padding: 10px 20px; border-radius: 8px; font-weight:600; cursor: pointer;" onclick="hideAdminForm(event)">Hủy bỏ</button>
               <button type="button" class="btn-admin-add" onclick="saveAdminProperty(event)" style="border: none; padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: #ffffff; font-weight:700; border-radius: 8px; cursor: pointer;">Lưu thông tin đăng</button>
             </div>
@@ -4640,6 +4679,7 @@
       });
       let lastSavedPropertyId = null;
       let currentHomeTab = 'all';
+      let currentAdminSubTab = 'selling';
 
 
 
@@ -5229,6 +5269,11 @@
         const priceMax = filterPriceMax && filterPriceMax.value !== '' ? parseFloat(filterPriceMax.value) : null;
 
         let filtered = propertyData.filter(p => {
+          // Hide sold listings from public pages
+          if (p.isSold) {
+            return false;
+          }
+
           // 1. Phường/xã
           if (ward !== 'all' && p.ward !== ward) {
             return false;
@@ -6995,7 +7040,7 @@ Nguyên tắc trả lời:
               const currentKey = keysList[i];
               try {
                 console.log(`[Info] Client-side thử gọi Gemini bằng Key ${i + 1}/${keysList.length}...`);
-                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
+                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${currentKey}`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
@@ -7461,8 +7506,12 @@ Nguyên tắc trả lời:
         }
       }
 
-      function clearSystemLogs() {
-        if (confirm("Bạn có chắc chắn muốn dọn sạch nhật ký hệ thống không?")) {
+      async function clearSystemLogs() {
+        const isConfirmed = await showCustomConfirm(
+          "Dọn Nhật Ký",
+          "Bạn có chắc chắn muốn dọn sạch nhật ký hệ thống không?"
+        );
+        if (isConfirmed) {
           localStorage.setItem('local_activity_logs', JSON.stringify([]));
           logSystemActivity('SYS', "Dọn sạch nhật ký hệ thống.");
           renderAdminReports();
@@ -7526,7 +7575,20 @@ Nguyên tắc trả lời:
             }
           }
 
-          // 5. Biểu đồ phân bổ BĐS
+          // 5. KPI BĐS Đã Bán & Doanh Số Ước Tính
+          const soldProperties = propertyData.filter(p => p.isSold);
+          const totalSoldVal = soldProperties.length;
+          const estimatedRevenueVal = soldProperties.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
+
+          const totalSoldEl = document.getElementById('kpiValueTotalSold');
+          if (totalSoldEl) totalSoldEl.textContent = String(totalSoldVal);
+
+          const estRevEl = document.getElementById('kpiValueEstimatedRevenue');
+          if (estRevEl) {
+            estRevEl.textContent = Number(estimatedRevenueVal.toFixed(1)) + " Tỷ";
+          }
+
+          // 6. Biểu đồ phân bổ BĐS
           const wardsContainer = document.getElementById('adminReportWardsContainer');
           if (wardsContainer) {
             wardsContainer.innerHTML = '';
@@ -8008,8 +8070,12 @@ Nguyên tắc trả lời:
         }
       }
 
-      function deleteLead(leadId) {
-        if (!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn yêu cầu nhận liên hệ này không?")) return;
+      async function deleteLead(leadId) {
+        const isConfirmed = await showCustomConfirm(
+          "Xóa Yêu Cầu Liên Hệ",
+          "Bạn có chắc chắn muốn xóa vĩnh viễn yêu cầu nhận liên hệ này không?"
+        );
+        if (!isConfirmed) return;
         try {
           const leads = JSON.parse(localStorage.getItem('local_leads') || '[]');
           const idx = leads.findIndex(l => l.id === leadId);
@@ -9179,6 +9245,14 @@ Nguyên tắc trả lời:
       function renderAdminTable() {
         if (!adminTableBody) return;
         adminTableBody.innerHTML = '';
+
+        // Update counts on sub-tabs dynamically
+        const sellingCount = propertyData.filter(p => !p.isSold).length;
+        const soldCount = propertyData.filter(p => p.isSold).length;
+        const adminSellingCountEl = document.getElementById('adminSellingCount');
+        const adminSoldCountEl = document.getElementById('adminSoldCount');
+        if (adminSellingCountEl) adminSellingCountEl.textContent = sellingCount;
+        if (adminSoldCountEl) adminSoldCountEl.textContent = soldCount;
         
         const qInput = document.getElementById('adminSearchQuery');
         const q = qInput ? qInput.value.trim().toLowerCase() : "";
@@ -9191,7 +9265,14 @@ Nguyên tắc trả lời:
 
         let filtered = [...propertyData];
 
-        // 1. Lọc theo chuỗi tìm kiếm
+        // 1. Filter by sub-tab: Selling vs Sold
+        if (currentAdminSubTab === 'selling') {
+          filtered = filtered.filter(p => !p.isSold);
+        } else if (currentAdminSubTab === 'sold') {
+          filtered = filtered.filter(p => p.isSold);
+        }
+
+        // 2. Lọc theo chuỗi tìm kiếm
         if (q) {
           filtered = filtered.filter(p => {
             const idMatch = String(p.id).includes(q);
@@ -9204,12 +9285,12 @@ Nguyên tắc trả lời:
           });
         }
 
-        // 2. Lọc theo Phường
+        // 3. Lọc theo Phường
         if (ward) {
           filtered = filtered.filter(p => p.ward === ward);
         }
 
-        // 3. Sắp xếp kết quả
+        // 4. Sắp xếp kết quả
         if (sortVal === "newest") {
           filtered.sort((a, b) => b.id - a.id);
         } else if (sortVal === "oldest") {
@@ -9239,7 +9320,7 @@ Nguyên tắc trả lời:
           tr.style.borderBottom = '1px solid var(--border)';
           const adminImgSrc = getOptimizedCloudinaryUrl(p.img, 100, 75);
 
-          // Tính toán nhãn Mới đăng & Giảm giá
+          // Tính toán nhãn Mới đăng & Giảm giá & Đã bán
           const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
           const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
           const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
@@ -9250,6 +9331,21 @@ Nguyên tắc trả lời:
           const isReduced = wasEdited && (Date.now() - updatedTime) <= twoDaysMs;
 
           let badgeHtml = '';
+          let toggleSoldBtnHtml = '';
+          if (p.isSold) {
+            badgeHtml += ' <span style="background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">🔴 ĐÃ BÁN</span>';
+            toggleSoldBtnHtml = `
+              <button class="btn-action-restore" onclick="inlineToggleSold('${p.id}', false)" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15); color: #22c55e; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                🔄 Khôi phục
+              </button>
+            `;
+          } else {
+            toggleSoldBtnHtml = `
+              <button class="btn-action-sold" onclick="inlineToggleSold('${p.id}', true)" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.15); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                🏷️ Đã Bán
+              </button>
+            `;
+          }
           if (isNew) {
             badgeHtml += ' <span style="background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">🔥 Mới</span>';
           }
@@ -9265,11 +9361,47 @@ Nguyên tắc trả lời:
               <div class="admin-prop-title" style="font-weight: 700; color: var(--primary); font-size: 15px;">${p.title}${badgeHtml}</div>
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ID: #${p.id} • ${p.area}m² • Đường/Hẻm: ${getPublicDisplayAddress(p)}</div>
             </td>
-            <td style="padding: 16px;">
-              <span class="admin-prop-price" style="font-weight: 800; color: var(--accent); font-size: 15px;">${p.priceText}</span>
+            <td style="padding: 16px; position: relative;" class="inline-price-cell" data-id="${p.id}">
+              <div class="inline-price-display" onclick="startInlinePriceEdit(event, '${p.id}', ${p.price})" style="font-weight: 800; color: var(--accent); font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 4px; border: 1px dashed transparent; transition: all 0.15s; width: fit-content;" onmouseenter="this.style.border='1px dashed rgba(255,255,255,0.2)'; this.style.backgroundColor='rgba(255,255,255,0.04)';" onmouseleave="this.style.border='1px dashed transparent'; this.style.backgroundColor='transparent';">
+                ${p.priceText}
+              </div>
+              <div class="inline-price-edit-container" style="display: none; flex-direction: column; gap: 2px; max-width: 100px;">
+                <div style="display: flex; align-items: center; gap: 4px; background: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 2px 6px;">
+                  <input type="number" step="any" class="inline-price-input" placeholder="${p.price}" value="${p.price}" style="width: 100%; border: none; outline: none; background: transparent; color: #f8fafc; font-weight: 700; font-size: 13.5px; padding: 2px 0;" onkeydown="handleInlinePriceKeydown(event, '${p.id}')">
+                  <span style="color: var(--accent); font-weight: 700; font-size: 12px; white-space: nowrap;">Tỷ</span>
+                </div>
+                <div class="inline-price-error" style="display: none; color: #ef4444; font-size: 10px; font-weight: 600; margin-top: 2px;">Giá không hợp lệ</div>
+              </div>
             </td>
-            <td style="padding: 16px;">
-              <span style="font-weight: 600; color: var(--primary); font-size: 13.5px;">Phường ${p.ward}</span>
+            <td style="padding: 16px; position: relative;">
+              <div style="font-weight: 600; color: var(--primary); font-size: 13.5px;">Phường ${p.ward}</div>
+              <div class="inline-loai-vi-tri-container" data-id="${p.id}" style="margin-top: 4px; position: relative;">
+                <div class="inline-display" onclick="startInlineEdit(event, '${p.id}')" style="font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 6px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); color: var(--text-muted); transition: all 0.15s; width: fit-content;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'; this.style.color='var(--primary)';" onmouseleave="this.style.background='rgba(255,255,255,0.04)'; this.style.color='var(--text-muted)';">
+                  ${(() => {
+                    const lvt = p.loaiViTri;
+                    if (lvt === 'hem_xe_hoi' || lvt === 'hem') {
+                      return `🚗 Hẻm xe hơi`;
+                    } else if (lvt === 'hem_xe_may') {
+                      return `🛵 Hẻm xe máy`;
+                    } else if (lvt === 'mat_tien') {
+                      return `🏢 Mặt tiền`;
+                    } else {
+                      return `<span style="color: #64748b; font-style: italic;">— chưa phân loại —</span>`;
+                    }
+                  })()}
+                </div>
+                <div class="inline-edit-dropdown" style="display: none; position: absolute; left: 0; top: 26px; z-index: 50; min-width: 130px; background: #1e293b; border: 1px solid #475569; border-radius: 6px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); padding: 4px;">
+                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'hem_xe_hoi')" onmouseenter="this.style.backgroundColor='#334155'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: #f8fafc; font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
+                    🚗 Hẻm xe hơi
+                  </div>
+                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'hem_xe_may')" onmouseenter="this.style.backgroundColor='#334155'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: #f8fafc; font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
+                    🛵 Hẻm xe máy
+                  </div>
+                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'mat_tien')" onmouseenter="this.style.backgroundColor='#334155'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: #f8fafc; font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
+                    🏢 Mặt tiền
+                  </div>
+                </div>
+              </div>
             </td>
             <td style="padding: 16px; text-align: center;">
               <div class="admin-actions-cell" style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
@@ -9279,6 +9411,7 @@ Nguyên tắc trả lời:
                   </svg>
                   Sửa
                 </button>
+                ${toggleSoldBtnHtml}
                 <button class="btn-action-delete" onclick="deleteAdminProperty('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.1); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -9384,11 +9517,30 @@ Nguyên tắc trả lời:
             } else if (item.img) {
               uploadedImagesList = [item.img];
             }
+
+            // Handle sold status button
+            const btn = document.getElementById('formSoldBtn');
+            if (btn) {
+              btn.style.display = 'inline-block';
+              if (item.isSold) {
+                btn.textContent = 'KHÔI PHỤC ĐÃ BÁN';
+                btn.style.background = '#22c55e';
+              } else {
+                btn.textContent = 'ĐÁNH DẤU ĐÃ BÁN';
+                btn.style.background = '#ef4444';
+              }
+            }
           }
         } else {
           // Create Mode
           if (formTitleHeader) formTitleHeader.innerHTML = '📋 Đăng tin rao bán nhà phố';
           uploadedImagesList = [];
+          
+          // Hide sold status button in create mode
+          const btn = document.getElementById('formSoldBtn');
+          if (btn) {
+            btn.style.display = 'none';
+          }
         }
 
         renderUploadedImagesPreviews();
@@ -9406,6 +9558,431 @@ Nguyên tắc trả lời:
         if (dashboardSection) dashboardSection.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+
+      function switchAdminSubTab(subTab) {
+        currentAdminSubTab = subTab;
+        
+        const tabSelling = document.getElementById('adminSubTab_selling');
+        const tabSold = document.getElementById('adminSubTab_sold');
+        
+        if (subTab === 'selling') {
+          if (tabSelling) {
+            tabSelling.style.background = 'var(--accent)';
+            tabSelling.style.color = '#ffffff';
+          }
+          if (tabSold) {
+            tabSold.style.background = 'var(--bg-light)';
+            tabSold.style.color = 'var(--text-dark)';
+            tabSold.style.border = '1px solid var(--border)';
+          }
+        } else {
+          if (tabSelling) {
+            tabSelling.style.background = 'var(--bg-light)';
+            tabSelling.style.color = 'var(--text-dark)';
+            tabSelling.style.border = '1px solid var(--border)';
+          }
+          if (tabSold) {
+            tabSold.style.background = '#ef4444';
+            tabSold.style.color = '#ffffff';
+            tabSold.style.border = 'none';
+          }
+        }
+        
+        renderAdminTable();
+      }
+      window.switchAdminSubTab = switchAdminSubTab;
+
+      async function toggleFormSoldStatus(e) {
+        if (e) e.preventDefault();
+        const idVal = formPropId ? formPropId.value : "";
+        if (!idVal) return;
+        
+        const item = propertyData.find(p => p.id == idVal);
+        if (!item) return;
+        
+        const currentlySold = !!item.isSold;
+        
+        if (!currentlySold) {
+          const isConfirmed = await showCustomConfirm(
+            "Đánh dấu Đã Bán",
+            "Xác nhận đánh dấu tin này đã bán? Tin sẽ bị ẩn khỏi trang public."
+          );
+          if (!isConfirmed) return;
+          item.isSold = true;
+          logSystemActivity('EDIT', `Đánh dấu bất động sản #${item.id} (${item.title}) là ĐÃ BÁN.`);
+        } else {
+          const isConfirmed = await showCustomConfirm(
+            "Khôi phục Đang bán",
+            "Xác nhận khôi phục bất động sản này về trạng thái đang bán?"
+          );
+          if (!isConfirmed) return;
+          item.isSold = false;
+          logSystemActivity('EDIT', `Khôi phục bất động sản #${item.id} (${item.title}) về trạng thái Đang bán.`);
+        }
+        
+        // Update the form button text/style immediately
+        const btn = document.getElementById('formSoldBtn');
+        if (btn) {
+          if (item.isSold) {
+            btn.textContent = 'KHÔI PHỤC ĐÃ BÁN';
+            btn.style.background = '#22c55e';
+          } else {
+            btn.textContent = 'ĐÁNH DẤU ĐÃ BÁN';
+            btn.style.background = '#ef4444';
+          }
+        }
+        
+        // Save to Supabase Cloud directly if connected
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast("Đang đồng bộ trạng thái Giao dịch lên Cloud...", true);
+          fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${idVal}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_sold: item.isSold })
+          }).then(res => {
+            if (res.ok) {
+              showToast(item.isSold ? "Đã đánh dấu bất động sản đã bán thành công!" : "Đã khôi phục bất động sản về trạng thái đang bán!", true);
+              savePropertyDataToStorage();
+              applyFilters();
+              renderAdminTable();
+              renderAdminReports();
+            } else {
+              showToast("Có lỗi xảy ra khi đồng bộ lên Cloud.", false);
+              console.error("Lỗi đồng bộ is_sold lên Supabase:", res.status);
+            }
+          }).catch(err => {
+            showToast("Có lỗi kết nối khi đồng bộ lên Cloud.", false);
+            console.error("Lỗi đồng bộ is_sold lên Supabase:", err);
+          });
+        } else {
+          showToast(item.isSold ? "Đã đánh dấu bất động sản đã bán thành công (Cục bộ)!" : "Đã khôi phục bất động sản về trạng thái đang bán (Cục bộ)!", true);
+          savePropertyDataToStorage();
+          applyFilters();
+          renderAdminTable();
+          renderAdminReports();
+        }
+      }
+      window.toggleFormSoldStatus = toggleFormSoldStatus;
+
+      async function inlineToggleSold(id, toSold) {
+        const item = propertyData.find(p => String(p.id) === String(id));
+        if (!item) return;
+
+        if (toSold) {
+          const isConfirmed = await showCustomConfirm(
+            "Đánh dấu Đã Bán",
+            "Đánh dấu tin này đã bán?"
+          );
+          if (!isConfirmed) return;
+          item.isSold = true;
+          logSystemActivity('EDIT', `Đánh dấu bất động sản #${item.id} (${item.title}) là ĐÃ BÁN (Trực tiếp từ danh sách).`);
+        } else {
+          const isConfirmed = await showCustomConfirm(
+            "Khôi phục Đang bán",
+            "Xác nhận khôi phục bất động sản này về trạng thái đang bán?"
+          );
+          if (!isConfirmed) return;
+          item.isSold = false;
+          logSystemActivity('EDIT', `Khôi phục bất động sản #${item.id} (${item.title}) về trạng thái Đang bán (Trực tiếp từ danh sách).`);
+        }
+
+        // Save to Supabase Cloud directly if connected
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast("Đang đồng bộ trạng thái Giao dịch lên Cloud...", true);
+          fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_sold: item.isSold })
+          }).then(res => {
+            if (res.ok) {
+              showToast(item.isSold ? "Đã đánh dấu bất động sản đã bán thành công!" : "Đã khôi phục bất động sản về trạng thái đang bán!", true);
+              savePropertyDataToStorage();
+              applyFilters();
+              renderAdminTable();
+              renderAdminReports();
+            } else {
+              showToast("Có lỗi xảy ra khi đồng bộ lên Cloud.", false);
+              console.error("Lỗi đồng bộ is_sold lên Supabase:", res.status);
+            }
+          }).catch(err => {
+            showToast("Có lỗi kết nối khi đồng bộ lên Cloud.", false);
+            console.error("Lỗi đồng bộ is_sold lên Supabase:", err);
+          });
+        } else {
+          showToast(item.isSold ? "Đã đánh dấu bất động sản đã bán thành công (Cục bộ)!" : "Đã khôi phục bất động sản về trạng thái đang bán (Cục bộ)!", true);
+          savePropertyDataToStorage();
+          applyFilters();
+          renderAdminTable();
+          renderAdminReports();
+        }
+      }
+       window.inlineToggleSold = inlineToggleSold;
+ 
+      function startInlineEdit(e, id) {
+        if (e) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+        
+        // Close all other open inline dropdowns first
+        document.querySelectorAll('.inline-edit-dropdown').forEach(el => {
+          el.style.display = 'none';
+        });
+        
+        const container = e.currentTarget.closest('.inline-loai-vi-tri-container');
+        if (!container) return;
+        
+        const dropdown = container.querySelector('.inline-edit-dropdown');
+        if (dropdown) {
+          dropdown.style.display = 'block';
+        }
+        
+        // Handler to close when clicking outside
+        const closeDropdownHandler = (event) => {
+          if (!container.contains(event.target)) {
+            dropdown.style.display = 'none';
+            document.removeEventListener('click', closeDropdownHandler);
+          }
+        };
+        
+        // Timeout to avoid immediate triggering from this click event
+        setTimeout(() => {
+          document.addEventListener('click', closeDropdownHandler);
+        }, 50);
+      }
+      window.startInlineEdit = startInlineEdit;
+
+      function selectInlineLoaiViTri(e, id, newValue) {
+        if (e) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+        
+        // Find the property
+        const item = propertyData.find(p => String(p.id) === String(id));
+        if (!item) return;
+        
+        // Set new value locally
+        item.loaiViTri = newValue;
+        
+        // Close dropdown
+        const container = e.target.closest('.inline-loai-vi-tri-container');
+        if (container) {
+          const dropdown = container.querySelector('.inline-edit-dropdown');
+          if (dropdown) dropdown.style.display = 'none';
+        }
+        
+        // Save locally and sync to Supabase
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast("Đang đồng bộ loại vị trí lên Cloud...", true);
+          fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ loai_vi_tri: newValue })
+          }).then(res => {
+            if (res.ok) {
+              showToast("✓ Đã cập nhật", true);
+              savePropertyDataToStorage();
+              applyFilters();
+              renderAdminTable();
+              renderAdminReports();
+            } else {
+              showToast("Có lỗi xảy ra khi đồng bộ lên Cloud.", false);
+              console.error("Lỗi đồng bộ loai_vi_tri lên Supabase:", res.status);
+            }
+          }).catch(err => {
+            showToast("Có lỗi kết nối khi đồng bộ lên Cloud.", false);
+            console.error("Lỗi đồng bộ loai_vi_tri lên Supabase:", err);
+          });
+        } else {
+          showToast("✓ Đã cập nhật (Cục bộ)", true);
+          savePropertyDataToStorage();
+          applyFilters();
+          renderAdminTable();
+          renderAdminReports();
+        }
+      }
+      window.selectInlineLoaiViTri = selectInlineLoaiViTri;
+ 
+      function startInlinePriceEdit(e, id, currentPrice) {
+        if (e) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+        
+        // Close all other open inline edits first
+        document.querySelectorAll('.inline-price-cell').forEach(cell => {
+          const disp = cell.querySelector('.inline-price-display');
+          const editContainer = cell.querySelector('.inline-price-edit-container');
+          if (disp && editContainer) {
+            disp.style.display = 'inline-flex';
+            editContainer.style.display = 'none';
+            const errorEl = cell.querySelector('.inline-price-error');
+            if (errorEl) errorEl.style.display = 'none';
+          }
+        });
+
+        const cell = e.currentTarget.closest('.inline-price-cell');
+        if (!cell) return;
+
+        const disp = cell.querySelector('.inline-price-display');
+        const editContainer = cell.querySelector('.inline-price-edit-container');
+        const input = cell.querySelector('.inline-price-input');
+        
+        if (disp && editContainer && input) {
+          disp.style.display = 'none';
+          editContainer.style.display = 'flex';
+          input.value = currentPrice || '';
+          input.focus();
+          input.select();
+
+          // Handler to close when clicking outside
+          const closePriceHandler = (event) => {
+            if (!cell.contains(event.target)) {
+              disp.style.display = 'inline-flex';
+              editContainer.style.display = 'none';
+              const errorEl = cell.querySelector('.inline-price-error');
+              if (errorEl) errorEl.style.display = 'none';
+              document.removeEventListener('click', closePriceHandler);
+            }
+          };
+
+          // Timeout to avoid immediate triggering from this click event
+          setTimeout(() => {
+            document.addEventListener('click', closePriceHandler);
+          }, 50);
+        }
+      }
+      window.startInlinePriceEdit = startInlinePriceEdit;
+
+      function handleInlinePriceKeydown(e, id) {
+        if (e.key === 'Escape') {
+          // Cancel edit
+          const cell = e.target.closest('.inline-price-cell');
+          if (cell) {
+            const disp = cell.querySelector('.inline-price-display');
+            const editContainer = cell.querySelector('.inline-price-edit-container');
+            if (disp && editContainer) {
+              disp.style.display = 'inline-flex';
+              editContainer.style.display = 'none';
+              const errorEl = cell.querySelector('.inline-price-error');
+              if (errorEl) errorEl.style.display = 'none';
+            }
+          }
+          return;
+        }
+
+        if (e.key === 'Enter') {
+          const val = parseFloat(e.target.value);
+          const cell = e.target.closest('.inline-price-cell');
+          const errorEl = cell ? cell.querySelector('.inline-price-error') : null;
+
+          if (isNaN(val) || val <= 0) {
+            if (errorEl) {
+              errorEl.style.display = 'block';
+            }
+            return;
+          }
+
+          if (errorEl) {
+            errorEl.style.display = 'none';
+          }
+
+          // Save price
+          saveInlinePrice(id, val);
+        }
+      }
+      window.handleInlinePriceKeydown = handleInlinePriceKeydown;
+
+      function saveInlinePrice(id, newPrice) {
+        const item = propertyData.find(p => String(p.id) === String(id));
+        if (!item) return;
+
+        const oldPrice = parseFloat(item.price) || 0;
+        
+        if (newPrice < oldPrice && oldPrice > 0) {
+          const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
+          localPriceReductions[id] = Date.now();
+          localStorage.setItem('local_price_reductions', JSON.stringify(localPriceReductions));
+          item.priceReducedAt = Date.now();
+          item.isPriceReduced = true;
+          item.oldPrice = oldPrice;
+        } else if (newPrice > oldPrice) {
+          const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
+          delete localPriceReductions[id];
+          localStorage.setItem('local_price_reductions', JSON.stringify(localPriceReductions));
+          delete item.priceReducedAt;
+          item.isPriceReduced = false;
+          item.oldPrice = null;
+        }
+
+        item.price = newPrice;
+        item.priceText = newPrice + " Tỷ";
+
+        // Save to Supabase Cloud directly if connected
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast("Đang đồng bộ giá lên Cloud...", true);
+          
+          const patchData = {
+            price: newPrice,
+            price_text: item.priceText
+          };
+          if (newPrice < oldPrice && oldPrice > 0) {
+            patchData.is_price_reduced = true;
+            patchData.old_price = oldPrice;
+            patchData.price_updated_at = new Date().toISOString();
+          } else if (newPrice > oldPrice) {
+            patchData.is_price_reduced = false;
+            patchData.old_price = null;
+            patchData.price_updated_at = null;
+          }
+
+          fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(patchData)
+          }).then(res => {
+            if (res.ok) {
+              showToast("✓ Đã cập nhật giá", true);
+              savePropertyDataToStorage();
+              applyFilters();
+              renderAdminTable();
+              renderAdminReports();
+            } else {
+              showToast("Có lỗi xảy ra khi đồng bộ lên Cloud.", false);
+              console.error("Lỗi đồng bộ giá lên Supabase:", res.status);
+            }
+          }).catch(err => {
+            showToast("Có lỗi kết nối khi đồng bộ lên Cloud.", false);
+            console.error("Lỗi đồng bộ giá lên Supabase:", err);
+          });
+        } else {
+          showToast("✓ Đã cập nhật giá", true);
+          savePropertyDataToStorage();
+          applyFilters();
+          renderAdminTable();
+          renderAdminReports();
+        }
+      }
+      window.saveInlinePrice = saveInlinePrice;
 
       function selectQuickImg(url) {
         if (formImg) formImg.value = url;
@@ -9840,7 +10417,8 @@ Nguyên tắc trả lời:
             views: 0,
             isPriceReduced: isPriceReducedChecked,
             oldPrice: oldPriceVal,
-            priceUpdatedAt: priceUpdatedAtVal
+            priceUpdatedAt: priceUpdatedAtVal,
+            isSold: false
           };
           propertyData.unshift(newItem);
           finalItem = newItem;
@@ -9875,7 +10453,8 @@ Nguyên tắc trả lời:
               views: finalItem.views,
               is_price_reduced: finalItem.isPriceReduced,
               old_price: finalItem.oldPrice,
-              price_updated_at: finalItem.priceUpdatedAt
+              price_updated_at: finalItem.priceUpdatedAt,
+              is_sold: finalItem.isSold || false
             };
 
             if (!supabaseHasViewsColumn) {
@@ -10172,7 +10751,7 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
             for (let i = 0; i < keysList.length; i++) {
               const currentKey = keysList[i];
               try {
-                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
+                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${currentKey}`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -10303,7 +10882,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
             for (let i = 0; i < keysList.length; i++) {
               const currentKey = keysList[i];
               try {
-                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
+                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${currentKey}`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -10625,7 +11204,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
         
         try {
-          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri';
+          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold';
           const urlParams = new URLSearchParams({
             select: selectCols,
             order: 'id.desc'
@@ -10687,7 +11266,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   desc: item.desc || "",
                   area: parseInt(item.area) || 0,
                   houseNumber: item.house_number || "",
-                  loaiViTri: (item.loai_vi_tri === "hem" ? "hem_xe_hoi" : (item.loai_vi_tri || "hem_xe_hoi")),
+                  loaiViTri: (item.loai_vi_tri === "hem" ? "hem_xe_hoi" : (item.loai_vi_tri || "")),
                   street: item.street || "",
                   width: parseFloat(item.width) || 0,
                   bedrooms: (() => {
@@ -10717,7 +11296,8 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   updated_at: item.updated_at || null,
                   isPriceReduced: item.is_price_reduced === true || item.is_price_reduced === 'true',
                   oldPrice: (item.old_price !== undefined && item.old_price !== null) ? parseFloat(item.old_price) : null,
-                  priceUpdatedAt: item.price_updated_at || null
+                  priceUpdatedAt: item.price_updated_at || null,
+                  isSold: item.is_sold === true || item.is_sold === 'true'
                 }));
 
                 if (limitCount && !hasLoadedAllProperties) {
@@ -11161,7 +11741,7 @@ DỮ LIỆU THÔ: "${textToParse}"`;
             for (let i = 0; i < keysList.length; i++) {
               const currentKey = keysList[i];
               try {
-                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
+                const directResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${currentKey}`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
