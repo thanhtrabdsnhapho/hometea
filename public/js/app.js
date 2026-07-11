@@ -732,7 +732,7 @@
                   <div style="display: flex; flex-direction: column; gap: 6px;">
                     <div class="card-grid-spec-item">
                       <span class="card-grid-icon" style="color: #2563eb;">📐</span>
-                      <span style="font-weight: 700; color: #1e293b;">${p.area} m²</span>
+                      <span style="font-weight: 700; color: var(--text-dark);">${p.area} m²</span>
                     </div>
                     <div class="card-grid-spec-item">
                       <span class="card-grid-icon" style="color: #6b7280;">🏢</span>
@@ -762,10 +762,10 @@
                 </div>
                 
                 <!-- Đường kẻ phân cách ngang mảnh -->
-                <hr class="card-divider-line">
+                <hr class="card-divider-line" style="margin-top: auto; margin-bottom: 8px;">
                 
                 <!-- Giá rực rỡ đã chỉnh sửa trùng tỷ -->
-                <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: auto;">
+                <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 0; margin-bottom: 8px;">
                   <div style="display: flex; align-items: center; gap: 4px;">
                     <span class="card-price-symbol">💰</span>
                     ${priceDisplayHtml}
@@ -782,7 +782,7 @@
                 </div>
                 
                 <!-- Nút Zalo & Chia sẻ song song rộng 50% -->
-                <div class="card-ctas-row" style="margin-top: 12px;">
+                <div class="card-ctas-row" style="margin-top: 0;">
                   <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
                     <span style="font-size: 14px;">💬</span> Zalo
                   </a>
@@ -7103,7 +7103,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
       }
 
-      function handleFastDrop(e) {
+      async function handleFastDrop(e) {
         e.preventDefault();
         const dropzone = document.getElementById('fastUploadDropzone');
         if (dropzone) {
@@ -7112,10 +7112,69 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
           const icon = dropzone.querySelector('.drop-icon');
           if (icon) icon.style.transform = 'scale(1)';
         }
-        if (e.dataTransfer && e.dataTransfer.files) {
-          const files = Array.from(e.dataTransfer.files);
+        if (e.dataTransfer) {
+          const files = await getAllFilesFromDataTransfer(e.dataTransfer);
           processFastFiles(files);
         }
+      }
+
+      async function getAllFilesFromDataTransfer(dataTransfer) {
+        const files = [];
+        const items = dataTransfer.items;
+        if (!items) {
+          return Array.from(dataTransfer.files || []);
+        }
+        
+        const queue = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.kind === 'file') {
+            const entry = typeof item.webkitGetAsEntry === 'function' ? item.webkitGetAsEntry() : null;
+            if (entry) {
+              queue.push(readEntryRecursively(entry));
+            } else {
+              const file = item.getAsFile();
+              if (file) files.push(file);
+            }
+          }
+        }
+        
+        if (queue.length > 0) {
+          const results = await Promise.all(queue);
+          for (const resList of results) {
+            files.push(...resList);
+          }
+        }
+        return files;
+      }
+
+      function readEntryRecursively(entry) {
+        return new Promise((resolve) => {
+          if (entry.isFile) {
+            entry.file((file) => resolve([file]), () => resolve([]));
+          } else if (entry.isDirectory) {
+            const dirReader = entry.createReader();
+            const allEntries = [];
+            const readEntriesBatch = () => {
+              dirReader.readEntries(async (entries) => {
+                if (entries.length === 0) {
+                  const files = [];
+                  for (const subEntry of allEntries) {
+                    const subFiles = await readEntryRecursively(subEntry);
+                    files.push(...subFiles);
+                  }
+                  resolve(files);
+                } else {
+                  allEntries.push(...entries);
+                  readEntriesBatch();
+                }
+              }, () => resolve([]));
+            };
+            readEntriesBatch();
+          } else {
+            resolve([]);
+          }
+        });
       }
 
       function handleFastUpload(e) {

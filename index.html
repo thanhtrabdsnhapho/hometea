@@ -1349,18 +1349,29 @@
                ondragleave="handleFastDragLeave(event)"
                ondrop="handleFastDrop(event)">
             
-            <input type="file" id="fastFolderInput" multiple accept="image/*,.txt" style="display: none;" onchange="handleFastUpload(event)">
-            
-            <svg style="color: #3b82f6; margin: 0 auto 16px auto; transition: transform 0.2s;" class="drop-icon" width="52" height="52" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-            </svg>
-            
-            <h5 style="font-size: 16px; font-weight: 800; color: var(--primary); margin: 0 0 8px 0;">Kéo thả tất cả File trong thư mục của bạn vào đây</h5>
-            <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 8px 0; line-height: 1.5;">Hoặc nhấp chuột vào đây để chọn đồng thời nhiều tệp (Bôi đen file ảnh + tệp mô tả .txt)</p>
-            <div style="font-size: 12px; display: inline-block; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 6px 14px; border-radius: 8px; font-weight: 700;">
-              💡 Tự động đọc bài viết trong .txt + AI bóc tách thông tin + Đồ thị hóa ảnh Cloud
-            </div>
-          </div>
+                         <input type="file" id="fastFolderInput" multiple accept="image/*,.txt" style="display: none;" onchange="handleFastUpload(event)">
+             <input type="file" id="fastDirectoryInput" webkitdirectory directory multiple style="display: none;" onchange="handleFastUpload(event)">
+             
+             <svg style="color: #3b82f6; margin: 0 auto 12px auto; transition: transform 0.2s;" class="drop-icon" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+             </svg>
+             
+             <h5 style="font-size: 16px; font-weight: 800; color: var(--primary); margin: 0 0 6px 0;">Kéo thả nguyên Thư mục (Folder) hoặc các File vào đây</h5>
+             <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.5;">Hệ thống hỗ trợ kéo thả trực tiếp thư mục chứa tệp .txt và hình ảnh.</p>
+             
+             <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 14px;">
+               <button type="button" style="font-size: 12.5px; padding: 8px 16px; border-radius: 8px; font-weight: 700; background: #2563eb; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow);" onclick="event.stopPropagation(); document.getElementById('fastFolderInput').click();">
+                 📁 Chọn nhiều tệp
+               </button>
+               <button type="button" style="font-size: 12.5px; padding: 8px 16px; border-radius: 8px; font-weight: 700; background: #10b981; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow);" onclick="event.stopPropagation(); document.getElementById('fastDirectoryInput').click();">
+                 📂 Chọn nguyên Thư mục
+               </button>
+             </div>
+
+             <div style="font-size: 12px; display: inline-block; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 6px 14px; border-radius: 8px; font-weight: 700;">
+               💡 Tự động đọc bài viết trong .txt + AI bóc tách thông tin + Đồ thị hóa ảnh Cloud
+             </div>
+          </div></div>
 
           <!-- Progress status details -->
           <div id="fastProgressArea" style="display: none; background: #fafbfe; border: 1px solid #bfdbfe; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
