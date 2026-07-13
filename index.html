@@ -661,11 +661,49 @@
       <!-- SUB-VIEW 1: BẢNG LUỒNG QUẢN LÝ QUẢN TRỊ VIÊN -->
       <div id="adminDashboardSection">
         <div class="admin-dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-          <div>
-            <h3 class="admin-title" style="font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--primary);">
-              <span style="font-size: 24px;">🔧</span> Quản Lý Tin Đăng BĐS
-            </h3>
-            <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+              <h3 class="admin-title" style="font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--primary); margin: 0;">
+                <span style="font-size: 24px;">🔧</span> Quản Lý Tin Đăng BĐS
+              </h3>
+              
+              <!-- Thanh hiển thị trực tiếp dung lượng hệ thống (Không cần nhấn) -->
+              <span style="position: relative; display: inline-block;">
+                <button id="directSystemStorageBar" type="button" onclick="window.toggleSystemStoragePopup(event)" style="display: inline-flex; align-items: center; gap: 10px; background: var(--bg-secondary, #1e293b); border: 1px solid var(--border); padding: 5px 14px; border-radius: 99px; font-size: 11.5px; color: var(--text-primary); cursor: pointer; transition: all 0.2s; outline: none; box-shadow: var(--shadow-sm); font-weight: 600;">
+                  <span style="font-weight: 800; color: var(--accent); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px;">📊 Hệ thống:</span>
+                  <span id="directCloudinaryStat" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; display: inline-block; animation: storage-spin 1s linear infinite;"></span> Đang tải...
+                  </span>
+                  <span style="color: var(--border);">|</span>
+                  <span id="directSupabaseStat" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block; animation: storage-spin 1s linear infinite;"></span> Đang tải...
+                  </span>
+                  <span style="color: var(--text-muted); font-size: 10px; font-weight: 500; margin-left: 2px;">(Xem chi tiết ▾)</span>
+                </button>
+                
+                <style>
+                  @keyframes storage-spin {
+                    to { transform: rotate(360deg); }
+                  }
+                </style>
+                
+                <div id="systemStoragePopup" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; z-index: 1000; width: 280px; padding: 16px; border-radius: 12px; background: var(--card-bg, #ffffff); border: 1px solid var(--border); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); color: var(--text-dark, #1e293b); text-align: left; line-height: 1.4;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary);">📊 Chi tiết dung lượng</span>
+                    <span style="cursor: pointer; font-size: 16px; line-height: 1; padding: 2px; color: var(--text-muted);" onclick="window.toggleSystemStoragePopup(event)">×</span>
+                  </div>
+                  
+                  <div id="systemStorageContent">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; gap: 8px;">
+                      <div style="width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: #3b82f6; border-radius: 50%; animation: storage-spin 0.8s linear infinite;"></div>
+                      <span style="font-size: 12px; color: var(--text-muted);">Đang tải dữ liệu...</span>
+                    </div>
+                  </div>
+                </div>
+              </span>
+            </div>
+            
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 2px; margin-bottom: 0;">
               Chào mừng Thanh Trà, bạn có quyền đăng tin, sửa tin và xóa tin bất động sản trực tuyến.
               <span id="cloudConnectionIndicator" style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 99px; background: #dcfce7; color: #15803d; border: 1px solid #86efac; text-transform: uppercase; margin-left: 10px; vertical-align: middle;">☁️ Đã liên kết đám mây</span>
             </p>
@@ -1754,6 +1792,6 @@
 
 
     <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG --- -->
-    <script src="/js/app.js" defer></script>
+    <script src="/js/app.js?v=2" defer></script>
   </body>
 </html>

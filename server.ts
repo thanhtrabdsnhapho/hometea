@@ -240,6 +240,117 @@ async function startServer() {
     });
   });
 
+  // Local in-memory cache for system status
+  let cachedSystemStatus: any = null;
+  let cachedSystemStatusTime = 0;
+
+  // API router to retrieve system storage and database status for Cloudinary and Supabase
+  app.get("/api/system-status", async (req, res) => {
+    const now = Date.now();
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+    if (cachedSystemStatus && now - cachedSystemStatusTime < CACHE_DURATION) {
+      res.setHeader("X-Cache", "HIT");
+      return res.json(cachedSystemStatus);
+    }
+
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    let cloudinaryData = {
+      storageUsedBytes: 0,
+      creditsUsed: 0,
+      creditsLimit: 0,
+      error: undefined as string | undefined
+    };
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      cloudinaryData.error = "Chưa cấu hình CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY hoặc CLOUDINARY_API_SECRET";
+    } else {
+      try {
+        cloudinary.config({
+          cloud_name: cloudName,
+          api_key: apiKey,
+          api_secret: apiSecret
+        });
+        const usage = await cloudinary.api.usage();
+        cloudinaryData.storageUsedBytes = usage.storage?.usage || 0;
+        cloudinaryData.creditsUsed = usage.credits?.usage || 0;
+        cloudinaryData.creditsLimit = usage.credits?.limit || 0;
+      } catch (err: any) {
+        console.error("Lỗi khi lấy thông tin Cloudinary usage:", err);
+        cloudinaryData.error = `Lỗi Cloudinary: ${err.message || err}`;
+      }
+    }
+
+    let supabaseData = {
+      databaseSizeBytes: 0,
+      totalListings: 0,
+      error: undefined as string | undefined
+    };
+
+    try {
+      // Call RPC get_database_size
+      try {
+        const { data: dbSize, error: dbSizeError } = await supabase.rpc("get_database_size");
+        if (dbSizeError) {
+          console.warn("Lỗi gọi RPC get_database_size:", dbSizeError);
+          supabaseData.error = `Lỗi RPC: ${dbSizeError.message}`;
+        } else if (typeof dbSize === "number") {
+          supabaseData.databaseSizeBytes = dbSize;
+        } else {
+          supabaseData.databaseSizeBytes = Number(dbSize) || 0;
+        }
+      } catch (rpcErr: any) {
+        console.error("Lỗi thực thi RPC get_database_size:", rpcErr);
+        supabaseData.error = `Không hỗ trợ RPC get_database_size: ${rpcErr.message || rpcErr}`;
+      }
+
+      // Count properties_hometea listings
+      try {
+        const { count, error: countError } = await supabase
+          .from("properties_hometea")
+          .select("*", { count: "exact", head: true });
+        
+        if (countError) {
+          console.warn("Lỗi đếm bảng properties_hometea, thử properties:", countError);
+          const { count: altCount, error: altCountError } = await supabase
+            .from("properties")
+            .select("*", { count: "exact", head: true });
+          
+          if (altCountError) {
+            const errMsg = `Lỗi đếm tin: ${altCountError.message}`;
+            supabaseData.error = supabaseData.error ? `${supabaseData.error} | ${errMsg}` : errMsg;
+          } else {
+            supabaseData.totalListings = altCount || 0;
+          }
+        } else {
+          supabaseData.totalListings = count || 0;
+        }
+      } catch (countErr: any) {
+        console.error("Lỗi đếm bản ghi:", countErr);
+        const errMsg = `Lỗi đếm tin: ${countErr.message || countErr}`;
+        supabaseData.error = supabaseData.error ? `${supabaseData.error} | ${errMsg}` : errMsg;
+      }
+    } catch (err: any) {
+      console.error("Lỗi kết nối Supabase:", err);
+      supabaseData.error = `Lỗi kết nối Supabase: ${err.message || err}`;
+    }
+
+    const responseData = {
+      cloudinary: cloudinaryData,
+      supabase: supabaseData,
+      checkedAt: new Date().toISOString()
+    };
+
+    cachedSystemStatus = responseData;
+    cachedSystemStatusTime = now;
+
+    res.setHeader("X-Cache", "MISS");
+    res.json(responseData);
+  });
+
   // API router to verify administrator password securely on backend side
   app.post("/api/admin-login", (req, res) => {
     try {

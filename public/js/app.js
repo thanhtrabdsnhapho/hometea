@@ -2734,6 +2734,11 @@ Nguyên tắc trả lời:
           renderAdminTable();
           hideAdminForm(); // Trả lại danh sách bảng tin đăng trước
           window.scrollTo({ top: 0, behavior: 'smooth' });
+          
+          // Tự động tải dung lượng hệ thống khi vào trang Admin
+          if (typeof fetchSystemStorageStatus === 'function') {
+            fetchSystemStorageStatus();
+          }
         } else {
           if (homePageWrapper) homePageWrapper.style.display = 'block';
           if (adminPageWrapper) adminPageWrapper.style.display = 'none';
@@ -4765,6 +4770,206 @@ Nguyên tắc trả lời:
       window.regenerateFacebookCaption = regenerateFacebookCaption;
       window.submitFacebookPosts = submitFacebookPosts;
       window.updateFacebookModalDelayVisibility = updateFacebookModalDelayVisibility;
+
+      // HỆ THỐNG HIỂN THỊ DUNG LƯỢNG LƯU TRỮ CLOUDINARY & SUPABASE
+      let systemStorageLoaded = false;
+      let systemStorageLoading = false;
+
+      function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+      }
+
+      async function toggleSystemStoragePopup(event) {
+        if (event) {
+          event.stopPropagation();
+        }
+        const popup = document.getElementById('systemStoragePopup');
+        if (!popup) return;
+
+        if (popup.style.display === 'none' || popup.style.display === '') {
+          // Open popup
+          popup.style.display = 'block';
+          
+          // Close popup when clicking outside
+          const clickOutsideHandler = (e) => {
+            const btn = document.getElementById('directSystemStorageBar');
+            if (!popup.contains(e.target) && e.target !== btn && (!btn || !btn.contains(e.target))) {
+              popup.style.display = 'none';
+              document.removeEventListener('click', clickOutsideHandler);
+            }
+          };
+          // Use setTimeout to avoid handling the current click event immediately
+          setTimeout(() => {
+            document.addEventListener('click', clickOutsideHandler);
+          }, 50);
+
+          // Fetch only if not loaded yet
+          if (!systemStorageLoaded) {
+            await fetchSystemStorageStatus();
+          }
+        } else {
+          popup.style.display = 'none';
+        }
+      }
+
+      async function fetchSystemStorageStatus() {
+        if (systemStorageLoading) return;
+        systemStorageLoading = true;
+        
+        const contentEl = document.getElementById('systemStorageContent');
+        const directCloudinary = document.getElementById('directCloudinaryStat');
+        const directSupabase = document.getElementById('directSupabaseStat');
+
+        if (directCloudinary) {
+          directCloudinary.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; display: inline-block; animation: storage-spin 1s linear infinite;"></span> Đang tải...`;
+        }
+        if (directSupabase) {
+          directSupabase.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block; animation: storage-spin 1s linear infinite;"></span> Đang tải...`;
+        }
+
+        if (contentEl) {
+          // Show loading spinner
+          contentEl.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; gap: 8px;">
+              <div style="width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: #3b82f6; border-radius: 50%; animation: storage-spin 0.8s linear infinite;"></div>
+              <span style="font-size: 12px; color: var(--text-muted);">Đang tải dữ liệu...</span>
+            </div>
+          `;
+        }
+
+        try {
+          const res = await fetch('/api/system-status');
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          const data = await res.json();
+          
+          if (directCloudinary) {
+            if (data.cloudinary.error) {
+              directCloudinary.innerHTML = `<span style="color: #ef4444;">⚠️ Lỗi Cloudinary</span>`;
+            } else {
+              directCloudinary.innerHTML = `<span style="color: #3b82f6;">☁️</span> ${formatBytes(data.cloudinary.storageUsedBytes)}`;
+            }
+          }
+          if (directSupabase) {
+            if (data.supabase.error) {
+              directSupabase.innerHTML = `<span style="color: #ef4444;">⚠️ Lỗi Supabase</span>`;
+            } else {
+              directSupabase.innerHTML = `<span style="color: #10b981;">⚡</span> ${formatBytes(data.supabase.databaseSizeBytes)} (${data.supabase.totalListings} tin)`;
+            }
+          }
+          
+          let cloudinaryHtml = '';
+          if (data.cloudinary.error) {
+            cloudinaryHtml = `
+              <div style="color: #ef4444; font-size: 11.5px; margin-top: 4px; padding: 8px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 6px;">
+                ⚠️ ${data.cloudinary.error}
+              </div>
+            `;
+          } else {
+            const pct = data.cloudinary.creditsLimit > 0 
+              ? Math.min(100, Math.round((data.cloudinary.creditsUsed / data.cloudinary.creditsLimit) * 100))
+              : 0;
+            cloudinaryHtml = `
+              <div style="font-size: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted);">Dung lượng đã dùng:</span>
+                  <span style="font-weight: 700; color: var(--text-dark);">${formatBytes(data.cloudinary.storageUsedBytes)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+                  <span style="color: var(--text-muted);">Tín dụng (Credits):</span>
+                  <span style="font-weight: 700; color: var(--text-dark);">${data.cloudinary.creditsUsed.toFixed(1)} / ${data.cloudinary.creditsLimit} (${pct}%)</span>
+                </div>
+                <!-- Progress bar -->
+                <div style="width: 100%; background: var(--bg-secondary, #f1f5f9); height: 6px; border-radius: 3px; overflow: hidden; margin-top: 6px; margin-bottom: 4px; border: 1px solid var(--border);">
+                  <div style="width: ${pct}%; background: ${pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#10b981'}; height: 100%; border-radius: 3px; transition: width 0.3s ease;"></div>
+                </div>
+              </div>
+            `;
+          }
+
+          let supabaseHtml = '';
+          if (data.supabase.error) {
+            supabaseHtml = `
+              <div style="color: #ef4444; font-size: 11.5px; margin-top: 4px; padding: 8px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 6px;">
+                ⚠️ Lỗi: ${data.supabase.error}
+              </div>
+            `;
+          } else {
+            supabaseHtml = `
+              <div style="font-size: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted);">Dung lượng DB:</span>
+                  <span style="font-weight: 700; color: var(--text-dark);">${formatBytes(data.supabase.databaseSizeBytes)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+                  <span style="color: var(--text-muted);">Tổng tin đăng:</span>
+                  <span style="font-weight: 700; color: var(--text-dark);">${data.supabase.totalListings} tin đăng</span>
+                </div>
+              </div>
+            `;
+          }
+
+          const checkedAtLocal = data.checkedAt ? new Date(data.checkedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Vừa xong';
+
+          contentEl.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <!-- Cloudinary -->
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                  <span style="font-size: 14px;">☁️</span>
+                  <span style="font-weight: 700; font-size: 12.5px; color: var(--primary);">Cloudinary Storage</span>
+                </div>
+                ${cloudinaryHtml}
+              </div>
+
+              <hr style="border: none; border-top: 1px solid var(--border); margin: 0;">
+
+              <!-- Supabase -->
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                  <span style="font-size: 14px;">⚡</span>
+                  <span style="font-weight: 700; font-size: 12.5px; color: var(--primary);">Supabase Database</span>
+                </div>
+                ${supabaseHtml}
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); margin-top: 2px; border-top: 1px solid var(--border); padding-top: 8px;">
+                <span>Cập nhật: ${checkedAtLocal}</span>
+                <span style="text-decoration: underline; cursor: pointer; font-weight: 600; color: var(--accent);" onclick="event.stopPropagation(); window.fetchSystemStorageStatus();">🔄 Làm mới</span>
+              </div>
+            </div>
+          `;
+          
+          systemStorageLoaded = true;
+        } catch (err) {
+          console.error("Lỗi khi tải dung lượng hệ thống:", err);
+          if (directCloudinary) {
+            directCloudinary.innerHTML = `<span style="color: #ef4444;">Lỗi tải!</span>`;
+          }
+          if (directSupabase) {
+            directSupabase.innerHTML = `<span style="color: #ef4444;">Lỗi tải!</span>`;
+          }
+          if (contentEl) {
+            contentEl.innerHTML = `
+              <div style="color: #ef4444; font-size: 12px; text-align: center; padding: 12px 0; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                <span>❌ Không thể tải dữ liệu, thử lại sau.</span>
+                <button type="button" onclick="event.stopPropagation(); window.fetchSystemStorageStatus();" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid #ef4444; background: transparent; color: #ef4444; cursor: pointer; font-weight: 700;">Thử lại</button>
+              </div>
+            `;
+          }
+        } finally {
+          systemStorageLoading = false;
+        }
+      }
+
+      window.toggleSystemStoragePopup = toggleSystemStoragePopup;
+      window.fetchSystemStorageStatus = fetchSystemStorageStatus;
 
       function checkAdminSession() {
         // Tải khởi dựng số liệu thống kê & Hộp thư mẫu cục bộ
