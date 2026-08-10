@@ -1,16 +1,17 @@
-      /* --- THIẾT LẬP BIẾN MÀU SẮC & GIAO DIỆN --- */
+      /* --- THIẾT LẬP BIẾN MÀU SẮC & GIAO DIỆN (ĐẠT CHUẨN MẮT & TƯƠNG PHẢN WCAG AA/AAA) --- */
       :root {
-        --primary: #f4a623;       /* Màu Cam thương hiệu làm nút nhấn & CTA chính */
-        --primary-light: #ea580c; /* Màu Cam sẫm hơn khi hover */
-        --primary-dark: #202124;  /* Màu tối sẫm lịch lãm */
-        --accent: #f4a623;        /* Màu Cam thương hiệu */
-        --accent-hover: #ea580c;  /* Màu Cam sẫm hơn khi hover */
-        --secondary: #f8f9fa;     /* Nền phụ */
+        --primary: #ea580c;       /* Màu Cam chuẩn tương phát nét rõ trên nền sáng */
+        --primary-light: #c2410c; /* Màu Cam sẫm hơn khi hover */
+        --primary-dark: #0f172a;  /* Màu tối sẫm Slate */
+        --accent: #ea580c;        /* Màu Cam nổi bật high-contrast */
+        --accent-hover: #c2410c;  /* Hover màu sẫm nét */
+        --price-color: #c2410c;   /* Màu giá nhà đất nét đậm rực rỡ */
+        --secondary: #f1f5f9;     /* Nền phụ dịu */
         --bg-light: #ffffff;      /* Nền chính sáng tối giản */
         --card-bg: #ffffff;       /* Nền card trắng sáng */
-        --text-dark: #202124;     /* Màu chữ sẫm tối giản của Google */
-        --text-muted: #5f6368;    /* Màu chữ ghi phụ của Google */
-        --border: #dadce0;        /* Viền mảnh tinh tế */
+        --text-dark: #0f172a;     /* Màu chữ chính sẫm rõ nét */
+        --text-muted: #475569;    /* Màu chữ ghi phụ vừa đủ tương phản (> 6.0:1) */
+        --border: #cbd5e1;        /* Viền mảnh tinh tế */
         --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
         --font-serif: 'Playfair Display', serif;
         --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -18,56 +19,57 @@
         --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         
         --navbar-bg: rgba(255, 255, 255, 0.95);
-        --footer-bg: #f8f9fa;
-        --hero-overlay-1: rgba(32, 33, 36, 0.75);
-        --hero-overlay-2: rgba(32, 33, 36, 0.85);
+        --footer-bg: #0f172a;
+        --hero-overlay-1: rgba(15, 23, 42, 0.75);
+        --hero-overlay-2: rgba(15, 23, 42, 0.88);
         --hero-text: #ffffff;
         --input-bg: #ffffff;
-        --input-border: #dadce0;
-        --contact-bg: #f8f9fa;
-        --admin-input-bg: #f8f9fa;
-        --admin-input-border: #dadce0;
-        --admin-badge-bg: #f8f9fa;
-        --admin-badge-text: #202124;
-        --admin-table-border: #eeeeee;
-        --bg-secondary: #f8f9fa;
-        --text-primary: #202124;
-        --text-secondary: #5f6368;
-        --border-color: #dadce0;
+        --input-border: #cbd5e1;
+        --contact-bg: #f8fafc;
+        --admin-input-bg: #ffffff;
+        --admin-input-border: #cbd5e1;
+        --admin-badge-bg: #f1f5f9;
+        --admin-badge-text: #0f172a;
+        --admin-table-border: #e2e8f0;
+        --bg-secondary: #f8fafc;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --border-color: #cbd5e1;
       }
 
       :root[data-theme="dark"] {
-        --primary: #f4a623;       /* Giữ cùng accent màu cam đồng bộ thương hiệu */
-        --primary-light: #e09112;
-        --primary-dark: #1a1a1a;
-        --accent: #f4a623;
-        --accent-hover: #e09112;
+        --primary: #f97316;       /* Giữ cùng accent màu cam đồng bộ thương hiệu */
+        --primary-light: #fb923c;
+        --primary-dark: #0f172a;
+        --accent: #f97316;
+        --accent-hover: #fb923c;
+        --price-color: #fbbf24;   /* Vàng nổi bật rực rỡ trên nền tối */
         --secondary: #282a2d;     /* Nền xám đậm phụ */
-        --bg-light: #1a1a1a;      /* Nền tối sâu thẳm Google AI Studio */
-        --card-bg: #282a2d;       /* Nền card/sidebar/header xám sẫm */
-        --text-dark: #e8eaed;     /* Chữ xám sáng dịu chống chói mắt */
-        --text-muted: #9aa0a6;    /* Chữ phụ xám mờ */
-        --border: #3c4043;        /* Viền mờ tối giản */
+        --bg-light: #12161f;      /* Nền tối sâu thẳm Google AI Studio */
+        --card-bg: #1e2430;       /* Nền card/sidebar/header xám sẫm cao cấp */
+        --text-dark: #f8fafc;     /* Chữ trắng dịu cực kỳ sắc nét */
+        --text-muted: #94a3b8;    /* Chữ phụ xám sáng dễ đọc */
+        --border: #334155;        /* Viền mờ tối giản */
         --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
         --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
         
-        --navbar-bg: rgba(40, 42, 45, 0.95);
-        --footer-bg: #282a2d;
-        --hero-overlay-1: rgba(26, 26, 26, 0.85);
-        --hero-overlay-2: rgba(26, 26, 26, 0.95);
-        --hero-text: #e8eaed;
-        --input-bg: #1e1e1e;
-        --input-border: #3c4043;
-        --contact-bg: #202124;
-        --admin-input-bg: #1e1e1e;
-        --admin-input-border: #3c4043;
-        --admin-badge-bg: #1a1a1a;
-        --admin-badge-text: #e8eaed;
-        --admin-table-border: #3c4043;
+        --navbar-bg: rgba(30, 36, 48, 0.95);
+        --footer-bg: #0f172a;
+        --hero-overlay-1: rgba(18, 22, 31, 0.85);
+        --hero-overlay-2: rgba(18, 22, 31, 0.95);
+        --hero-text: #f8fafc;
+        --input-bg: #12161f;
+        --input-border: #334155;
+        --contact-bg: #1e2430;
+        --admin-input-bg: #12161f;
+        --admin-input-border: #334155;
+        --admin-badge-bg: #282a2d;
+        --admin-badge-text: #f8fafc;
+        --admin-table-border: #334155;
         --bg-secondary: #282a2d;
-        --text-primary: #e8eaed;
-        --text-secondary: #9aa0a6;
-        --border-color: #3c4043;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
       }
 
       .card-badge-popular {
@@ -237,7 +239,7 @@
 
       .btn-phone {
         background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-        color: var(--primary);
+        color: #ffffff !important;
         padding: 10px 20px;
         border-radius: 50px;
         font-weight: 700;
@@ -332,7 +334,7 @@
 
       .btn-hero-primary {
         background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-        color: var(--primary);
+        color: #ffffff !important;
         font-weight: 700;
         padding: 14px 28px;
         border-radius: 8px;
@@ -362,7 +364,7 @@
 
       .btn-hero-secondary:hover {
         background-color: #fff;
-        color: var(--primary);
+        color: #0f172a !important;
         transform: translateY(-3px);
       }
 
@@ -1293,7 +1295,7 @@
 
       .btn-modal-zalo {
         background-color: #0068ff;
-        color: #fff;
+        color: #ffffff !important;
         font-weight: 700;
         padding: 12px 24px;
         border-radius: 8px;
@@ -1305,6 +1307,51 @@
       .btn-modal-zalo:hover {
         background-color: #0054d1;
         transform: translateY(-2px);
+      }
+
+      .btn-modal-share {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        font-size: 14.5px;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1.5px solid var(--border);
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+      }
+
+      .btn-modal-share:hover {
+        background-color: var(--border);
+        color: var(--text-primary);
+        transform: translateY(-1px);
+      }
+
+      .btn-modal-download {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        font-size: 14.5px;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1.5px solid rgba(249, 115, 22, 0.3);
+        background: linear-gradient(135deg, #ea580c, #c2410c);
+        color: #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.25);
+      }
+
+      .btn-modal-download:hover {
+        background: linear-gradient(135deg, #c2410c, #9a3412);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px -2px rgba(249, 115, 22, 0.35);
       }
 
       /* --- CHATBOX AI CONSULTANT (CỐ ĐỊNH GÓC DƯỚI PHẢI) --- */
@@ -2041,7 +2088,7 @@
 
       .btn-admin-logout {
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         color: #dc2626;
         display: inline-flex;
         align-items: center;
@@ -2049,13 +2096,25 @@
         padding: 6px 12px;
         border: 1px solid #fca5a5;
         border-radius: 6px;
-        background-color: rgba(239, 68, 68, 0.05);
+        background-color: rgba(239, 68, 68, 0.08);
+        transition: var(--transition);
       }
 
       .btn-admin-logout:hover {
         background-color: #dc2626;
-        color: #fff;
+        color: #ffffff !important;
         border-color: #dc2626;
+      }
+
+      :root[data-theme="dark"] .btn-admin-logout {
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.35);
+        background-color: rgba(239, 68, 68, 0.18);
+      }
+
+      :root[data-theme="dark"] .btn-admin-logout:hover {
+        background-color: #ef4444;
+        color: #ffffff !important;
       }
 
       .admin-table-actions {
@@ -2132,7 +2191,7 @@
 
       .admin-prop-title {
         font-weight: 600;
-        color: var(--primary);
+        color: var(--text-primary);
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -2142,8 +2201,8 @@
 
       .admin-prop-price {
         font-weight: 700;
-        color: var(--accent-hover);
-        font-family: var(--font-serif);
+        color: var(--price-color);
+        font-family: var(--font-sans);
       }
 
       .admin-actions-cell {
@@ -2155,26 +2214,38 @@
       .btn-action-edit {
         padding: 6px 12px;
         font-size: 12.5px;
-        font-weight: 600;
-        background-color: rgba(59, 130, 246, 0.08);
-        color: #2563eb;
+        font-weight: 700;
+        background-color: rgba(37, 99, 235, 0.08);
+        color: #1d4ed8;
         border-radius: 6px;
-        border: 1px solid #bfdbfe;
+        border: 1px solid #93c5fd;
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        transition: var(--transition);
       }
 
       .btn-action-edit:hover {
         background-color: #2563eb;
-        color: #fff;
+        color: #ffffff !important;
         border-color: #2563eb;
+      }
+
+      :root[data-theme="dark"] .btn-action-edit {
+        background-color: rgba(59, 130, 246, 0.18);
+        color: #60a5fa;
+        border-color: rgba(96, 165, 250, 0.35);
+      }
+
+      :root[data-theme="dark"] .btn-action-edit:hover {
+        background-color: #3b82f6;
+        color: #ffffff !important;
       }
 
       .btn-action-delete {
         padding: 6px 12px;
         font-size: 12.5px;
-        font-weight: 600;
+        font-weight: 700;
         background-color: rgba(239, 68, 68, 0.08);
         color: #dc2626;
         border-radius: 6px;
@@ -2182,12 +2253,24 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        transition: var(--transition);
       }
 
       .btn-action-delete:hover {
         background-color: #dc2626;
-        color: #fff;
+        color: #ffffff !important;
         border-color: #dc2626;
+      }
+
+      :root[data-theme="dark"] .btn-action-delete {
+        background-color: rgba(239, 68, 68, 0.18);
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.35);
+      }
+
+      :root[data-theme="dark"] .btn-action-delete:hover {
+        background-color: #ef4444;
+        color: #ffffff !important;
       }
 
       /* FORM MODAL QUẢN LÝ TIN ĐĂNG */

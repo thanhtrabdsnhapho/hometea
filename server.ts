@@ -31,8 +31,8 @@ async function generateContentWithRetry(ai: any, config: { model: string; conten
     targetModel = "gemini-2.5-flash";
   }
 
-  const maxRetries = 3;
-  let delayMs = 1000;
+  const maxRetries = 2;
+  let delayMs = 800;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -44,15 +44,72 @@ async function generateContentWithRetry(ai: any, config: { model: string; conten
       const errStr = err?.message || String(err);
       console.warn(`[Attempt ${attempt}/${maxRetries}] Lỗi gọi model ${targetModel}: ${errStr}`);
       
+      // Fast-fail immediately if key is quota-exhausted, rate-limited, or invalid
+      if (
+        errStr.includes("429") || 
+        errStr.includes("RESOURCE_EXHAUSTED") || 
+        errStr.includes("quota") || 
+        errStr.includes("API_KEY_INVALID") || 
+        errStr.includes("invalid") ||
+        errStr.includes("forbidden")
+      ) {
+        throw new Error(`Gemini Key Quota/Invalid: ${errStr}`);
+      }
+
       if (attempt === maxRetries) {
-        throw new Error(`Dịch vụ xử lý AI hiện đang tạm thời bận. Quý khách hàng/Quản lý vui lòng cài đặt API Key cá nhân để được phục vụ riêng biệt. (Lỗi gốc: ${errStr})`);
+        throw new Error(`Lỗi kết nối Gemini API (${targetModel}): ${errStr}`);
       }
       
-      console.log(`[Info] Thử lại sau ${delayMs}ms...`);
       await new Promise(resolve => setTimeout(resolve, delayMs));
-      delayMs *= 2;
+      delayMs *= 1.5;
     }
   }
+}
+
+// Helper function to call Groq API as automatic fallback model (llama-3.3-70b-versatile)
+async function callGroqFallback(messages: Array<{ role: string; content: string }>) {
+  let groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey) {
+    try {
+      const b64 = "Q09ONktBRndmR3VBT2tsRmdsbnRPUUpCWUYzYnlkR1doWlhJbFVMd3pOSTlyTmx5OEFqMF9rc2c=";
+      const decoded = Buffer.from(b64, 'base64').toString('utf8');
+      groqKey = decoded.split("").reverse().join("").replace(/\s+/g, '');
+    } catch (e) {
+      groqKey = "";
+    }
+  } else {
+    groqKey = groqKey.trim();
+  }
+
+  if (!groqKey) {
+    throw new Error("Không tìm thấy Groq API key trong biến môi trường hoặc cấu hình dự phòng");
+  }
+
+  console.log("[Fallback] Đang chuyển sang Groq API (llama-3.3-70b-versatile)...");
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${groqKey}`
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Groq API error (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  const reply = data?.choices?.[0]?.message?.content || "";
+  if (!reply) {
+    throw new Error("Phản hồi rỗng từ Groq API");
+  }
+  return reply;
 }
 
 // Helper function to handle multiple API keys (Key Pool) with automated rotation/failover
@@ -892,6 +949,58 @@ async function startServer() {
     }
   });
 
+  // API route to diagnostic health check all AI API Keys (Gemini & Groq)
+  app.get("/api/check-keys", async (req, res) => {
+    const results: any = { gemini: [], groq: null };
+    
+    // Check all Gemini keys
+    for (let i = 0; i < DEFAULT_SYSTEM_GEMINI_KEYS.length; i++) {
+      const rawKey = DEFAULT_SYSTEM_GEMINI_KEYS[i];
+      const decKey = decryptKeyIfNeeded(rawKey);
+      try {
+        const ai = new GoogleGenAI({ 
+          apiKey: decKey,
+          httpOptions: { headers: { 'User-Agent': 'aistudio-build', 'Authorization': '' } }
+        });
+        const resp = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: "Ping"
+        });
+        results.gemini.push({
+          serverKey: `Server AI_${i + 1}`,
+          status: "active",
+          model: "gemini-2.5-flash",
+          responseSample: resp.text ? resp.text.substring(0, 30) : "OK"
+        });
+      } catch (err: any) {
+        results.gemini.push({
+          serverKey: `Server AI_${i + 1}`,
+          status: "error",
+          error: err?.message || String(err)
+        });
+      }
+    }
+
+    // Check Groq key
+    try {
+      const groqReply = await callGroqFallback([
+        { role: "user", content: "Ping" }
+      ]);
+      results.groq = {
+        status: "active",
+        model: "llama-3.3-70b-versatile",
+        responseSample: groqReply.substring(0, 30)
+      };
+    } catch (err: any) {
+      results.groq = {
+        status: "error",
+        error: err?.message || String(err)
+      };
+    }
+
+    res.json(results);
+  });
+
   // API router to proxy Gemini Chat calls
   app.post("/api/chat", async (req, res) => {
     const { userQuestion, warehouseData, systemInstruction, localKey } = req.body;
@@ -908,59 +1017,26 @@ async function startServer() {
         return response.text || "";
       });
 
-      return res.json({ reply });
+      return res.json({ reply, provider: "gemini" });
     } catch (geminiError: any) {
       const geminiErrMsg = geminiError?.message || String(geminiError);
       console.warn("[Warning] Lỗi khi gọi Gemini API:", geminiErrMsg);
       console.log('[Fallback] Chuyển sang Groq do Gemini hết quota hoặc bị lỗi');
 
       try {
-        let groqKey = process.env.GROQ_API_KEY;
-        if (!groqKey) {
-          try {
-            const b64 = "Q09ONktBRndmR3VBT2tsRmdsbnRPUUpCWUYzYnlkR1doWlhJbFVMd3pOSTlyTmx5OEFqMF9rc2c=";
-            const decoded = Buffer.from(b64, 'base64').toString('utf8');
-            groqKey = decoded.split("").reverse().join("");
-          } catch (e) {
-            groqKey = "";
-          }
-        }
-        
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${groqKey}`
+        const messages = [
+          {
+            role: "system",
+            content: systemInstruction || "Bạn là Thanh Trà BĐS, trợ lý tư vấn bất động sản tại Thủ Đức, TP.HCM."
           },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-              {
-                role: "system",
-                content: systemInstruction || "Bạn là Thanh Trà BĐS, trợ lý tư vấn bất động sản tại Thủ Đức, TP.HCM."
-              },
-              {
-                role: "user",
-                content: `${warehouseData || ""}\n\nCâu hỏi/Yêu cầu của khách hàng: ${userQuestion}`
-              }
-            ],
-            temperature: 0.7
-          })
-        });
+          {
+            role: "user",
+            content: `${warehouseData || ""}\n\nCâu hỏi/Yêu cầu của khách hàng: ${userQuestion}`
+          }
+        ];
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Groq API returned status ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-        const reply = data?.choices?.[0]?.message?.content || "";
-        
-        if (!reply) {
-          throw new Error("Phản hồi rỗng từ Groq API");
-        }
-
-        return res.json({ reply });
+        const reply = await callGroqFallback(messages);
+        return res.json({ reply, provider: "groq" });
       } catch (groqError: any) {
         console.error("[Error] Cả Gemini và Groq đều lỗi:", groqError?.message || groqError);
         return res.status(500).json({
@@ -972,10 +1048,10 @@ async function startServer() {
 
   // API router to proxy AI Description helper
   app.post("/api/generate-desc", async (req, res) => {
-    try {
-      const { promptInput, localKey } = req.body;
-      const apiKeyInput = localKey || process.env.GEMINI_API_KEY;
+    const { promptInput, localKey } = req.body;
+    const apiKeyInput = localKey || process.env.GEMINI_API_KEY;
 
+    try {
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const response = await generateContentWithRetry(ai, {
           model: "gemini-2.5-flash",
@@ -984,32 +1060,36 @@ async function startServer() {
         return response.text || "";
       });
 
-      res.json({ reply });
+      return res.json({ reply, provider: "gemini" });
     } catch (apiError: any) {
-      console.log("[Info] Generate desc proxy call completed with exception.");
-      const errMsg = apiError?.message || String(apiError);
-      if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
-        res.status(429).json({ 
-          error: "Hiện tại tất cả các khóa API trong nhóm đã hết lượt sử dụng miễn phí hôm nay. Vui lòng bấm vào bánh răng ⚙️ (Thiết lập) để nhập/thêm khóa dự phòng." 
-        });
-      } else if (errMsg.includes("API key not valid") || errMsg.includes("invalid")) {
-        res.status(401).json({ 
-          error: "Các khóa API của bạn không hợp lệ hoặc đã hết hạn." 
-        });
-      } else {
-        res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi xử lý dữ liệu AI!" });
+      console.warn("[Info] Gemini lỗi hoặc hết quota khi tạo bài viết, chuyển sang Groq...");
+      try {
+        const messages = [
+          {
+            role: "system",
+            content: "Bạn là chuyên gia biên soạn nội dung quảng cáo bất động sản chuyên nghiệp tại TP. Thủ Đức."
+          },
+          {
+            role: "user",
+            content: promptInput
+          }
+        ];
+        const reply = await callGroqFallback(messages);
+        return res.json({ reply, provider: "groq" });
+      } catch (groqErr: any) {
+        return res.status(500).json({ error: "Lỗi tạo bài viết AI: " + (groqErr?.message || String(groqErr)) });
       }
     }
   });
 
   // API router to analyze raw input data and extract structured parameters + copywriting
   app.post("/api/analyze-raw", async (req, res) => {
-    try {
-      const { rawInput, localKey } = req.body;
-      const apiKeyInput = localKey || process.env.GEMINI_API_KEY;
+    const { rawInput, localKey } = req.body;
+    const apiKeyInput = localKey || process.env.GEMINI_API_KEY;
+    // Convert any literal HTML break tags from user copy-paste or web references to clean actual newlines
+    const sanitizedRawInput = (rawInput || "").replace(/<br\s*\/?>/gi, '\n');
 
-      // Convert any literal HTML break tags from user copy-paste or web references to clean actual newlines
-      const sanitizedRawInput = (rawInput || "").replace(/<br\s*\/?>/gi, '\n');
+    try {
 
       const reply = await callGeminiWithKeyPool(apiKeyInput, async (ai) => {
         const promptInput = `Bạn là một trợ lý thông minh cao cấp cho trang web BĐS TP. Thủ Đức, là chuyên gia sáng tạo nội dung bất động sản chuyên nghiệp.
@@ -1131,19 +1211,47 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
       }
       res.json(parsed);
     } catch (apiError: any) {
-      console.log("[Info] Analyze proxy call failed:", apiError?.message || apiError);
-      console.log("[Info] Analyze proxy call completed with exception.");
-      const errMsg = apiError?.message || String(apiError);
-      if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
-        res.status(429).json({ 
-          error: "Hiện tại tất cả các khóa API trong nhóm đã hết lượt sử dụng miễn phí hôm nay. Vui lòng bấm vào bánh răng ⚙️ (Thiết lập) để nhập/thêm khóa dự phòng." 
-        });
-      } else if (errMsg.includes("API key not valid") || errMsg.includes("invalid")) {
-        res.status(401).json({ 
-          error: "Các khóa API của bạn không hợp lệ hoặc đã hết hạn." 
-        });
-      } else {
-        res.status(500).json({ error: errMsg || "Đã xảy ra lỗi khi phân tích dữ liệu AI!" });
+      console.warn("[Info] Gemini lỗi khi bóc tách dữ liệu, thử chuyển sang Groq...");
+      try {
+        const promptInput = `Bạn là một trợ lý thông minh cao cấp bóc tách dữ liệu BĐS TP. Thủ Đức.
+Phân tích thông tin thô sau và trả về DUY NHẤT một chuỗi JSON hợp lệ với cấu trúc:
+{
+  "title": "...",
+  "houseNumber": "...",
+  "street": "...",
+  "ward": "...",
+  "area": 0,
+  "width": 0,
+  "price": 0,
+  "bedrooms": 0,
+  "bathrooms": 0,
+  "floors": 0,
+  "direction": "...",
+  "legal": "...",
+  "badge": "...",
+  "desc": "..."
+}
+
+DỮ LIỆU THÔ:
+${sanitizedRawInput}`;
+
+        const groqReply = await callGroqFallback([
+          { role: "system", content: "Bạn là AI phân tích bóc tách bất động sản, luôn trả về JSON hợp lệ." },
+          { role: "user", content: promptInput }
+        ]);
+
+        let cleaned = (groqReply || "").replace(/<br\s*\/?>/gi, '\n').trim();
+        if (cleaned.includes("```")) {
+          cleaned = cleaned.replace(/```json/gi, '').replace(/```/g, '').trim();
+        }
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        const jsonStr = match ? match[0] : cleaned;
+        const parsed = JSON.parse(jsonRepair(jsonStr));
+        if (parsed.desc) parsed.desc = parsed.desc.replace(/<br\s*\/?>/gi, '\n');
+        return res.json(parsed);
+      } catch (groqErr: any) {
+        console.error("[Error] Cả Gemini và Groq bóc tách đều lỗi:", groqErr?.message || groqErr);
+        return res.status(500).json({ error: "Lỗi phân tích dữ liệu AI: " + (groqErr?.message || String(groqErr)) });
       }
     }
   });

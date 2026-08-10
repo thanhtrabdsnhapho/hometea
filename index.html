@@ -1508,7 +1508,7 @@
         </div>
 
         <!-- Khay ảnh mini thực tế -->
-        <div id="modalThumbnailsRow" style="display: flex; gap: 8px; padding: 12px 20px; background: #f9fafb; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none;"></div>
+        <div id="modalThumbnailsRow" style="display: flex; gap: 8px; padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none;"></div>
 
         <div class="modal-content">
           <div class="modal-header-info">
@@ -1648,10 +1648,10 @@
               </svg>
               Zalo trao đổi trực tiếp
             </a>
-            <button id="modalShareBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; font-size: 14.5px; font-weight: 700; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; border: 1.5px solid var(--border); background: #f8fafc; color: var(--text-dark);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+            <button id="modalShareBtn" class="btn-modal-share">
               <span style="font-size: 15px;">📘</span> Chia sẻ liên kết
             </button>
-            <button id="modalDownloadImageBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; font-size: 14.5px; font-weight: 700; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; border: 1.5px solid rgba(249, 115, 22, 0.2); background: var(--accent); color: white; box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.15);" onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='var(--accent)'">
+            <button id="modalDownloadImageBtn" class="btn-modal-download">
               <span style="font-size: 15px;">📸</span> Chụp ảnh tin đăng
             </button>
           </div>

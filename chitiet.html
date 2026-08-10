@@ -1815,9 +1815,10 @@
     }
 
     function formatFloors(floors) {
-      if (floors === undefined || floors === null) return "Cấp 4";
+      if (floors === undefined || floors === null) return "Đất trống";
       const fNum = Number(floors);
-      if (isNaN(fNum) || fNum <= 0) return "Cấp 4";
+      if (isNaN(fNum)) return "Đất trống";
+      if (fNum === 0) return "Đất trống";
       if (fNum === 1) return "1 tầng (trệt)";
       return `${fNum} tầng`;
     }
@@ -2933,11 +2934,22 @@
           `;
           
           const parsedFloors = formatFloors(currentProperty.floors);
+          const numBedrooms = (currentProperty.bedrooms !== undefined && currentProperty.bedrooms !== null) ? Number(currentProperty.bedrooms) : 0;
+          const numBathrooms = (currentProperty.bathrooms !== undefined && currentProperty.bathrooms !== null) ? Number(currentProperty.bathrooms) : 0;
+          const isLandProp = (parsedFloors === "Đất trống" || currentProperty.floors === 0 || currentProperty.floors === '0' || (numBedrooms === 0 && (!currentProperty.floors || currentProperty.floors === 0)));
+
+          let ketCauBullet = '';
+          if (isLandProp) {
+            ketCauBullet = bulletHTML('🏞️', `Hiện trạng: Đất trống, đất thổ cư xây dựng tự do.`);
+          } else {
+            ketCauBullet = bulletHTML('🏢', `Kết cấu gồm ${parsedFloors}, thiết kế ${numBedrooms || 3} phòng ngủ.`);
+          }
+
           leftHighlightsBlock.innerHTML += `
             ${bulletHTML('📍', `Vị trí tại phường ${currentProperty.ward || 'Trường Thạnh'}, TP. Thủ Đức.`)}
             ${bulletHTML('📐', `Diện tích đất ${currentProperty.area}m².`)}
-            ${bulletHTML('🏢', `Kết cấu gồm ${parsedFloors}, thiết kế ${currentProperty.bedrooms || 3} phòng ngủ.`)}
-            ${bulletHTML('🧭', `Hướng nhà: ${currentProperty.direction || 'Không xác định'}.`)}
+            ${ketCauBullet}
+            ${bulletHTML('🧭', `Hướng đất/nhà: ${currentProperty.direction || 'Không xác định'}.`)}
             ${bulletHTML('💰', `Giá bán: ${currentProperty.priceText || `${currentProperty.price} Tỷ`} đồng.`)}
           `;
           
@@ -2983,8 +2995,8 @@
             ${specItemHTML('📏', 'C.Ngang', (currentProperty.width && currentProperty.width > 0) ? `${currentProperty.width} m` : "4 m")}
             ${specItemHTML('🏢', 'Kết Cấu', parsedFloors)}
             ${specItemHTML('🧭', 'Hướng Nhà', currentProperty.direction || "Không xác định")}
-            ${specItemHTML('🛏️', 'Phòng Ngủ', (currentProperty.bedrooms !== undefined && currentProperty.bedrooms !== null) ? `${currentProperty.bedrooms} PN` : "3 PN")}
-            ${specItemHTML('🚽', 'Phòng WC', (currentProperty.bathrooms !== undefined && currentProperty.bathrooms !== null) ? `${currentProperty.bathrooms} WC` : "3 WC")}
+            ${specItemHTML('🛏️', 'Phòng Ngủ', `${numBedrooms} PN`)}
+            ${specItemHTML('🚽', 'Phòng WC', `${numBathrooms} WC`)}
           `;
           
           const legalRow = document.createElement('div');

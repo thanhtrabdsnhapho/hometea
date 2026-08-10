@@ -117,8 +117,9 @@
       let displayedProductLimit = 12;
 
       function formatFloors(floors) {
+        if (floors === undefined || floors === null) return "Đất trống";
         const val = parseInt(floors);
-        if (isNaN(val)) return floors || '';
+        if (isNaN(val)) return floors || 'Đất trống';
         if (val === 0) return "Đất trống";
         if (val === 1) return "Cấp 4";
         return `${val} tầng`;
@@ -1408,7 +1409,7 @@
                         </div>
                         <p style="margin: 4px 0 0; font-size: 12px; color: #94a3b8; line-height: 1.4;">Hiển thị nguyên vẹn, chiếm diện tích lớn nhất trên Bảng tin Facebook di động mà không bị cắt xén.</p>
                         <div style="margin-top: 8px; font-size: 11px; color: #fbbf24; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                          🔍 Độ phân giải: 1680 x 2100 px (Nét gấp 3.5 lần)
+                          🔍 Độ phân giải: 1080 x 1350 px (Chuẩn Facebook Feed 2026)
                         </div>
                       </div>
                     </div>
@@ -1422,7 +1423,7 @@
                         </div>
                         <p style="margin: 4px 0 0; font-size: 12px; color: #94a3b8; line-height: 1.4;">Phù hợp chia sẻ lên Facebook/Instagram Stories, tin nhắn Zalo, Viber hoặc Reels dọc.</p>
                         <div style="margin-top: 8px; font-size: 11px; color: #fbbf24; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                          🔍 Độ phân giải: 1680 x 2986 px (Nét gấp 3.5 lần)
+                          🔍 Độ phân giải: 1080 x 1920 px (Chuẩn Story / Zalo)
                         </div>
                       </div>
                     </div>
@@ -1464,26 +1465,26 @@
               flyer.style.top = '-9999px';
               
               if (isFacebookRatio) {
-                flyer.style.width = '480px';
-                flyer.style.height = '600px'; // Tỷ lệ 4:5
-                flyer.style.padding = '14px 18px';
-                flyer.style.gap = '6px';
+                flyer.style.width = '1080px';
+                flyer.style.height = '1350px'; // Tỷ lệ 4:5 (1080 x 1350 px chuẩn Facebook Feed năm 2026)
+                flyer.style.padding = '75px 48px 36px 48px'; // Chừa khoảng safe zone 75px phía trên (5.5% chiều cao)
+                flyer.style.gap = '14px';
               } else {
-                flyer.style.width = '480px';
-                flyer.style.height = '853.33px'; // Tỷ lệ 9:16
-                flyer.style.padding = '22px';
-                flyer.style.gap = '10px';
+                flyer.style.width = '1080px';
+                flyer.style.height = '1920px'; // Tỷ lệ 9:16 (1080 x 1920 px chuẩn Story/Zalo)
+                flyer.style.padding = '80px 48px 48px 48px';
+                flyer.style.gap = '20px';
               }
               flyer.style.boxSizing = 'border-box';
               flyer.style.background = 'linear-gradient(180deg, #020712 0%, #061124 50%, #020817 100%)'; 
               flyer.style.color = '#f1f5f9';
               flyer.style.fontFamily = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
-              flyer.style.borderRadius = '16px';
-              flyer.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
+              flyer.style.borderRadius = '0px';
+              flyer.style.boxShadow = 'none';
               flyer.style.display = 'flex';
               flyer.style.flexDirection = 'column';
               flyer.style.justifyContent = 'space-between';
-              flyer.style.border = '2.5px solid rgba(249, 115, 22, 0.4)';
+              flyer.style.border = '4px solid rgba(249, 115, 22, 0.45)';
               flyer.style.zIndex = '-999';
               
               // 1. Header logo thương hiệu & hotline
@@ -1491,26 +1492,26 @@
               header.style.display = 'flex';
               header.style.justifyContent = 'space-between';
               header.style.alignItems = 'center';
-              header.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
-              header.style.paddingBottom = isFacebookRatio ? '6px' : '10px';
+              header.style.borderBottom = '2px solid rgba(249, 115, 22, 0.3)';
+              header.style.paddingBottom = isFacebookRatio ? '16px' : '20px';
               header.style.width = '100%';
               
               const brandInfo = document.createElement('div');
               brandInfo.innerHTML = `
-                <div style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                  <span style="background: #f97316; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 900; font-size: 16px;">T</span>
+                <div style="font-size: ${isFacebookRatio ? '32px' : '36px'}; font-weight: 900; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 12px;">
+                  <span style="background: #f97316; color: white; padding: 4px 16px; border-radius: 10px; font-weight: 950; font-size: ${isFacebookRatio ? '28px' : '32px'};">T</span>
                   <span>THANH TRÀ BĐS</span>
                 </div>
-                <div style="font-size: 9px; font-weight: 700; color: #f97316; text-transform: uppercase; margin-top: 1px; letter-spacing: 1px;">MUA BÁN NHÀ PHỐ UY TÍN</div>
+                <div style="font-size: ${isFacebookRatio ? '14px' : '16px'}; font-weight: 800; color: #f97316; text-transform: uppercase; margin-top: 4px; letter-spacing: 1.5px;">MUA BÁN NHÀ PHỐ UY TÍN • THỦ ĐỨC</div>
               `;
               
               const phoneInfo = document.createElement('div');
               phoneInfo.style.textAlign = 'right';
               phoneInfo.innerHTML = `
-                <div style="font-size: 13px; font-weight: 800; color: #f97316; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                <div style="font-size: ${isFacebookRatio ? '26px' : '30px'}; font-weight: 900; color: #f97316; display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
                   📞 0854.100.036
                 </div>
-                <div style="font-size: 8px; color: #94a3b8; font-weight: 600; margin-top: 1px; letter-spacing: 0.3px;">TƯ VẤN PHÁP LÝ LIÊN TỤC 24/7</div>
+                <div style="font-size: ${isFacebookRatio ? '13px' : '14px'}; color: #94a3b8; font-weight: 700; margin-top: 2px; letter-spacing: 0.5px;">TƯ VẤN PHÁP LÝ LIÊN TỤC 24/7</div>
               `;
               
               header.appendChild(brandInfo);
@@ -1523,7 +1524,7 @@
               heroRow.style.justifyContent = 'space-between';
               heroRow.style.alignItems = 'flex-start';
               heroRow.style.width = '100%';
-              heroRow.style.gap = isFacebookRatio ? '6px' : '10px';
+              heroRow.style.gap = isFacebookRatio ? '16px' : '20px';
 
               // Tách tiêu đề thành Title Main & Title Sub để hiển thị chuẩn
               let titleMain = item.title;
@@ -1545,12 +1546,12 @@
               leftTitleBlock.style.flex = '1';
               leftTitleBlock.style.display = 'flex';
               leftTitleBlock.style.flexDirection = 'column';
-              leftTitleBlock.style.gap = '2px';
+              leftTitleBlock.style.gap = '6px';
 
               const mainTitleEl = document.createElement('h3');
               mainTitleEl.textContent = '🔥 ' + titleMain;
-              mainTitleEl.style.fontSize = isFacebookRatio ? '14px' : '18px';
-              mainTitleEl.style.fontWeight = '800';
+              mainTitleEl.style.fontSize = isFacebookRatio ? '30px' : '36px';
+              mainTitleEl.style.fontWeight = '900';
               mainTitleEl.style.fontStyle = 'italic';
               mainTitleEl.style.lineHeight = '1.25';
               mainTitleEl.style.color = '#ffffff';
@@ -1561,7 +1562,7 @@
               if (titleSub) {
                 const subTitleEl = document.createElement('h4');
                 subTitleEl.textContent = titleSub;
-                subTitleEl.style.fontSize = isFacebookRatio ? '12px' : '16px';
+                subTitleEl.style.fontSize = isFacebookRatio ? '24px' : '28px';
                 subTitleEl.style.fontWeight = '800';
                 subTitleEl.style.fontStyle = 'italic';
                 subTitleEl.style.lineHeight = '1.25';
@@ -1572,39 +1573,39 @@
               }
 
               const priceBadge = document.createElement('div');
-              priceBadge.style.background = 'linear-gradient(90deg, rgba(249,115,22,0.25) 0%, rgba(249,115,22,0.05) 100%)';
-              priceBadge.style.border = '1.5px solid rgba(249, 115, 22, 0.7)';
-              priceBadge.style.borderRadius = '8px';
-              priceBadge.style.padding = isFacebookRatio ? '2px 8px' : '3px 12px';
-              priceBadge.style.fontSize = isFacebookRatio ? '14px' : '18px';
+              priceBadge.style.background = 'linear-gradient(90deg, rgba(249,115,22,0.3) 0%, rgba(249,115,22,0.08) 100%)';
+              priceBadge.style.border = '2px solid rgba(249, 115, 22, 0.8)';
+              priceBadge.style.borderRadius = '12px';
+              priceBadge.style.padding = isFacebookRatio ? '6px 18px' : '8px 22px';
+              priceBadge.style.fontSize = isFacebookRatio ? '28px' : '34px';
               priceBadge.style.fontWeight = '900';
               priceBadge.style.color = '#fbbf24';
-              priceBadge.style.textShadow = '0 0 10px rgba(249,115,22,0.4)';
+              priceBadge.style.textShadow = '0 0 12px rgba(249,115,22,0.5)';
               priceBadge.style.display = 'inline-block';
-              priceBadge.style.marginTop = '4px';
+              priceBadge.style.marginTop = '6px';
               priceBadge.style.width = 'fit-content';
-              priceBadge.textContent = item.priceText;
+              priceBadge.textContent = 'GIÁ BÁN: ' + item.priceText;
               leftTitleBlock.appendChild(priceBadge);
 
               const rightStatsBlock = document.createElement('div');
               rightStatsBlock.style.display = 'flex';
-              rightStatsBlock.style.gap = isFacebookRatio ? '6px' : '8px';
-              rightStatsBlock.style.padding = isFacebookRatio ? '6px 8px' : '8px 10px';
-              rightStatsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
-              rightStatsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
-              rightStatsBlock.style.borderRadius = '10px';
+              rightStatsBlock.style.gap = isFacebookRatio ? '14px' : '18px';
+              rightStatsBlock.style.padding = isFacebookRatio ? '12px 18px' : '16px 22px';
+              rightStatsBlock.style.background = 'rgba(15, 23, 42, 0.6)';
+              rightStatsBlock.style.border = '1.5px solid rgba(255, 255, 255, 0.12)';
+              rightStatsBlock.style.borderRadius = '16px';
               rightStatsBlock.style.alignItems = 'center';
               rightStatsBlock.style.justifyContent = 'center';
               rightStatsBlock.style.flexShrink = '0';
 
               rightStatsBlock.innerHTML = `
-                <div style="padding-right: ${isFacebookRatio ? '6px' : '8px'}; border-right: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                  <div style="font-size: ${isFacebookRatio ? '7px' : '8px'}; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">MỨC GIÁ BÁN</div>
-                  <div style="font-size: ${isFacebookRatio ? '11px' : '14px'}; font-weight: 800; color: #fbbf24; margin-top: 1px;">${item.priceText}</div>
+                <div style="padding-right: ${isFacebookRatio ? '14px' : '18px'}; border-right: 1.5px solid rgba(255,255,255,0.15); text-align: center;">
+                  <div style="font-size: ${isFacebookRatio ? '13px' : '15px'}; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">MỨC GIÁ BÁN</div>
+                  <div style="font-size: ${isFacebookRatio ? '24px' : '28px'}; font-weight: 900; color: #fbbf24; margin-top: 3px;">${item.priceText}</div>
                 </div>
-                <div style="text-align: center; padding-left: 2px;">
-                  <div style="font-size: ${isFacebookRatio ? '7px' : '8px'}; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">DIỆN TÍCH SỔ</div>
-                  <div style="font-size: ${isFacebookRatio ? '11px' : '14px'}; font-weight: 800; color: #ffffff; margin-top: 1px;">${item.area}m²</div>
+                <div style="text-align: center; padding-left: 4px;">
+                  <div style="font-size: ${isFacebookRatio ? '13px' : '15px'}; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">DIỆN TÍCH SỔ</div>
+                  <div style="font-size: ${isFacebookRatio ? '24px' : '28px'}; font-weight: 900; color: #ffffff; margin-top: 3px;">${item.area}m²</div>
                 </div>
               `;
 
@@ -1614,162 +1615,187 @@
 
               // 3. Địa chỉ cụ thể
               const addressEl = document.createElement('div');
-              addressEl.style.fontSize = isFacebookRatio ? '10px' : '11px';
+              addressEl.style.fontSize = isFacebookRatio ? '21px' : '24px';
               addressEl.style.color = '#cbd5e1';
-              addressEl.style.fontWeight = '500';
+              addressEl.style.fontWeight = '600';
               addressEl.style.display = 'flex';
               addressEl.style.alignItems = 'center';
-              addressEl.style.gap = '4px';
+              addressEl.style.gap = '8px';
               addressEl.style.width = '100%';
-              addressEl.innerHTML = `📍 ${getPublicDisplayAddress(item)}`;
+              addressEl.innerHTML = `📍 Vị trí: ${getPublicDisplayAddress(item)}`;
               flyer.appendChild(addressEl);
 
-              // 4. Ảnh lớn của bất động sản đang xem
+              // 4. Ảnh lớn của bất động sản (Tối ưu full-width khung đứng 4:5)
               const imgContainer = document.createElement('div');
               imgContainer.style.width = '100%';
-              imgContainer.style.height = isFacebookRatio ? '155px' : '230px';
-              imgContainer.style.display = 'flex';
-              imgContainer.style.gap = '10px';
+              imgContainer.style.height = isFacebookRatio ? '480px' : '580px';
+              imgContainer.style.position = 'relative';
+              imgContainer.style.borderRadius = '20px';
+              imgContainer.style.overflow = 'hidden';
+              imgContainer.style.border = '2.5px solid rgba(255, 255, 255, 0.15)';
+              imgContainer.style.boxShadow = '0 20px 30px -10px rgba(0, 0, 0, 0.5)';
               imgContainer.style.boxSizing = 'border-box';
 
+              // Main photo full-width
+              const mainImgEl = document.createElement('img');
+              mainImgEl.src = img1.src;
+              mainImgEl.style.width = '100%';
+              mainImgEl.style.height = '100%';
+              mainImgEl.style.objectFit = 'cover';
+              imgContainer.appendChild(mainImgEl);
+
+              // Top badge overlay on main image
+              const mainImgBadge = document.createElement('div');
+              mainImgBadge.style.position = 'absolute';
+              mainImgBadge.style.top = '16px';
+              mainImgBadge.style.left = '16px';
+              mainImgBadge.style.background = 'rgba(2, 7, 18, 0.85)';
+              mainImgBadge.style.backdropFilter = 'blur(6px)';
+              mainImgBadge.style.border = '1.5px solid rgba(249, 115, 22, 0.6)';
+              mainImgBadge.style.padding = '6px 14px';
+              mainImgBadge.style.borderRadius = '8px';
+              mainImgBadge.style.fontSize = isFacebookRatio ? '14px' : '16px';
+              mainImgBadge.style.fontWeight = '800';
+              mainImgBadge.style.color = '#fbbf24';
+              mainImgBadge.style.display = 'flex';
+              mainImgBadge.style.alignItems = 'center';
+              mainImgBadge.style.gap = '6px';
+              mainImgBadge.innerHTML = '🏠 Ảnh thực tế căn nhà';
+              imgContainer.appendChild(mainImgBadge);
+
               if (image2) {
-                // 2 ảnh song song
-                const flyerImg1 = document.createElement('div');
-                flyerImg1.style.flex = '1';
-                flyerImg1.style.height = '100%';
-                flyerImg1.style.borderRadius = '14px';
-                flyerImg1.style.overflow = 'hidden';
-                flyerImg1.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
-                flyerImg1.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+                // Ảnh thứ 2 dạng thumbnail inset góc dưới phải
+                const subImgThumb = document.createElement('div');
+                subImgThumb.style.position = 'absolute';
+                subImgThumb.style.bottom = '16px';
+                subImgThumb.style.right = '16px';
+                subImgThumb.style.width = isFacebookRatio ? '220px' : '260px';
+                subImgThumb.style.height = isFacebookRatio ? '150px' : '180px';
+                subImgThumb.style.borderRadius = '14px';
+                subImgThumb.style.overflow = 'hidden';
+                subImgThumb.style.border = '3px solid #f97316';
+                subImgThumb.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.7)';
                 
-                const imgEl1 = document.createElement('img');
-                imgEl1.src = img1.src;
-                imgEl1.style.width = '100%';
-                imgEl1.style.height = '100%';
-                imgEl1.style.objectFit = 'cover';
-                flyerImg1.appendChild(imgEl1);
+                const subImgEl = document.createElement('img');
+                subImgEl.src = img2.src;
+                subImgEl.style.width = '100%';
+                subImgEl.style.height = '100%';
+                subImgEl.style.objectFit = 'cover';
+                subImgThumb.appendChild(subImgEl);
 
-                const flyerImg2 = document.createElement('div');
-                flyerImg2.style.flex = '1';
-                flyerImg2.style.height = '100%';
-                flyerImg2.style.borderRadius = '14px';
-                flyerImg2.style.overflow = 'hidden';
-                flyerImg2.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
-                flyerImg2.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
-                
-                const imgEl2 = document.createElement('img');
-                imgEl2.src = img2.src;
-                imgEl2.style.width = '100%';
-                imgEl2.style.height = '100%';
-                imgEl2.style.objectFit = 'cover';
-                flyerImg2.appendChild(imgEl2);
+                const subImgTag = document.createElement('div');
+                subImgTag.style.position = 'absolute';
+                subImgTag.style.bottom = '0';
+                subImgTag.style.left = '0';
+                subImgTag.style.right = '0';
+                subImgTag.style.background = 'rgba(2, 7, 18, 0.85)';
+                subImgTag.style.padding = '3px 6px';
+                subImgTag.style.textAlign = 'center';
+                subImgTag.style.fontSize = '12px';
+                subImgTag.style.fontWeight = '800';
+                subImgTag.style.color = '#ffffff';
+                subImgTag.textContent = '📸 Góc nhìn 2';
+                subImgThumb.appendChild(subImgTag);
 
-                imgContainer.appendChild(flyerImg1);
-                imgContainer.appendChild(flyerImg2);
-              } else {
-                // 1 ảnh to chiếm toàn chiều rộng (gấp đôi kích thước ảnh khi song hành)
-                const flyerImg1 = document.createElement('div');
-                flyerImg1.style.width = '100%';
-                flyerImg1.style.height = '100%';
-                flyerImg1.style.borderRadius = '14px';
-                flyerImg1.style.overflow = 'hidden';
-                flyerImg1.style.border = '1.5px solid rgba(255, 255, 255, 0.1)';
-                flyerImg1.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
-                
-                const imgEl1 = document.createElement('img');
-                imgEl1.src = img1.src;
-                imgEl1.style.width = '100%';
-                imgEl1.style.height = '100%';
-                imgEl1.style.objectFit = 'cover';
-                flyerImg1.appendChild(imgEl1);
-
-                imgContainer.appendChild(flyerImg1);
+                imgContainer.appendChild(subImgThumb);
               }
+
               flyer.appendChild(imgContainer);
 
               // 5. Khối thông tin kép (Thông tin nổi bật & Thông tin chi tiết)
               const specsRow = document.createElement('div');
               specsRow.style.display = 'flex';
-              specsRow.style.gap = '10px';
+              specsRow.style.gap = isFacebookRatio ? '18px' : '22px';
               specsRow.style.width = '100%';
               specsRow.style.boxSizing = 'border-box';
 
               // 5a. Hộp THÔNG TIN NỔI BẬT
               const leftHighlightsBlock = document.createElement('div');
               leftHighlightsBlock.style.flex = '1';
-              leftHighlightsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
-              leftHighlightsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
-              leftHighlightsBlock.style.borderRadius = '12px';
-              leftHighlightsBlock.style.padding = isFacebookRatio ? '6px 8px' : '10px';
+              leftHighlightsBlock.style.background = 'rgba(15, 23, 42, 0.6)';
+              leftHighlightsBlock.style.border = '1.5px solid rgba(255, 255, 255, 0.12)';
+              leftHighlightsBlock.style.borderRadius = '16px';
+              leftHighlightsBlock.style.padding = isFacebookRatio ? '16px 18px' : '20px';
               leftHighlightsBlock.style.display = 'flex';
               leftHighlightsBlock.style.flexDirection = 'column';
 
               const highlightsTitle = document.createElement('div');
               highlightsTitle.textContent = 'THÔNG TIN NỔI BẬT';
-              highlightsTitle.style.fontSize = isFacebookRatio ? '9.5px' : '11px';
+              highlightsTitle.style.fontSize = isFacebookRatio ? '18px' : '20px';
               highlightsTitle.style.fontWeight = '800';
               highlightsTitle.style.color = '#fbbf24';
               highlightsTitle.style.textAlign = 'center';
-              highlightsTitle.style.letterSpacing = '0.5px';
-              highlightsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
-              highlightsTitle.style.paddingBottom = '5px';
-              highlightsTitle.style.marginBottom = isFacebookRatio ? '4px' : '8px';
+              highlightsTitle.style.letterSpacing = '1px';
+              highlightsTitle.style.borderBottom = '2px solid rgba(249, 115, 22, 0.3)';
+              highlightsTitle.style.paddingBottom = '8px';
+              highlightsTitle.style.marginBottom = isFacebookRatio ? '10px' : '14px';
               leftHighlightsBlock.appendChild(highlightsTitle);
 
               const bulletHTML = (icon, text) => `
-                <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: ${isFacebookRatio ? '3px' : '6px'}; font-family: var(--font-sans);">
-                  <div style="background: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 50%; width: ${isFacebookRatio ? '16px' : '20px'}; height: ${isFacebookRatio ? '16px' : '20px'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: ${isFacebookRatio ? '8.5px' : '10px'};">
+                <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: ${isFacebookRatio ? '8px' : '10px'}; font-family: var(--font-sans);">
+                  <div style="background: rgba(249, 115, 22, 0.15); border: 1.5px solid rgba(249, 115, 22, 0.4); border-radius: 50%; width: ${isFacebookRatio ? '28px' : '32px'}; height: ${isFacebookRatio ? '28px' : '32px'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: ${isFacebookRatio ? '14px' : '16px'};">
                     ${icon}
                   </div>
-                  <div style="font-size: ${isFacebookRatio ? '8.5px' : '9.5px'}; line-height: 1.35; color: #cbd5e1; font-weight: 500;">
+                  <div style="font-size: ${isFacebookRatio ? '15px' : '17px'}; line-height: 1.4; color: #cbd5e1; font-weight: 600;">
                     ${text}
                   </div>
                 </div>
               `;
 
               const parsedFloors = formatFloors(item.floors);
+              const numBedrooms = (item.bedrooms !== undefined && item.bedrooms !== null) ? Number(item.bedrooms) : 0;
+              const numBathrooms = (item.bathrooms !== undefined && item.bathrooms !== null) ? Number(item.bathrooms) : 0;
+              const isLandProp = (parsedFloors === "Đất trống" || item.floors === 0 || item.floors === '0' || (numBedrooms === 0 && (!item.floors || item.floors === 0)));
+
+              let ketCauBullet = '';
+              if (isLandProp) {
+                ketCauBullet = bulletHTML('🏞️', `Hiện trạng: Đất trống, đất thổ cư xây dựng tự do.`);
+              } else {
+                ketCauBullet = bulletHTML('🏢', `Kết cấu ${parsedFloors}, thiết kế ${numBedrooms || 3} phòng ngủ.`);
+              }
+
               leftHighlightsBlock.innerHTML += `
                 ${bulletHTML('📍', `Vị trí tại phường ${item.ward || 'Trường Thạnh'}, TP. Thủ Đức.`)}
-                ${bulletHTML('📐', `Diện tích đất ${item.area}m².`)}
-                ${bulletHTML('🏢', `Kết cấu gồm ${parsedFloors}, thiết kế ${item.bedrooms || 3} phòng ngủ.`)}
-                ${bulletHTML('🧭', `Hướng nhà: ${item.direction || 'Không xác định'}.`)}
+                ${bulletHTML('📐', `Diện tích đất ${item.area}m² thổ cư.`)}
+                ${ketCauBullet}
+                ${bulletHTML('🧭', `Hướng đất/nhà: ${item.direction || 'Đông Nam'}.`)}
                 ${bulletHTML('💰', `Giá bán: ${item.priceText} đồng.`)}
               `;
 
               // 5b. Hộp THÔNG TIN CHI TIẾT
               const rightSpecsBlock = document.createElement('div');
               rightSpecsBlock.style.flex = '1';
-              rightSpecsBlock.style.background = 'rgba(15, 23, 42, 0.45)';
-              rightSpecsBlock.style.border = '1px solid rgba(255, 255, 255, 0.08)';
-              rightSpecsBlock.style.borderRadius = '12px';
-              rightSpecsBlock.style.padding = isFacebookRatio ? '6px 8px' : '10px';
+              rightSpecsBlock.style.background = 'rgba(15, 23, 42, 0.6)';
+              rightSpecsBlock.style.border = '1.5px solid rgba(255, 255, 255, 0.12)';
+              rightSpecsBlock.style.borderRadius = '16px';
+              rightSpecsBlock.style.padding = isFacebookRatio ? '16px 18px' : '20px';
               rightSpecsBlock.style.display = 'flex';
               rightSpecsBlock.style.flexDirection = 'column';
 
               const specsTitle = document.createElement('div');
               specsTitle.textContent = 'THÔNG TIN CHI TIẾT';
-              specsTitle.style.fontSize = isFacebookRatio ? '9.5px' : '11px';
+              specsTitle.style.fontSize = isFacebookRatio ? '18px' : '20px';
               specsTitle.style.fontWeight = '800';
               specsTitle.style.color = '#fbbf24';
               specsTitle.style.textAlign = 'center';
-              specsTitle.style.letterSpacing = '0.5px';
-              specsTitle.style.borderBottom = '1.5px solid rgba(249, 115, 22, 0.2)';
-              specsTitle.style.paddingBottom = '5px';
-              specsTitle.style.marginBottom = isFacebookRatio ? '4px' : '8px';
+              specsTitle.style.letterSpacing = '1px';
+              specsTitle.style.borderBottom = '2px solid rgba(249, 115, 22, 0.3)';
+              specsTitle.style.paddingBottom = '8px';
+              specsTitle.style.marginBottom = isFacebookRatio ? '10px' : '14px';
               rightSpecsBlock.appendChild(specsTitle);
 
               const specGrid = document.createElement('div');
               specGrid.style.display = 'grid';
               specGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-              specGrid.style.gap = isFacebookRatio ? '4px 6px' : '6px 8px';
+              specGrid.style.gap = isFacebookRatio ? '10px 12px' : '14px 16px';
               specGrid.style.width = '100%';
 
               const specItemHTML = (icon, label, value, valColor = '#ffffff') => `
-                <div style="display: flex; align-items: center; gap: 4px; padding: 1px 0;">
-                  <span style="font-size: ${isFacebookRatio ? '11px' : '13px'}; color: #f97316;">${icon}</span>
+                <div style="display: flex; align-items: center; gap: 8px; padding: 2px 0;">
+                  <span style="font-size: ${isFacebookRatio ? '20px' : '22px'}; color: #f97316;">${icon}</span>
                   <div style="display: flex; flex-direction: column;">
-                    <span style="font-size: 6.5px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.2px;">${label}</span>
-                    <span style="font-size: ${isFacebookRatio ? '8.5px' : '9.5px'}; font-weight: 700; color: ${valColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: ${isFacebookRatio ? '70px' : '80px'};">${value}</span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.3px;">${label}</span>
+                    <span style="font-size: ${isFacebookRatio ? '15px' : '17px'}; font-weight: 800; color: ${valColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;">${value}</span>
                   </div>
                 </div>
               `;
@@ -1778,22 +1804,22 @@
                 ${specItemHTML('📐', 'Diện Tích', `${item.area} m²`)}
                 ${specItemHTML('📏', 'C.Ngang', (item.width && item.width > 0) ? `${item.width} m` : "4 m")}
                 ${specItemHTML('🏢', 'Kết Cấu', parsedFloors)}
-                ${specItemHTML('🧭', 'Hướng Nhà', item.direction)}
-                ${specItemHTML('🛏️', 'Phòng Ngủ', (item.bedrooms !== undefined && item.bedrooms !== null) ? `${item.bedrooms} PN` : "3 PN")}
-                ${specItemHTML('🚽', 'Phòng WC', (item.bathrooms !== undefined && item.bathrooms !== null) ? `${item.bathrooms} WC` : "3 WC")}
+                ${specItemHTML('🧭', 'Hướng Nhà', item.direction || "Đông Nam")}
+                ${specItemHTML('🛏️', 'Phòng Ngủ', `${numBedrooms} PN`)}
+                ${specItemHTML('🚽', 'Phòng WC', `${numBathrooms} WC`)}
               `;
 
               const legalRow = document.createElement('div');
-              legalRow.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
-              legalRow.style.paddingTop = isFacebookRatio ? '4px' : '6px';
-              legalRow.style.marginTop = isFacebookRatio ? '2px' : '4px';
+              legalRow.style.borderTop = '1.5px solid rgba(255, 255, 255, 0.12)';
+              legalRow.style.paddingTop = isFacebookRatio ? '10px' : '12px';
+              legalRow.style.marginTop = isFacebookRatio ? '8px' : '12px';
               legalRow.style.width = '100%';
               legalRow.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="font-size: ${isFacebookRatio ? '12px' : '14px'};">📜</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: ${isFacebookRatio ? '22px' : '26px'};">📜</span>
                   <div style="display: flex; flex-direction: column;">
-                    <span style="font-size: 6.5px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.2px;">PHÁP LÝ BÁN ĐẰNG</span>
-                    <span style="font-size: ${isFacebookRatio ? '9px' : '10px'}; font-weight: 800; color: #22c55e;">${item.legal || "Sổ hồng riêng"}</span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.3px;">PHÁP LÝ BÁN ĐẰNG</span>
+                    <span style="font-size: ${isFacebookRatio ? '16px' : '18px'}; font-weight: 900; color: #22c55e;">${item.legal || "Sổ hồng riêng chính chủ"}</span>
                   </div>
                 </div>
               `;
@@ -1810,10 +1836,10 @@
               appFooter.style.display = 'flex';
               appFooter.style.alignItems = 'center';
               appFooter.style.justifyContent = 'space-between';
-              appFooter.style.background = 'rgba(15, 23, 42, 0.45)';
-              appFooter.style.padding = isFacebookRatio ? '6px 10px' : '8px 12px';
-              appFooter.style.borderRadius = '12px';
-              appFooter.style.border = '1.5px solid rgba(249, 115, 22, 0.35)';
+              appFooter.style.background = 'rgba(15, 23, 42, 0.7)';
+              appFooter.style.padding = isFacebookRatio ? '14px 22px' : '18px 26px';
+              appFooter.style.borderRadius = '16px';
+              appFooter.style.border = '2px solid rgba(249, 115, 22, 0.45)';
               appFooter.style.marginTop = 'auto';
               appFooter.style.position = 'relative';
               appFooter.style.width = '100%';
@@ -1821,29 +1847,29 @@
               const leftContact = document.createElement('div');
               leftContact.style.display = 'flex';
               leftContact.style.alignItems = 'center';
-              leftContact.style.gap = '8px';
+              leftContact.style.gap = '14px';
 
               const phoneIconContainer = document.createElement('div');
               phoneIconContainer.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
               phoneIconContainer.style.borderRadius = '50%';
-              phoneIconContainer.style.width = isFacebookRatio ? '26px' : '32px';
-              phoneIconContainer.style.height = isFacebookRatio ? '26px' : '32px';
+              phoneIconContainer.style.width = isFacebookRatio ? '52px' : '60px';
+              phoneIconContainer.style.height = isFacebookRatio ? '52px' : '60px';
               phoneIconContainer.style.display = 'flex';
               phoneIconContainer.style.alignItems = 'center';
               phoneIconContainer.style.justifyContent = 'center';
               phoneIconContainer.style.flexShrink = '0';
-              phoneIconContainer.style.fontSize = isFacebookRatio ? '10px' : '12px';
+              phoneIconContainer.style.fontSize = isFacebookRatio ? '22px' : '26px';
               phoneIconContainer.style.color = '#ffffff';
               phoneIconContainer.textContent = '📞';
 
               const contactTexts = document.createElement('div');
               contactTexts.style.display = 'flex';
               contactTexts.style.flexDirection = 'column';
-              contactTexts.style.gap = '1px';
+              contactTexts.style.gap = '2px';
               contactTexts.innerHTML = `
-                <div style="font-size: ${isFacebookRatio ? '10px' : '11.5px'}; font-weight: 800; color: #ffffff; font-family: var(--font-sans);">Liên hệ: Mr. Thanh Trà</div>
-                <div style="font-size: ${isFacebookRatio ? '11px' : '13px'}; font-weight: 950; color: #fbbf24; text-shadow: 0 0 6px rgba(249,115,22,0.3); font-family: var(--font-sans);">0854.100.036 <span style="font-size: ${isFacebookRatio ? '7px' : '8px'}; font-weight: 600; color: #cbd5e1; text-shadow: none;">(Zalo)</span></div>
-                <div style="font-size: ${isFacebookRatio ? '7px' : '8px'}; color: #94a3b8; font-weight: 600;">Quét QR nhận sổ hồng chính chủ!</div>
+                <div style="font-size: ${isFacebookRatio ? '17px' : '20px'}; font-weight: 800; color: #ffffff; font-family: var(--font-sans);">Liên hệ: Mr. Thanh Trà</div>
+                <div style="font-size: ${isFacebookRatio ? '24px' : '28px'}; font-weight: 950; color: #fbbf24; text-shadow: 0 0 10px rgba(249,115,22,0.4); font-family: var(--font-sans);">0854.100.036 <span style="font-size: ${isFacebookRatio ? '14px' : '16px'}; font-weight: 700; color: #cbd5e1; text-shadow: none;">(Zalo/Call)</span></div>
+                <div style="font-size: ${isFacebookRatio ? '13px' : '14px'}; color: #94a3b8; font-weight: 600;">Quét mã QR để nhận vị trí & sổ hồng chính chủ!</div>
               `;
 
               leftContact.appendChild(phoneIconContainer);
@@ -1853,10 +1879,10 @@
               // Nhãn phụ quét mã
               const qrPromoText = document.createElement('div');
               qrPromoText.style.position = 'absolute';
-              qrPromoText.style.right = isFacebookRatio ? '64px' : '74px';
-              qrPromoText.style.bottom = isFacebookRatio ? '8px' : '12px';
+              qrPromoText.style.right = isFacebookRatio ? '115px' : '130px';
+              qrPromoText.style.bottom = isFacebookRatio ? '16px' : '20px';
               qrPromoText.style.color = '#f97316';
-              qrPromoText.style.fontSize = '7.5px';
+              qrPromoText.style.fontSize = '13px';
               qrPromoText.style.fontWeight = '800';
               qrPromoText.style.fontStyle = 'italic';
               qrPromoText.style.transform = 'rotate(-8deg)';
@@ -1864,20 +1890,20 @@
               appFooter.appendChild(qrPromoText);
 
               const qrFrame = document.createElement('div');
-              qrFrame.style.border = '1.5px solid #f97316';
-              qrFrame.style.borderRadius = '6px';
-              qrFrame.style.padding = '3px';
+              qrFrame.style.border = '2px solid #f97316';
+              qrFrame.style.borderRadius = '10px';
+              qrFrame.style.padding = '4px';
               qrFrame.style.background = '#ffffff';
-              qrFrame.style.width = isFacebookRatio ? '44px' : '56px';
-              qrFrame.style.height = isFacebookRatio ? '44px' : '56px';
+              qrFrame.style.width = isFacebookRatio ? '80px' : '90px';
+              qrFrame.style.height = isFacebookRatio ? '80px' : '90px';
               qrFrame.style.display = 'flex';
               qrFrame.style.alignItems = 'center';
               qrFrame.style.justifyContent = 'center';
-              qrFrame.style.boxShadow = '0 0 8px rgba(249, 115, 22, 0.3)';
+              qrFrame.style.boxShadow = '0 0 12px rgba(249, 115, 22, 0.4)';
               qrFrame.style.flexShrink = '0';
 
               const qrImg = document.createElement('img');
-              qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://zalo.me/0854100036')}`;
+              qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('https://zalo.me/0854100036')}`;
               qrImg.style.width = '100%';
               qrImg.style.height = '100%';
               qrImg.style.objectFit = 'contain';
@@ -1892,45 +1918,46 @@
               bottomBar.style.justifyContent = 'space-around';
               bottomBar.style.alignItems = 'center';
               bottomBar.style.width = '100%';
-              bottomBar.style.borderTop = '1px solid rgba(255,255,255,0.08)';
-              bottomBar.style.paddingTop = isFacebookRatio ? '4px' : '6px';
+              bottomBar.style.borderTop = '1.5px solid rgba(255,255,255,0.1)';
+              bottomBar.style.paddingTop = isFacebookRatio ? '10px' : '12px';
               bottomBar.style.fontFamily = 'var(--font-sans)';
-              bottomBar.style.fontSize = isFacebookRatio ? '8px' : '9px';
+              bottomBar.style.fontSize = isFacebookRatio ? '15px' : '17px';
               bottomBar.style.color = '#cbd5e1';
               bottomBar.style.fontWeight = '700';
 
               bottomBar.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 3px;">🛡️ Pháp lý rõ ràng</div>
-                <div style="color: rgba(255,255,255,0.15);">|</div>
-                <div style="display: flex; align-items: center; gap: 3px;">🤝 Làm việc chính chủ</div>
-                <div style="color: rgba(255,255,255,0.15);">|</div>
-                <div style="display: flex; align-items: center; gap: 3px;">🕒 Hỗ trợ 24/7</div>
+                <div style="display: flex; align-items: center; gap: 6px;">🛡️ Pháp lý rõ ràng</div>
+                <div style="color: rgba(255,255,255,0.2);">|</div>
+                <div style="display: flex; align-items: center; gap: 6px;">🤝 Làm việc chính chủ</div>
+                <div style="color: rgba(255,255,255,0.2);">|</div>
+                <div style="display: flex; align-items: center; gap: 6px;">🕒 Hỗ trợ 24/7</div>
               `;
               flyer.appendChild(bottomBar);
 
               document.body.appendChild(flyer);
               
-              // Chạy html2canvas để kết xuất ảnh siêu nét với scale 3.5
+              // Chạy html2canvas để kết xuất ảnh kích thước chuẩn 1080x1350 / 1080x1920
               setTimeout(async () => {
                 try {
                   await loadHtml2Canvas();
                   html2canvas(flyer, {
                     useCORS: true,
                     allowTaint: false,
-                    scale: 3.5,
+                    scale: 1,
                     backgroundColor: '#020712',
                     logging: false
                   }).then(canvas => {
                     const dataUrl = canvas.toDataURL('image/png');
+                    
                     const downloadLink = document.createElement('a');
                     const cleanTitle = item.title.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
-                    const ratioSuffix = isFacebookRatio ? 'facebook-feed' : 'story-zalo';
+                    const ratioSuffix = isFacebookRatio ? 'facebook-feed-1080x1350' : 'story-zalo-1080x1920';
                     downloadLink.download = `tin-dang-thanh-tra-bds-${cleanTitle || item.id}-${ratioSuffix}.png`;
                     downloadLink.href = dataUrl;
                     downloadLink.click();
                     
                     document.body.removeChild(flyer);
-                    showToast('Đã chụp và lưu ảnh đăng thành công!', true);
+                    showToast('Đã tạo ảnh bài đăng Facebook 1080x1350px thành công!', true);
                   }).catch(err => {
                     console.error('Lỗi khi chụp ảnh:', err);
                     if (document.body.contains(flyer)) {
@@ -2617,7 +2644,7 @@ Nguyên tắc trả lời:
               }
             }
           }
-          
+
           removeLoader();
           appendMessage("Không thể nhận diện câu trả lời. Có thể các API Key của bạn đã đạt giới hạn quota hôm nay hoặc bận bách khoa. Anh/Chị vui lòng cấu hình/bổ sung thêm mã khóa API Key của riêng mình trong tiện ích Thiết lập để tiếp tục nhé!", false);
         }
@@ -3809,15 +3836,15 @@ Nguyên tắc trả lời:
                   <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
                     <strong>ID:</strong> ${escapeHtml(p.page_id)}
                   </div>
-                  <div style="font-size: 11.5px; font-family: var(--font-mono); color: #15803d; background: #dcfce7; display: inline-block; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">
+                  <div style="font-size: 11.5px; font-family: var(--font-mono); color: var(--text-primary); background: var(--bg-secondary); border: 1px solid var(--border); display: inline-block; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">
                     🔑 ${escapeHtml(p.access_token)}
                   </div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                  <button onclick="editFacebookPage('${p.id}')" style="background: #eff6ff; color: #2563eb; border: 1px solid #93c5fd; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button onclick="editFacebookPage('${p.id}')" class="btn-action-edit" style="justify-content: center;">
                     ✏️ Sửa
                   </button>
-                  <button onclick="deleteFacebookPage('${p.id}')" style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button onclick="deleteFacebookPage('${p.id}')" class="btn-action-delete" style="justify-content: center;">
                     🗑️ Xóa
                   </button>
                 </div>
@@ -5079,13 +5106,13 @@ Nguyên tắc trả lời:
           if (p.isSold) {
             badgeHtml += ' <span style="background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">🔴 ĐÃ BÁN</span>';
             toggleSoldBtnHtml = `
-              <button class="btn-action-restore" onclick="inlineToggleSold('${p.id}', false)" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15); color: #22c55e; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+              <button class="btn-action-restore" onclick="inlineToggleSold('${p.id}', false)" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
                 🔄 Khôi phục
               </button>
             `;
           } else {
             toggleSoldBtnHtml = `
-              <button class="btn-action-sold" onclick="inlineToggleSold('${p.id}', true)" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.15); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+              <button class="btn-action-sold" onclick="inlineToggleSold('${p.id}', true)" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
                 🏷️ Đã Bán
               </button>
             `;
@@ -5102,25 +5129,25 @@ Nguyên tắc trả lời:
               <img src="${adminImgSrc}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
             </td>
             <td style="padding: 16px;">
-              <div class="admin-prop-title" style="font-weight: 700; color: var(--primary); font-size: 15px;">${p.title}${badgeHtml}</div>
+              <div class="admin-prop-title" style="font-weight: 700; font-size: 15px;">${p.title}${badgeHtml}</div>
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ID: #${p.id} • ${p.area}m² • Đường/Hẻm: ${getPublicDisplayAddress(p)}</div>
             </td>
             <td style="padding: 16px; position: relative;" class="inline-price-cell" data-id="${p.id}">
-              <div class="inline-price-display" onclick="startInlinePriceEdit(event, '${p.id}', ${p.price})" style="font-weight: 800; color: var(--accent); font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 4px; border: 1px dashed transparent; transition: all 0.15s; width: fit-content;" onmouseenter="this.style.border='1px dashed rgba(255,255,255,0.2)'; this.style.backgroundColor='rgba(255,255,255,0.04)';" onmouseleave="this.style.border='1px dashed transparent'; this.style.backgroundColor='transparent';">
+              <div class="inline-price-display" onclick="startInlinePriceEdit(event, '${p.id}', ${p.price})" style="font-weight: 800; color: var(--price-color); font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 4px; border: 1px dashed transparent; transition: all 0.15s; width: fit-content;" onmouseenter="this.style.border='1px dashed var(--border)'; this.style.backgroundColor='var(--bg-secondary)';" onmouseleave="this.style.border='1px dashed transparent'; this.style.backgroundColor='transparent';">
                 ${p.priceText}
               </div>
               <div class="inline-price-edit-container" style="display: none; flex-direction: column; gap: 2px; max-width: 100px;">
-                <div style="display: flex; align-items: center; gap: 4px; background: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 2px 6px;">
-                  <input type="number" step="any" class="inline-price-input" placeholder="${p.price}" value="${p.price}" style="width: 100%; border: none; outline: none; background: transparent; color: #f8fafc; font-weight: 700; font-size: 13.5px; padding: 2px 0;" onkeydown="handleInlinePriceKeydown(event, '${p.id}')">
+                <div style="display: flex; align-items: center; gap: 4px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px;">
+                  <input type="number" step="any" class="inline-price-input" placeholder="${p.price}" value="${p.price}" style="width: 100%; border: none; outline: none; background: transparent; color: var(--text-primary); font-weight: 700; font-size: 13.5px; padding: 2px 0;" onkeydown="handleInlinePriceKeydown(event, '${p.id}')">
                   <span style="color: var(--accent); font-weight: 700; font-size: 12px; white-space: nowrap;">Tỷ</span>
                 </div>
                 <div class="inline-price-error" style="display: none; color: #ef4444; font-size: 10px; font-weight: 600; margin-top: 2px;">Giá không hợp lệ</div>
               </div>
             </td>
             <td style="padding: 16px; position: relative;">
-              <div style="font-weight: 600; color: var(--primary); font-size: 13.5px;">Phường ${p.ward}</div>
+              <div style="font-weight: 600; color: var(--text-primary); font-size: 13.5px;">Phường ${p.ward}</div>
               <div class="inline-loai-vi-tri-container" data-id="${p.id}" style="margin-top: 4px; position: relative;">
-                <div class="inline-display" onclick="startInlineEdit(event, '${p.id}')" style="font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 6px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); color: var(--text-muted); transition: all 0.15s; width: fit-content;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'; this.style.color='var(--primary)';" onmouseleave="this.style.background='rgba(255,255,255,0.04)'; this.style.color='var(--text-muted)';">
+                <div class="inline-display" onclick="startInlineEdit(event, '${p.id}')" style="font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 6px; background: var(--bg-secondary); border: 1px dashed var(--border); color: var(--text-muted); transition: all 0.15s; width: fit-content;" onmouseenter="this.style.color='var(--text-primary)';" onmouseleave="this.style.color='var(--text-muted)';">
                   ${(() => {
                     const lvt = p.loaiViTri;
                     if (lvt === 'hem_xe_hoi' || lvt === 'hem') {
@@ -5130,18 +5157,18 @@ Nguyên tắc trả lời:
                     } else if (lvt === 'mat_tien') {
                       return `🏢 Mặt tiền`;
                     } else {
-                      return `<span style="color: #64748b; font-style: italic;">— chưa phân loại —</span>`;
+                      return `<span style="color: var(--text-muted); font-style: italic;">— chưa phân loại —</span>`;
                     }
                   })()}
                 </div>
-                <div class="inline-edit-dropdown" style="display: none; position: absolute; left: 0; top: 26px; z-index: 50; min-width: 130px; background: #1e293b; border: 1px solid #475569; border-radius: 6px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); padding: 4px;">
-                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'hem_xe_hoi')" onmouseenter="this.style.backgroundColor='#334155'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: #f8fafc; font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
+                <div class="inline-edit-dropdown" style="display: none; position: absolute; left: 0; top: 26px; z-index: 50; min-width: 130px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; box-shadow: var(--shadow-lg); padding: 4px;">
+                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'hem_xe_hoi')" onmouseenter="this.style.backgroundColor='var(--bg-secondary)'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: var(--text-primary); font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
                     🚗 Hẻm xe hơi
                   </div>
-                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'hem_xe_may')" onmouseenter="this.style.backgroundColor='#334155'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: #f8fafc; font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
+                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'hem_xe_may')" onmouseenter="this.style.backgroundColor='var(--bg-secondary)'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: var(--text-primary); font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
                     🛵 Hẻm xe máy
                   </div>
-                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'mat_tien')" onmouseenter="this.style.backgroundColor='#334155'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: #f8fafc; font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
+                  <div class="inline-option" onclick="selectInlineLoaiViTri(event, '${p.id}', 'mat_tien')" onmouseenter="this.style.backgroundColor='var(--bg-secondary)'" onmouseleave="this.style.backgroundColor='transparent'" style="padding: 6px 8px; color: var(--text-primary); font-size: 11.5px; font-weight: 600; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.1s; background: transparent;">
                     🏢 Mặt tiền
                   </div>
                 </div>
@@ -5149,14 +5176,14 @@ Nguyên tắc trả lời:
             </td>
             <td style="padding: 16px; text-align: center;">
               <div class="admin-actions-cell" style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                <button class="btn-action-edit" onclick="showAdminForm('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(30,58,138,0.06); border: 1px solid rgba(30,58,138,0.1); color: #2563eb; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+                <button class="btn-action-edit" onclick="showAdminForm('${p.id}')">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-8.5a2.625 2.625 0 113.75 3.75L12 18.5H8.5V15L19.5 4z" />
                   </svg>
                   Sửa
                 </button>
                 ${toggleSoldBtnHtml}
-                <button class="btn-action-delete" onclick="deleteAdminProperty('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.1); color: #ef4444; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+                <button class="btn-action-delete" onclick="deleteAdminProperty('${p.id}')">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
