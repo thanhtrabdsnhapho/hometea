@@ -1438,7 +1438,7 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
       // Query database Supabase từ bảng properties_hometea
       const { data, error } = await supabase
         .from('properties_hometea')
-        .select('id, title, desc, price_text, ward, img')
+        .select('id, title, desc, price_text, ward, img, loai_vi_tri, area, floors, price')
         .eq('id', propertyId);
 
       if (error) {
@@ -1464,8 +1464,34 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
 
       let html = fs.readFileSync(filePath, 'utf8');
 
-      // Tạo nội dung meta tags an toàn
-      const titleStr = `${p.title} | Thanh Trà BĐS`;
+      // Tạo SEO title chuẩn từ dữ liệu property
+      // Cần query thêm các fields: loai_vi_tri, area, floors, price, bedrooms, bathrooms
+      // Sửa lại câu query Supabase ở trên để select thêm: loai_vi_tri, area, floors, price, bedrooms, bathrooms, price_text
+
+      function buildSeoTitle(p: any): string {
+        // Map loai_vi_tri sang tên đọc được
+        const viTriMap: Record<string, string> = {
+          'mat_tien': 'Nhà mặt tiền',
+          'hem_xe_hoi': 'Nhà hẻm xe hơi',
+          'hem_xe_may': 'Nhà hẻm xe máy',
+        };
+        
+        const loaiNha = viTriMap[p.loai_vi_tri] || 'Nhà phố';
+        const ward = p.ward ? p.ward.trim() : '';
+        const area = p.area ? `${p.area}m²` : '';
+        const floors = p.floors && p.floors > 0 ? `${p.floors} tầng` : '';
+        const price = p.price ? `${p.price} tỷ` : (p.price_text || '');
+        
+        // Ghép các phần có giá trị
+        const parts = [loaiNha, ward, area, floors, price].filter(Boolean);
+        const mainTitle = parts.join(' ');
+        
+        return mainTitle 
+          ? `${mainTitle} | Thanh Trà BĐS Thủ Đức`
+          : `${p.title || 'Nhà phố Thủ Đức'} | Thanh Trà BĐS`;
+      }
+
+      const titleStr = buildSeoTitle(p);
       
       let descText = p.desc || `${p.title}. Giá: ${p.price_text || 'Thỏa thuận'}. Phường ${p.ward || ''}, TP. Thủ Đức, TP.HCM`;
       if (descText.length > 160) {
