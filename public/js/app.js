@@ -64,10 +64,11 @@
           console.log("Opening custom confirm modal...");
           modal.style.display = 'flex';
           modal.style.pointerEvents = 'auto'; // Kích hoạt sự kiện click tuyệt đối trực tiếp bằng JS
-          modal.offsetHeight; // trigger reflow
-          modal.style.opacity = '1';
           const childDiv = modal.querySelector('div');
-          if (childDiv) childDiv.style.transform = 'scale(1)';
+          requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+            if (childDiv) childDiv.style.transform = 'scale(1)';
+          });
           
           const cleanup = (value) => {
             console.log("Cleaning up custom confirm. Value selected: " + value);
@@ -4125,9 +4126,10 @@ Nguyên tắc trả lời:
         const modal = document.getElementById('facebookPublishModal');
         if (modal) {
           modal.style.display = 'flex';
-          modal.offsetHeight; // trigger reflow
-          modal.style.opacity = '1';
           modal.style.pointerEvents = 'auto';
+          requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+          });
         }
 
         // Fill visual header of modal
