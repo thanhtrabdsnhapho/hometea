@@ -5098,10 +5098,10 @@ Nguyên tắc trả lời:
           const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
           const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
 
-          const updatedTime = p.updated_at ? new Date(p.updated_at).getTime() : 0;
           const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-          const wasEdited = updatedTime > 0 && (updatedTime - createdTime) > 60000;
-          const isReduced = wasEdited && (Date.now() - updatedTime) <= twoDaysMs;
+          const isReduced = p.isPriceReduced && 
+            p.priceUpdatedAt && 
+            (Date.now() - new Date(p.priceUpdatedAt).getTime()) < twoDaysMs;
 
           let badgeHtml = '';
           let toggleSoldBtnHtml = '';
@@ -5256,11 +5256,18 @@ Nguyên tắc trả lời:
             if (formImg) formImg.value = item.img || '';
             if (formDesc) formDesc.value = item.desc || '';
 
+            const isCurrentlyReduced = item.isPriceReduced && 
+              item.priceUpdatedAt && 
+              (Date.now() - new Date(item.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
+
             if (isReducedCheck) {
-              isReducedCheck.checked = !!item.isPriceReduced;
-              if (item.isPriceReduced) {
+              isReducedCheck.checked = isCurrentlyReduced;
+              if (isCurrentlyReduced) {
                 if (oldPriceGrp) oldPriceGrp.style.display = 'block';
                 if (oldPriceFld) oldPriceFld.value = item.oldPrice || '';
+              } else {
+                if (oldPriceGrp) oldPriceGrp.style.display = 'none';
+                if (oldPriceFld) oldPriceFld.value = '';
               }
             }
 
@@ -5687,12 +5694,11 @@ Nguyên tắc trả lời:
         const oldPrice = parseFloat(item.price) || 0;
         
         if (newPrice < oldPrice && oldPrice > 0) {
-          const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
-          localPriceReductions[id] = Date.now();
-          localStorage.setItem('local_price_reductions', JSON.stringify(localPriceReductions));
+          const nowIso = new Date().toISOString();
           item.priceReducedAt = Date.now();
           item.isPriceReduced = true;
           item.oldPrice = oldPrice;
+          item.priceUpdatedAt = nowIso;
         } else if (newPrice > oldPrice) {
           const localPriceReductions = JSON.parse(localStorage.getItem('local_price_reductions') || '{}');
           delete localPriceReductions[id];
@@ -5700,6 +5706,7 @@ Nguyên tắc trả lời:
           delete item.priceReducedAt;
           item.isPriceReduced = false;
           item.oldPrice = null;
+          item.priceUpdatedAt = null;
         }
 
         item.price = newPrice;
@@ -6042,7 +6049,19 @@ Nguyên tắc trả lời:
 
         const isPriceReducedChecked = document.getElementById('formIsPriceReduced') ? document.getElementById('formIsPriceReduced').checked : false;
         const oldPriceVal = isPriceReducedChecked ? (parseFloat(document.getElementById('formOldPrice').value) || null) : null;
-        const priceUpdatedAtVal = isPriceReducedChecked ? new Date().toISOString() : null;
+        
+        let priceUpdatedAtVal = null;
+        if (isPriceReducedChecked) {
+          const existingItem = isEditing ? propertyData.find(p => p.id == idVal) : null;
+          const isCurrentlyActive = existingItem && existingItem.isPriceReduced && existingItem.priceUpdatedAt && 
+            (Date.now() - new Date(existingItem.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
+          
+          if (isCurrentlyActive && existingItem.priceUpdatedAt) {
+            priceUpdatedAtVal = existingItem.priceUpdatedAt;
+          } else {
+            priceUpdatedAtVal = new Date().toISOString();
+          }
+        }
 
         // Tự động lắp ráp cấu trúc địa chỉ đầy đủ
         let addressVal = "";
