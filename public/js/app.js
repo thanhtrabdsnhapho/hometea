@@ -6026,6 +6026,7 @@ Nguyên tắc trả lời:
         if (e) e.preventDefault();
         
         const idVal = formPropId ? formPropId.value : "";
+        const isEditing = Boolean(idVal);
         const titleVal = document.getElementById('formTitle').value.trim();
         const priceVal = parseFloat(document.getElementById('formPrice').value) || 0;
         const areaVal = parseInt(document.getElementById('formArea').value) || 0;
