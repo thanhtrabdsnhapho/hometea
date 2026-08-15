@@ -70,6 +70,9 @@
 
   <!-- Lucide Icons -->
   <script defer src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client & Global Styles -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="/css/style.css">
 
   <style>
     /* Reset & Base Styles */
@@ -1408,7 +1411,13 @@
           </div>
         </div>
       </a>
-      <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button type="button" onclick="openSubmitPropertyModal()" class="btn-nav-submit-prop" title="Gửi thông tin nhà đất cần bán">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+          </svg>
+          Gửi nhà cần bán
+        </button>
         <button id="themeToggleBtn" aria-label="Đổi giao diện Sáng/Tối" title="Đổi giao diện Sáng/Tối" class="back-home-btn" style="padding: 0; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;">
           <span id="themeToggleIcon" style="font-size: 16px;">🌙</span>
         </button>
@@ -3674,5 +3683,143 @@ Nguyên tắc trả lời:
       setupThemeToggle();
     };
   </script>
+
+  <!-- ========================================================
+       MODAL GỬI NHÀ CẦN BÁN (DÀNH CHO KHÁCH HÀNG KÝ GỬI BĐS)
+       ======================================================== -->
+  <div id="submitPropertyModal" class="sp-modal-backdrop" onclick="if(event.target === this) closeSubmitPropertyModal()">
+    <div class="sp-modal-card">
+      <!-- Modal Header -->
+      <div class="sp-modal-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">🏡</span>
+            <h3 style="font-family: var(--font-serif); font-size: 19px; font-weight: 800; color: var(--text-dark); margin: 0;">Gửi Thông Tin Nhà Cần Bán</h3>
+          </div>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Chỉ nhận ký gửi khu vực <strong style="color: var(--accent, #f97316);">TP. Hồ Chí Minh & Bình Dương</strong> — Bảo mật, hỗ trợ & tư vấn định giá miễn phí</p>
+        </div>
+        <button type="button" onclick="closeSubmitPropertyModal()" style="color: var(--text-muted); font-size: 24px; line-height: 1; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 6px;" title="Đóng">&times;</button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <div class="sp-modal-body">
+        <!-- Alert box -->
+        <div id="spAlertBox" class="sp-alert-box">
+          <span id="spAlertIcon">⚠️</span>
+          <span id="spAlertText"></span>
+        </div>
+
+        <!-- Tên chủ nhà & Số điện thoại -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+          <div class="sp-form-group">
+            <label class="sp-label" for="spOwnerName">
+              <span>👤 Tên chủ nhà</span>
+              <span class="sp-required">*</span>
+            </label>
+            <input type="text" id="spOwnerName" class="sp-input" placeholder="Ví dụ: Nguyễn Văn A" autocomplete="name" required>
+          </div>
+
+          <div class="sp-form-group">
+            <label class="sp-label" for="spPhone">
+              <span>📞 Số điện thoại</span>
+              <span class="sp-required">*</span>
+            </label>
+            <input type="tel" id="spPhone" class="sp-input" placeholder="Ví dụ: 0912 345 678" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <!-- Facebook link & Website / Tin đăng khác -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+          <div class="sp-form-group">
+            <label class="sp-label" for="spFacebook">
+              <span>🌐 Link Facebook</span>
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">(Tùy chọn)</span>
+            </label>
+            <input type="url" id="spFacebook" class="sp-input" placeholder="https://facebook.com/..." autocomplete="off">
+          </div>
+
+          <div class="sp-form-group">
+            <label class="sp-label" for="spWebsite">
+              <span>🔗 Website / Tin đăng khác</span>
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">(Tùy chọn)</span>
+            </label>
+            <input type="url" id="spWebsite" class="sp-input" placeholder="Link tin rao bán khác (nếu có)..." autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Nội dung chi tiết / mô tả căn nhà -->
+        <div class="sp-form-group">
+          <label class="sp-label" for="spContent">
+            <span>📝 Nội dung chi tiết / Mô tả căn nhà</span>
+          </label>
+          <textarea id="spContent" class="sp-textarea" rows="4" placeholder="Mô tả chi tiết: Địa chỉ / hẻm / đường, diện tích (dài x rộng), kết cấu (số tầng, phòng ngủ, WC), hướng nhà, giá mong muốn, pháp lý sổ hồng..."></textarea>
+        </div>
+
+        <!-- Upload hình ảnh (tối đa 10 ảnh) -->
+        <div class="sp-form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="sp-label">
+              <span>📷 Hình ảnh căn nhà & hình ảnh sổ</span>
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">(Tối đa 10 ảnh)</span>
+            </label>
+            <span id="spImageCountBadge" style="font-size: 12px; font-weight: 700; color: var(--accent, #f97316); background: rgba(249, 115, 22, 0.1); padding: 2px 8px; border-radius: 99px;">0 / 10 ảnh</span>
+          </div>
+
+          <!-- Dropzone -->
+          <div id="spDropzone" class="sp-dropzone" onclick="document.getElementById('spFileInput').click()">
+            <input type="file" id="spFileInput" multiple accept="image/jpeg,image/png,image/webp,image/jpg" style="display: none;">
+            <div style="font-size: 32px; margin-bottom: 6px;">☁️</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 2px;">
+              Nhấn để chọn ảnh hoặc kéo thả vào đây
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">
+              Hình ảnh thực tế căn nhà & sổ hồng/sổ đỏ (tối đa 10 ảnh)
+            </div>
+          </div>
+
+          <!-- Previews Grid -->
+          <div id="spImagePreviews" class="sp-image-grid"></div>
+
+          <!-- Progress Bar -->
+          <div id="spProgressContainer" class="sp-progress-container">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-dark);">
+              <span id="spProgressText">Đang tải ảnh lên Cloudinary...</span>
+              <span id="spProgressPercent">0%</span>
+            </div>
+            <div class="sp-progress-bar-wrap">
+              <div id="spProgressBarFill" class="sp-progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="sp-modal-footer">
+        <button type="button" onclick="closeSubmitPropertyModal()" style="padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-primary); font-size: 14px; font-weight: 600; cursor: pointer;">
+          Hủy
+        </button>
+        <button type="button" id="spSubmitBtn" onclick="handleSubmitPropertyForm()" class="btn-nav-submit-prop" style="padding: 11px 24px; font-size: 14px; border-radius: 8px;">
+          <span id="spSubmitBtnIcon">💾</span>
+          <span id="spSubmitBtnText">Lưu Tin & Gửi</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL THÔNG BÁO GỬI TIN BÁN NHÀ THÀNH CÔNG -->
+  <div id="submitPropertySuccessModal" class="sp-modal-backdrop" onclick="if(event.target === this) closeSubmitPropertySuccessModal()">
+    <div style="background: var(--card-bg); border-radius: 20px; width: 90%; max-width: 440px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid var(--border); transform: scale(0.92); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">
+      <div style="width: 68px; height: 68px; background: rgba(34, 197, 94, 0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid #86efac;">
+        <span style="font-size: 32px;">🎉</span>
+      </div>
+      <h3 style="font-family: var(--font-serif); font-size: 21px; font-weight: 800; color: var(--text-dark); margin-bottom: 10px;">Gửi Tin Thành Công!</h3>
+      <p style="font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; font-weight: 500;">Dạ chào anh chị, chúng em xin phép nhận thông tin và sẽ liên hệ lại sớm nhất có thể.</p>
+      <button type="button" onclick="closeSubmitPropertySuccessModal()" style="width: 100%; padding: 12px 24px; background: linear-gradient(135deg, #f97316, #ea580c); color: #ffffff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);">
+        Đồng ý & Đóng
+      </button>
+    </div>
+  </div>
+
+  <script src="/js/submit-property.js" defer></script>
 </body>
 </html>

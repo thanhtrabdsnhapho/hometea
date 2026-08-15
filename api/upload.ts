@@ -25,7 +25,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ success: false, error: 'Không tìm thấy dữ liệu ảnh Base64!' });
     }
 
-    const uploadOptions = { folder: 'thanhtrabds', resource_type: 'image' as const };
+    const targetFolder = (req.body && req.body.folder) || (req.query && req.query.folder as string) || 'thanhtrabds';
+    const uploadOptions = { folder: targetFolder, resource_type: 'image' as const };
     const result = await cloudinary.uploader.upload(base64String, uploadOptions);
     return res.json({ success: true, secure_url: result.secure_url, public_id: result.public_id });
   } catch (err: any) {
