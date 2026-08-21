@@ -147,6 +147,14 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        cursor: pointer;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      .logo-group:hover {
+        opacity: 0.92;
+      }
+      .logo-group:active {
+        transform: scale(0.98);
       }
 
       .logo-icon {
@@ -213,8 +221,8 @@
         width: 100%;
       }
 
-      /* Nút chuyển đổi giao diện Sáng/Tối */
-      #themeToggleBtn {
+      /* Nút chuyển đổi giao diện Sáng/Tối & Icon Mạng Xã Hội Header */
+      #themeToggleBtn, .header-icon-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -225,11 +233,13 @@
         border: 1.5px solid var(--border) !important;
         color: var(--text-dark) !important;
         cursor: pointer;
+        text-decoration: none;
         transition: var(--transition);
       }
 
-      #themeToggleBtn:hover {
+      #themeToggleBtn:hover, .header-icon-btn:hover {
         background-color: var(--secondary) !important;
+        color: var(--primary) !important;
         transform: scale(1.05);
       }
 

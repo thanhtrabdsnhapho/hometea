@@ -1008,6 +1008,46 @@
       });
 
 
+      // Hàm xử lý nhấp vào logo để quay về trang chủ một cách mượt mà và đóng các modal/drawer
+      function handleLogoClick(e) {
+        if (e) e.preventDefault();
+        
+        // Đóng mobile navbar nếu đang mở
+        const navMenu = document.getElementById('navMenu');
+        const menuToggle = document.getElementById('menuToggle');
+        if (navMenu && navMenu.classList.contains('open')) {
+          navMenu.classList.remove('open');
+          if (menuToggle) menuToggle.classList.remove('active');
+        }
+        
+        // Đóng các modal/popup nếu đang mở
+        if (typeof closeProductModal === 'function') closeProductModal();
+        if (typeof closeSubmitPropertyModal === 'function') closeSubmitPropertyModal();
+        if (typeof closeAdminLoginModal === 'function') closeAdminLoginModal();
+        
+        // Đưa màn hình về Home (Trang chủ) nếu đang ở trang Admin
+        if (typeof switchToPage === 'function') {
+          switchToPage('home');
+        }
+        
+        // Xóa hash trên URL nếu có
+        if (window.location.hash) {
+          history.pushState("", document.title, window.location.pathname + window.location.search);
+        }
+        
+        // Cập nhật trạng thái active cho nút Trang chủ trong menu
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const homeLink = document.querySelector("#navMenu a[href='#hero']");
+        if (homeLink) homeLink.classList.add('active');
+        
+        // Cuộn mượt mà lên đầu trang
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+      window.handleLogoClick = handleLogoClick;
+
       /* ==========================================
          4. ĐIỀU KHIỂN CHI TIẾT POPUP (MODAL DIALOG)
          ========================================== */
