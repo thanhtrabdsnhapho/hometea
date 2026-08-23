@@ -23,10 +23,14 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
-  <!-- Google Fonts với hỗ trợ 100% Tiếng Việt hoàn hảo (Be Vietnam Pro & Montserrat) -->
+  <!-- Google Fonts với hỗ trợ 100% Tiếng Việt hoàn hảo (Be Vietnam Pro & Montserrat) - Tải bất đồng bộ không chặn render -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Montserrat:wght@400;500;600;700;800;900&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  </noscript>
   
   <!-- Trì hoãn nạp Google Tag Manager để tối ưu hóa tối đa điểm PageSpeed Mobile -->
   <script>
@@ -70,8 +74,9 @@
 
   <!-- Lucide Icons -->
   <script defer src="https://unpkg.com/lucide@latest"></script>
-  <!-- Supabase JS Client & Global Styles -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase JS Client (defer không chặn render) & Global Styles Preload -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preload" href="/css/style.css" as="style">
   <link rel="stylesheet" href="/css/style.css">
 
   <style>
@@ -269,6 +274,7 @@
     .main-image-container {
       width: 100%;
       height: 480px;
+      aspect-ratio: 16 / 10;
       position: relative;
       background-color: #0f172a;
       display: flex;
@@ -279,6 +285,7 @@
     .main-image {
       width: 100%;
       height: 100%;
+      aspect-ratio: 16 / 10;
       object-fit: cover;
       transition: opacity 0.2s ease;
     }
@@ -1794,6 +1801,39 @@
     let currentProperty = null;
     let propertyData = [];
 
+    // Tối ưu hóa ảnh từ Cloudinary/Unsplash cho trang chi tiết
+    function getOptimizedCloudinaryUrl(url, width, height) {
+      if (!url) return "";
+      if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
+        const params = ["f_auto", "q_auto"];
+        if (width) params.push(`w_${width}`);
+        if (height) {
+          params.push(`h_${height}`);
+          params.push("c_fill");
+        } else if (width) {
+          params.push("c_limit");
+        }
+        return url.replace("/image/upload/", `/image/upload/${params.join(",")}/`);
+      }
+      if (url.includes("images.unsplash.com")) {
+        try {
+          const urlObj = new URL(url);
+          urlObj.searchParams.set("auto", "format");
+          urlObj.searchParams.set("fm", "webp");
+          urlObj.searchParams.set("q", "75");
+          if (width) urlObj.searchParams.set("w", String(width));
+          if (height) {
+            urlObj.searchParams.set("h", String(height));
+            urlObj.searchParams.set("fit", "crop");
+          }
+          return urlObj.toString();
+        } catch(e) {
+          return url;
+        }
+      }
+      return url;
+    }
+
     function showError(message) {
       document.getElementById('loadingOverlay').style.display = 'none';
       document.getElementById('errorMessage').textContent = message;
@@ -1850,7 +1890,7 @@
       
       mainImg.style.opacity = 0.3;
       setTimeout(() => {
-        mainImg.src = images[currentImgIndex];
+        mainImg.src = getOptimizedCloudinaryUrl(images[currentImgIndex], 900, 675);
         mainImg.style.opacity = 1;
       }, 150);
       
@@ -1895,19 +1935,21 @@
       images = parseImgList(item);
       currentImgIndex = 0;
       
-      // Render main image
+      // Render main image (optimized dimensions for mobile/desktop view)
       const mainImg = document.getElementById('mainImg');
-      mainImg.src = images[0];
+      mainImg.src = getOptimizedCloudinaryUrl(images[0], 900, 675);
       
-      // Render thumbnails
+      // Render thumbnails (optimized lightweight 120x90)
       const thumbContainer = document.getElementById('thumbnailContainer');
       thumbContainer.innerHTML = '';
       if (images.length > 1) {
         images.forEach((src, idx) => {
           const img = document.createElement('img');
-          img.src = src;
+          img.src = getOptimizedCloudinaryUrl(src, 120, 90);
           img.className = `thumbnail ${idx === 0 ? 'active' : ''}`;
           img.alt = `Ảnh bất động sản ${idx + 1}`;
+          img.loading = 'lazy';
+          img.decoding = 'async';
           img.onclick = () => {
             currentImgIndex = idx;
             updateGallery();
@@ -2419,8 +2461,8 @@
         a.href = url;
         a.className = 'recommend-item';
         a.innerHTML = `
-          <div class="recommend-img-wrapper">
-            <img class="recommend-img" src="${item.img || 'https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=400&q=80'}" alt="${item.title || 'Sản phẩm đề xuất'}" referrerPolicy="no-referrer">
+          <div class="recommend-img-wrapper" style="aspect-ratio: 4/3; overflow: hidden; background: #0f172a;">
+            <img class="recommend-img" width="300" height="225" src="${getOptimizedCloudinaryUrl(item.img, 300, 225) || 'https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=400&q=80'}" alt="${item.title || 'Sản phẩm đề xuất'}" loading="lazy" decoding="async" referrerPolicy="no-referrer">
           </div>
           <div class="recommend-info">
             <div class="recommend-title" title="${item.title || ''}">${item.title || ''}</div>
