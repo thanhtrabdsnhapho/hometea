@@ -81,10 +81,17 @@
 
   <style>
     /* Reset & Base Styles */
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      position: relative;
     }
     
     :root {
@@ -148,7 +155,8 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 20px;
+      padding: 0 16px;
+      box-sizing: border-box;
     }
 
     /* Header styling */
@@ -160,6 +168,9 @@
       z-index: 100;
       box-shadow: var(--shadow-sm);
       transition: var(--transition);
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     header .header-content {
@@ -167,6 +178,8 @@
       justify-content: space-between;
       align-items: center;
       height: 70px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .logo-container {
@@ -220,6 +233,7 @@
       border-radius: var(--radius-sm);
       border: 1.5px solid var(--border);
       background-color: var(--card-bg);
+      box-sizing: border-box;
     }
 
     .back-home-btn:hover {
@@ -231,55 +245,81 @@
     /* Main layout */
     main {
       flex: 1;
-      padding: 30px 0 60px;
+      padding: 20px 0 60px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .grid-layout {
       display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 30px;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     /* Left Column Details */
     .details-column {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     /* Right Column Sidebar */
     .sidebar-column {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     /* Card styling */
     .card {
       background-color: var(--card-bg);
       border-radius: var(--radius-lg);
-      padding: 24px;
+      padding: 20px;
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border);
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     /* Gallery card */
     .gallery-card {
-      padding: 0;
+      padding: 0 !important;
       overflow: hidden;
       background-color: #0f172a;
       position: relative;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .main-image-container {
       width: 100%;
-      height: 480px;
+      max-width: 100%;
+      height: 440px;
       aspect-ratio: 16 / 10;
       position: relative;
       background-color: #0f172a;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .main-image {
@@ -335,17 +375,21 @@
 
     .thumbnail-container {
       display: flex;
-      gap: 10px;
-      padding: 16px;
+      gap: 8px;
+      padding: 12px 14px;
       background-color: var(--card-bg);
       border-top: 1px solid var(--border);
       overflow-x: auto;
       scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .thumbnail {
-      width: 80px;
-      height: 60px;
+      width: 72px;
+      height: 54px;
       border-radius: var(--radius-sm);
       object-fit: cover;
       cursor: pointer;
@@ -370,21 +414,32 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .badge-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .badge {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .badge-primary {
@@ -398,25 +453,34 @@
     }
 
     .property-title {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       color: var(--neutral-dark);
       line-height: 1.35;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .price-area-row {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-      padding: 16px 0;
-      margin: 12px 0 6px;
+      padding: 14px 0;
+      margin: 10px 0 4px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .info-item {
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     .info-label {
@@ -431,6 +495,7 @@
     .info-value-large {
       font-size: 24px;
       font-weight: 800;
+      word-break: break-word;
     }
 
     .price-val {
@@ -446,6 +511,7 @@
       color: var(--neutral-muted);
       font-weight: 600;
       margin-top: 2px;
+      word-break: break-word;
     }
 
     .address-row {
@@ -453,8 +519,13 @@
       align-items: flex-start;
       gap: 8px;
       color: var(--neutral-muted);
-      font-size: 14.5px;
+      font-size: 14px;
       margin-top: 10px;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .address-row i {
@@ -466,18 +537,24 @@
     /* Specs Grid styling */
     .specs-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .spec-box {
       background-color: var(--neutral-light);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 14px;
+      padding: 12px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .spec-icon-wrapper {
@@ -785,58 +862,215 @@
     /* Responsive */
     @media (max-width: 991px) {
       .grid-layout {
-        grid-template-columns: 1fr;
-        gap: 24px;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 16px !important;
+        width: 100% !important;
       }
 
       .main-image-container {
-        height: 380px;
+        height: auto !important;
+        aspect-ratio: 16 / 10 !important;
+        max-height: 380px !important;
       }
 
       .sidebar-column {
-        margin-bottom: 60px; /* space for mobile cta bar */
+        margin-bottom: 75px !important; /* space for mobile cta bar */
       }
 
       .mobile-cta-bar {
-        display: flex;
-        gap: 10px;
+        display: flex !important;
+        gap: 8px !important;
+        padding: 8px 12px !important;
+        box-sizing: border-box !important;
       }
 
       .mobile-cta-bar .cta-button {
         flex: 1;
-        padding: 12px 14px;
-        font-size: 14.5px;
+        padding: 12px 10px;
+        font-size: 14px;
+        white-space: nowrap;
       }
 
       .mobile-cta-bar .zalo-button {
         flex: 1;
         margin-top: 0;
-        padding: 12px 14px;
-        font-size: 14.5px;
+        padding: 12px 10px;
+        font-size: 14px;
+        white-space: nowrap;
       }
 
       .contact-card {
-        display: none; /* hidden on sidebar, handled by bottom bar */
+        display: none !important; /* hidden on sidebar, handled by bottom bar */
+      }
+
+      .ai-chat-trigger {
+        bottom: 74px !important;
+        right: 12px !important;
+        width: 48px !important;
+        height: 48px !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header-fb-btn {
+        display: none !important;
+      }
+
+      .btn-submit-text {
+        display: none;
+      }
+
+      .btn-nav-submit-prop {
+        padding: 8px 10px !important;
+        border-radius: 50% !important;
+        width: 36px !important;
+        height: 36px !important;
+        justify-content: center !important;
+      }
+
+      .btn-nav-submit-prop svg {
+        width: 16px !important;
+        height: 16px !important;
       }
     }
 
     @media (max-width: 640px) {
+      .container {
+        padding: 0 10px !important;
+      }
+
+      header .header-content {
+        height: 56px !important;
+      }
+
+      .brand-logo-container {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 8px !important;
+      }
+
+      .brand-logo-svg {
+        width: 20px !important;
+        height: 20px !important;
+      }
+
+      .brand-vertical-divider {
+        height: 24px !important;
+        margin: 0 6px !important;
+      }
+
+      .brand-name-title {
+        font-size: 14.5px !important;
+      }
+
+      .brand-name-bds {
+        font-size: 8px !important;
+        letter-spacing: 3px !important;
+      }
+
+      .brand-name-sub {
+        display: none !important;
+      }
+
+      .header-actions {
+        gap: 6px !important;
+      }
+
+      .header-btn-submit {
+        display: none !important;
+      }
+
+      .back-home-btn {
+        padding: 6px 10px !important;
+        font-size: 13px !important;
+      }
+
       .main-image-container {
-        height: 280px;
+        height: 240px !important;
       }
 
       .price-area-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        padding: 10px 0 !important;
+        width: 100% !important;
       }
 
       .info-item {
-        width: 100%;
+        width: 100% !important;
       }
 
       .property-title {
-        font-size: 20px;
+        font-size: 17.5px !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+      }
+
+      .specs-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+      }
+
+      .spec-box {
+        padding: 8px 10px !important;
+        gap: 8px !important;
+      }
+
+      .spec-icon-wrapper {
+        width: 30px !important;
+        height: 30px !important;
+      }
+
+      .spec-icon-wrapper i, .spec-icon-wrapper svg {
+        width: 15px !important;
+        height: 15px !important;
+      }
+
+      .spec-label {
+        font-size: 8.5px !important;
+      }
+
+      .spec-value {
+        font-size: 12px !important;
+      }
+
+      .card {
+        padding: 14px !important;
+        border-radius: 12px !important;
+      }
+
+      .gallery-card {
+        padding: 0 !important;
+      }
+
+      .info-action-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      .info-action-row button {
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+      #priceComparisonBox {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .back-home-text {
+        display: none;
+      }
+      .header-back-btn {
+        padding: 0 !important;
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        justify-content: center !important;
       }
     }
 
@@ -1389,10 +1623,10 @@
   <!-- HEADER -->
   <header>
     <div class="container header-content">
-      <a href="/" class="logo-group" style="display: inline-flex; align-items: center; gap: 14px; text-decoration: none;">
+      <a href="/" class="logo-group" style="display: inline-flex; align-items: center; text-decoration: none;">
         <!-- T. Logo Icon -->
-        <div class="brand-logo-container" style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 10px; border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);">
-          <svg width="26" height="26" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div class="brand-logo-container" style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 10px; border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);">
+          <svg class="brand-logo-svg" width="24" height="24" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Geometric Slab T -->
             <path d="M12 18C12 16.8954 12.8954 16 14 16H50C51.1046 16 52 16.8954 52 18V24C52 25.1046 51.1046 26 50 26H38V48C38 49.1046 37.1046 50 36 50H28C26.8954 50 26 49.1046 26 48V26H14C12.8954 26 12 25.1046 12 24V18Z" fill="#ffffff" />
             <!-- Round dot -->
@@ -1401,42 +1635,42 @@
         </div>
         
         <!-- Thin vertical separator line -->
-        <div class="brand-vertical-divider" style="height: 38px; width: 1.5px; background: var(--border); flex-shrink: 0;"></div>
+        <div class="brand-vertical-divider" style="height: 32px; width: 1.5px; background: var(--border); flex-shrink: 0; margin: 0 10px;"></div>
         
         <!-- Brand wordmark area -->
         <div class="brand-wordmark" style="display: flex; flex-direction: column; justify-content: center; text-align: left;">
           <!-- THANH TRÀ (Premium Serif) -->
-          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 850; color: var(--neutral-dark); letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
+          <div class="brand-name-title" style="font-family: var(--font-serif); font-size: 18px; font-weight: 850; color: var(--neutral-dark); letter-spacing: 0.8px; line-height: 1.05; text-transform: uppercase;">
             Thanh Trà
           </div>
           <!-- B Đ S with border under -->
-          <div style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid var(--primary); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font); font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 5px; line-height: 1; text-transform: uppercase;">
+          <div class="brand-name-bds" style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid var(--primary); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font); font-size: 9.5px; font-weight: 800; color: var(--primary); letter-spacing: 4px; line-height: 1; text-transform: uppercase;">
             B Đ S
           </div>
           <!-- Mua bán nhà phố - TP. Thủ Đức -->
-          <div style="font-family: var(--font); font-size: 7.5px; font-weight: 600; color: var(--neutral-muted); letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
+          <div class="brand-name-sub" style="font-family: var(--font); font-size: 7.5px; font-weight: 600; color: var(--neutral-muted); letter-spacing: 0.2px; text-transform: uppercase; line-height: 1;">
             Mua bán nhà phố - TP. Thủ Đức
           </div>
         </div>
       </a>
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <button type="button" onclick="openSubmitPropertyModal()" class="btn-nav-submit-prop" title="Gửi thông tin nhà đất cần bán">
+      <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" onclick="openSubmitPropertyModal()" class="btn-nav-submit-prop header-btn-submit" title="Gửi thông tin nhà đất cần bán">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
           </svg>
-          Gửi nhà cần bán
+          <span class="btn-submit-text">Gửi nhà cần bán</span>
         </button>
-        <a href="https://facebook.com/thanhtra.bds.q9" target="_blank" rel="noopener noreferrer" aria-label="Facebook Thanh Trà BĐS" title="Theo dõi Facebook Thanh Trà BĐS" class="back-home-btn" style="padding: 0; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; text-decoration: none;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <a href="https://facebook.com/thanhtra.bds.q9" target="_blank" rel="noopener noreferrer" aria-label="Facebook Thanh Trà BĐS" title="Theo dõi Facebook Thanh Trà BĐS" class="back-home-btn header-fb-btn" style="padding: 0; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; text-decoration: none; flex-shrink: 0;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
           </svg>
         </a>
-        <button id="themeToggleBtn" aria-label="Đổi giao diện Sáng/Tối" title="Đổi giao diện Sáng/Tối" class="back-home-btn" style="padding: 0; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;">
-          <span id="themeToggleIcon" style="font-size: 16px;">🌙</span>
+        <button id="themeToggleBtn" aria-label="Đổi giao diện Sáng/Tối" title="Đổi giao diện Sáng/Tối" class="back-home-btn header-theme-btn" style="padding: 0; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;">
+          <span id="themeToggleIcon" style="font-size: 15px;">🌙</span>
         </button>
-        <a href="/" class="back-home-btn">
+        <a href="/" class="back-home-btn header-back-btn" style="flex-shrink: 0;">
           <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-          Trang chủ
+          <span class="back-home-text">Trang chủ</span>
         </a>
       </div>
     </div>
