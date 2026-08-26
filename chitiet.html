@@ -1802,7 +1802,7 @@
     let propertyData = [];
 
     // Tối ưu hóa ảnh từ Cloudinary/Unsplash cho trang chi tiết
-    function getOptimizedCloudinaryUrl(url, width, height) {
+    function getOptimizedCloudinaryUrl(url, width, height, watermark = false) {
       if (!url) return "";
       if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
         const params = ["f_auto", "q_auto"];
@@ -1813,7 +1813,13 @@
         } else if (width) {
           params.push("c_limit");
         }
-        return url.replace("/image/upload/", `/image/upload/${params.join(",")}/`);
+
+        let transformStr = params.join(",");
+        if (watermark) {
+          transformStr += "/l_thanhtra-watermark,w_0.3,fl_relative,o_60,g_south,y_15,fl_layer_apply";
+        }
+
+        return url.replace("/image/upload/", `/image/upload/${transformStr}/`);
       }
       if (url.includes("images.unsplash.com")) {
         try {
@@ -1890,7 +1896,7 @@
       
       mainImg.style.opacity = 0.3;
       setTimeout(() => {
-        mainImg.src = getOptimizedCloudinaryUrl(images[currentImgIndex], 900, 675);
+        mainImg.src = getOptimizedCloudinaryUrl(images[currentImgIndex], 900, 675, false);
         mainImg.style.opacity = 1;
       }, 150);
       
@@ -1937,7 +1943,7 @@
       
       // Render main image (optimized dimensions for mobile/desktop view)
       const mainImg = document.getElementById('mainImg');
-      mainImg.src = getOptimizedCloudinaryUrl(images[0], 900, 675);
+      mainImg.src = getOptimizedCloudinaryUrl(images[0], 900, 675, false);
       
       // Render thumbnails (optimized lightweight 120x90)
       const thumbContainer = document.getElementById('thumbnailContainer');

@@ -524,7 +524,7 @@
       }
 
       // Hàm tối ưu hóa URL hình ảnh từ Cloudinary dynamically ở phía client-side
-      function getOptimizedCloudinaryUrl(url, width, height) {
+      function getOptimizedCloudinaryUrl(url, width, height, watermark = false) {
         if (!url) return "";
         if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
           const params = ["f_auto", "q_auto"];
@@ -535,7 +535,13 @@
           } else if (width) {
             params.push("c_limit");
           }
-          return url.replace("/image/upload/", `/image/upload/${params.join(",")}/`);
+
+          let transformStr = params.join(",");
+          if (watermark) {
+            transformStr += "/l_thanhtra-watermark,w_0.3,fl_relative,o_60,g_south,y_15,fl_layer_apply";
+          }
+
+          return url.replace("/image/upload/", `/image/upload/${transformStr}/`);
         }
         if (url.includes("images.unsplash.com")) {
           try {
@@ -650,7 +656,7 @@
           }
           const currentImgIndex = cardImageIndexes[p.id];
           const activeImgSrc = list[currentImgIndex];
-          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 400, 300);
+          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 400, 300, false);
 
           // Tối ưu hóa fold: 4 sản phẩm đầu tiên được ưu tiên tải trước (fetchpriority="high") thay vì bị trì hoãn bởi lazy load
           const isAboveFold = idx < 4;
@@ -1083,7 +1089,7 @@
           mMainImg.style.opacity = 0;
           const originalUrl = modalImagesList[currentModalImgIndex];
           // Tối ưu hóa ảnh với kích thước chi tiết khoảng 900x675 sắc sảo
-          mMainImg.src = getOptimizedCloudinaryUrl(originalUrl, 900, 675);
+          mMainImg.src = getOptimizedCloudinaryUrl(originalUrl, 900, 675, false);
         }
         
         // Cập nhật các dots tuyển chọn
