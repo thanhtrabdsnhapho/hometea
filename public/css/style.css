@@ -318,6 +318,7 @@
         animation: fadeInUp 1s ease;
       }
 
+      .hero-content h1,
       .hero-content h2 {
         font-family: var(--font-serif);
         font-size: 42px;
@@ -641,6 +642,7 @@
         margin-bottom: 40px;
       }
 
+      .section-header h2,
       .section-header h3 {
         font-family: var(--font-serif);
         font-size: 32px;
@@ -651,6 +653,7 @@
         padding-bottom: 12px;
       }
 
+      .section-header h2::after,
       .section-header h3::after {
         content: '';
         position: absolute;
@@ -879,6 +882,7 @@
         justify-content: flex-start;
       }
 
+      .contact-info-block h2,
       .contact-info-block h3 {
         font-family: var(--font-serif);
         font-size: 32px;
@@ -955,6 +959,7 @@
         min-height: 440px; /* Thống nhất kích thước đồng đều để tránh xô xệch layout shift */
       }
 
+      .contact-form-block h3,
       .contact-form-block h4 {
         font-family: var(--font-serif);
         font-size: 20px;
@@ -1073,6 +1078,7 @@
         margin-bottom: 40px;
       }
 
+      .footer-brand h3,
       .footer-brand h5 {
         font-family: var(--font-serif);
         font-size: 24px;
@@ -1086,6 +1092,7 @@
         margin-bottom: 20px;
       }
 
+      .footer-group h4,
       .footer-group h6 {
         font-size: 14px;
         color: #fff;
