@@ -969,7 +969,7 @@
         } else {
           navbar.classList.remove('scrolled');
         }
-      });
+      }, { passive: true });
 
       menuToggle.addEventListener('click', () => {
         menuToggle.classList.toggle('active');
@@ -7998,12 +7998,17 @@ DỮ LIỆU THÔ: "${textToParse}"`;
         renderProducts(currentFilteredProducts, false);
       });
       setupThemeToggle();
-      checkServerKey();
       checkAdminSession();
       initSupabaseState();
       checkUrlParams();
       
-      // Khởi động dọn dẹp các dữ liệu base64 cũ sau 3 giây khi ứng dụng nạp hoàn tất
-      setTimeout(() => {
-        autoMigrateBase64Properties();
-      }, 3000);
+      // Trì hoãn các tác vụ nền không liên quan đến hiển thị ban đầu
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          autoMigrateBase64Properties();
+        }, { timeout: 10000 });
+      } else {
+        setTimeout(() => {
+          autoMigrateBase64Properties();
+        }, 8000);
+      }
