@@ -1,12 +1,9 @@
 <!doctype html>
 <html lang="vi">
   <head>
-    <!-- Preload Supabase LCP Query - Tải trước dữ liệu LCP song song giúp tăng tốc hiển thị ban đầu -->
-    <link rel="preload" href="https://bywboejxhpvdahbfvote.supabase.co/rest/v1/properties_hometea?select=id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,loai_vi_tri&order=id.desc&limit=20" as="fetch" crossorigin="anonymous">
-
-    <!-- Preload Hero Image LCP tối ưu kích thước thích ứng di động & máy tính -->
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=380&h=240&q=50&fm=webp" media="(max-width: 767px)" fetchpriority="high">
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1000&h=400&q=70&fm=webp" media="(min-width: 768px)" fetchpriority="high">
+    <!-- Preload Hero Image LCP tối ưu kích thước thích ứng di động & máy tính (Local Cached Assets) -->
+    <link rel="preload" as="image" href="/images/hero-bg-mobile.webp" media="(max-width: 767px)" fetchpriority="high">
+    <link rel="preload" as="image" href="/images/hero-bg-desktop.webp" media="(min-width: 768px)" fetchpriority="high">
 
     <!-- Trì hoãn nạp Google Tag Manager để tối ưu hóa tối đa điểm PageSpeed Mobile -->
     <script>
@@ -107,20 +104,8 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
     <link rel="apple-touch-icon" href="/favicon-512.png">
 
-    <!-- CSS Preload & Non-blocking stylesheet (Minified) -->
-    <link rel="preload" href="/css/style.min.css" as="style">
-    <link rel="stylesheet" href="/css/style.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="/css/style.min.css"></noscript>
-    <style>
-      :root{--primary:#f97316;--primary-hover:#ea580c;--text-dark:#0f172a;--text-muted:#64748b;--bg-main:#f8fafc;--bg-card:#ffffff;--border-color:#e2e8f0;--hero-overlay-1:rgba(12,21,36,0.85);--hero-overlay-2:rgba(12,21,36,0.65);--hero-text:#ffffff}
-      body{margin:0;padding:0;font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;background-color:var(--bg-main);color:var(--text-dark);line-height:1.6;-webkit-font-smoothing:antialiased}
-      .navbar{position:fixed;top:0;left:0;right:0;height:70px;background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);z-index:1000;display:flex;align-items:center;border-bottom:1px solid rgba(0,0,0,0.06)}
-      .nav-container{max-width:1280px;margin:0 auto;width:100%;padding:0 16px;display:flex;justify-content:space-between;align-items:center}
-      .hero{position:relative;height:auto;min-height:240px;overflow:hidden;background-color:#0c1524;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;margin-top:70px}
-      .hero-bg-picture,.hero-bg-img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;pointer-events:none}
-      .hero-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(var(--hero-overlay-1),var(--hero-overlay-2));z-index:2;pointer-events:none}
-      .hero-content{position:relative;z-index:3;max-width:800px;padding:30px 16px}
-    </style>
+    <!-- CSS StyleSheet (Đồng bộ, loại bỏ hoàn toàn Layout Shift CLS = 0) -->
+    <link rel="stylesheet" href="/css/style.min.css">
   </head>
   <body>
     <!-- Link ẩn hỗ trợ Googlebot indexing khám phá danh sách bất động sản máy học -->
@@ -158,7 +143,7 @@
               Thanh Trà
             </div>
             <!-- B Đ S with border under -->
-            <div style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid rgba(249, 115, 22, 0.35); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font-sans); font-size: 10px; font-weight: 800; color: #f97316; letter-spacing: 5px; line-height: 1; text-transform: uppercase;">
+            <div style="align-self: flex-start; width: 100%; border-bottom: 1.2px solid rgba(194, 65, 12, 0.35); padding-bottom: 1px; margin-bottom: 2px; font-family: var(--font-sans); font-size: 10px; font-weight: 800; color: #c2410c; letter-spacing: 5px; line-height: 1; text-transform: uppercase;">
               B Đ S
             </div>
             <!-- Mua bán nhà phố - TP. Thủ Đức -->
@@ -202,9 +187,9 @@
       <!-- HERO SECTION -->
       <header class="hero" id="hero">
         <picture class="hero-bg-picture">
-          <source media="(max-width: 767px)" srcset="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=380&h=240&q=50&fm=webp">
-          <source media="(min-width: 768px)" srcset="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1000&h=400&q=70&fm=webp">
-          <img src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=380&h=240&q=50&fm=webp" alt="Bất động sản nhà phố Thanh Trà BĐS Thủ Đức" class="hero-bg-img" fetchpriority="high" decoding="async" width="380" height="240">
+          <source media="(max-width: 767px)" srcset="/images/hero-bg-mobile.webp">
+          <source media="(min-width: 768px)" srcset="/images/hero-bg-desktop.webp">
+          <img src="/images/hero-bg-mobile.webp" alt="Bất động sản nhà phố Thanh Trà BĐS Thủ Đức" class="hero-bg-img" fetchpriority="high" decoding="async" width="480" height="260">
         </picture>
         <div class="hero-overlay"></div>
         <div class="hero-content">

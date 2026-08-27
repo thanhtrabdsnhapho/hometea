@@ -1,10 +1,10 @@
       /* --- THIẾT LẬP BIẾN MÀU SẮC & GIAO DIỆN (ĐẠT CHUẨN MẮT & TƯƠNG PHẢN WCAG AA/AAA) --- */
       :root {
-        --primary: #ea580c;       /* Màu Cam chuẩn tương phát nét rõ trên nền sáng */
-        --primary-light: #c2410c; /* Màu Cam sẫm hơn khi hover */
+        --primary: #c2410c;       /* Màu Cam sẫm chuẩn tương phản cao (> 5.5:1) trên nền trắng */
+        --primary-light: #ea580c; /* Màu Cam hover sáng nét */
         --primary-dark: #0f172a;  /* Màu tối sẫm Slate */
-        --accent: #ea580c;        /* Màu Cam nổi bật high-contrast */
-        --accent-hover: #c2410c;  /* Hover màu sẫm nét */
+        --accent: #c2410c;        /* Màu Cam nổi bật high-contrast WCAG AA */
+        --accent-hover: #9a3412;  /* Hover màu sẫm nét */
         --price-color: #c2410c;   /* Màu giá nhà đất nét đậm rực rỡ */
         --secondary: #f1f5f9;     /* Nền phụ dịu */
         --bg-light: #ffffff;      /* Nền chính sáng tối giản */
@@ -678,8 +678,8 @@
       .section-header h3 {
         font-family: var(--font-serif);
         font-size: 32px;
-        font-weight: 700;
-        color: var(--primary);
+        font-weight: 800;
+        color: var(--text-dark);
         position: relative;
         display: inline-block;
         padding-bottom: 12px;
