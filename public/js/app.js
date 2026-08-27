@@ -2807,7 +2807,9 @@ Nguyên tắc trả lời:
           
           renderAdminTable();
           hideAdminForm(); // Trả lại danh sách bảng tin đăng trước
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (window.scrollY > 0) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
           
           // Tự động tải dung lượng hệ thống khi vào trang Admin
           if (typeof fetchSystemStorageStatus === 'function') {
@@ -2822,7 +2824,9 @@ Nguyên tắc trả lời:
           const homeLink = document.querySelector("#navMenu a[href='#hero']");
           if (homeLink) homeLink.classList.add('active');
           
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (window.scrollY > 0) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         }
       }
 

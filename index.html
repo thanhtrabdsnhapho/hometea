@@ -4,8 +4,9 @@
     <!-- Preload Supabase LCP Query - Tải trước dữ liệu LCP song song giúp tăng tốc hiển thị ban đầu -->
     <link rel="preload" href="https://bywboejxhpvdahbfvote.supabase.co/rest/v1/properties_hometea?select=id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,loai_vi_tri&order=id.desc&limit=20" as="fetch" crossorigin="anonymous">
 
-    <!-- Preload Hero Image LCP trực tiếp với fetchpriority cao nhất -->
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=750&q=65&fm=webp" fetchpriority="high">
+    <!-- Preload Hero Image LCP tối ưu kích thước thích ứng di động & máy tính -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=430&h=280&q=60&fm=webp" media="(max-width: 767px)" fetchpriority="high">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1000&h=400&q=70&fm=webp" media="(min-width: 768px)" fetchpriority="high">
 
     <!-- Trì hoãn nạp Google Tag Manager để tối ưu hóa tối đa điểm PageSpeed Mobile -->
     <script>
@@ -106,12 +107,9 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
     <link rel="apple-touch-icon" href="/favicon-512.png">
 
-    <!-- CSS Preload & Non-blocking stylesheet -->
-    <link rel="preload" href="/css/style.css" as="style">
-    <link rel="stylesheet" href="/css/style.css">
-
-    <!-- Supabase JS Client (defer không chặn render) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- CSS Preload & Non-blocking stylesheet (Minified) -->
+    <link rel="preload" href="/css/style.min.css" as="style">
+    <link rel="stylesheet" href="/css/style.min.css">
   </head>
   <body>
     <!-- Link ẩn hỗ trợ Googlebot indexing khám phá danh sách bất động sản máy học -->
@@ -192,7 +190,11 @@
     <div id="homePageWrapper">
       <!-- HERO SECTION -->
       <header class="hero" id="hero">
-        <img src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=750&q=65&fm=webp" alt="Bất động sản nhà phố Thanh Trà BĐS Thủ Đức" class="hero-bg-img" fetchpriority="high" decoding="async" width="750" height="380">
+        <picture class="hero-bg-picture">
+          <source media="(max-width: 767px)" srcset="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=430&h=280&q=60&fm=webp">
+          <source media="(min-width: 768px)" srcset="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1000&h=400&q=70&fm=webp">
+          <img src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=430&h=280&q=60&fm=webp" alt="Bất động sản nhà phố Thanh Trà BĐS Thủ Đức" class="hero-bg-img" fetchpriority="high" decoding="async" width="430" height="280">
+        </picture>
         <div class="hero-overlay"></div>
         <div class="hero-content">
         <h1>BẤT ĐỘNG SẢN NHÀ PHỐ</h1>
@@ -1962,8 +1964,8 @@
 
 
 
-    <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG --- -->
+    <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG (Minified) --- -->
     <script src="/js/submit-property.js" defer></script>
-    <script src="/js/app.js?v=2" defer></script>
+    <script src="/js/app.min.js?v=3" defer></script>
   </body>
 </html>
