@@ -664,8 +664,8 @@
 
           // Tạo các nút điều khiển slider HTML nếu nhiều ảnh
           const sliderNavHtml = hasMultipleImages ? `
-            <button class="card-slider-nav prev" onclick="changeCardImage('${p.id}', -1, event)">&#10094;</button>
-            <button class="card-slider-nav next" onclick="changeCardImage('${p.id}', 1, event)">&#10095;</button>
+            <button class="card-slider-nav prev" aria-label="Xem ảnh trước" onclick="changeCardImage('${p.id}', -1, event)">&#10094;</button>
+            <button class="card-slider-nav next" aria-label="Xem ảnh tiếp theo" onclick="changeCardImage('${p.id}', 1, event)">&#10095;</button>
             <span class="card-slider-badge">${currentImgIndex + 1}/${list.length}</span>
           ` : '';
 
@@ -695,9 +695,9 @@
           let priceDisplayHtml = `<span>${p.price} tỷ</span>`;
           if (isReduced && p.oldPrice) {
             priceDisplayHtml = `
-              <span style="text-decoration: line-through; color: #999; font-size: 0.85em; margin-right: 4px;">${p.oldPrice} tỷ</span>
-              <span style="color: #f97316; font-weight: bold; font-size: 1.1em;">${p.price} tỷ</span>
-              <span style="background-color: #ef4444; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
+              <span style="text-decoration: line-through; color: #475569; font-size: 0.85em; margin-right: 4px;">${p.oldPrice} tỷ</span>
+              <span style="color: var(--price-color); font-weight: bold; font-size: 1.1em;">${p.price} tỷ</span>
+              <span style="background-color: #b91c1c; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
             `;
           }
 
@@ -723,13 +723,13 @@
                   ${viewsCount > 0 && viewsCount === maxViewsVal ? '<span class="card-badge-item card-badge-popular">👑 Xem nhiều nhất</span>' : ''}
                 </div>
 
-                <!-- Tiêu đề đóng vai trò viết hoa in đậm -->
-                <h4 class="card-title-upper" title="${p.title}" style="height: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;">
+                <!-- Tiêu đề cấp H3 chuẩn phân cấp ngữ nghĩa SEO/A11y -->
+                <h3 class="card-title-upper" title="${p.title}" style="height: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;">
                   <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="color: inherit; text-decoration: none; display: block;">${p.title.toUpperCase()}</a>
-                </h4>
+                </h3>
                 
                 <!-- Địa chỉ đầy đủ hiển thị dưới tiêu đề như trong ảnh -->
-                <div class="card-address-full" style="display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px; font-size: 13px; color: #4b5563;" title="${getPublicDisplayAddress(p)}">
+                <div class="card-address-full" style="display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px; font-size: 13px; color: var(--text-dark);" title="${getPublicDisplayAddress(p)}">
                   <span style="color: #ef4444; font-size: 14px; flex-shrink: 0; margin-top: 1px;">📍</span>
                   <span style="font-weight: 500; font-family: var(--font-sans); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${getPublicDisplayAddress(p)}</span>
                 </div>

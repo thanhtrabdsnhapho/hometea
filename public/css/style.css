@@ -75,7 +75,7 @@
       }
 
       .card-badge-popular {
-        background-image: linear-gradient(135deg, #e11d48, #ea580c) !important;
+        background-image: linear-gradient(135deg, #be123c, #9a3412) !important;
         color: #ffffff !important;
       }
 
@@ -2485,15 +2485,15 @@
         box-sizing: border-box;
       }
       .card-badge-new {
-        background-color: #ef4444;
+        background-color: #b91c1c;
         color: #ffffff;
       }
       .card-badge-discount {
-        background-color: #16a34a;
+        background-color: #15803d;
         color: #ffffff;
       }
       .card-badge-views {
-        background-color: #5f6368;
+        background-color: #334155;
         color: #ffffff;
         font-weight: 600;
       }
