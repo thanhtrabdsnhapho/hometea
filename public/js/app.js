@@ -645,7 +645,7 @@
           }
         }
 
-        visibleProducts.forEach((p, idx) => {
+        const cardsHtmlList = visibleProducts.map((p, idx) => {
           // Tính toán danh sách hình ảnh
           const list = p.imgList && p.imgList.length > 0 ? p.imgList : [p.img];
           const hasMultipleImages = list.length > 1;
@@ -656,11 +656,11 @@
           }
           const currentImgIndex = cardImageIndexes[p.id];
           const activeImgSrc = list[currentImgIndex];
-          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 400, 300, false);
+          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 380, 240, false);
 
-          // Tối ưu hóa fold: 4 sản phẩm đầu tiên được ưu tiên tải trước (fetchpriority="high") thay vì bị trì hoãn bởi lazy load
-          const isAboveFold = idx < 4;
-          const loadingAttr = isAboveFold ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
+          // Tối ưu hóa tải ảnh di động: chỉ thẻ đầu tiên ưu tiên cao, các thẻ sau lazy load không làm nghẽn băng thông
+          const isFirstCard = idx === 0;
+          const loadingAttr = isFirstCard ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
 
           // Tạo các nút điều khiển slider HTML nếu nhiều ảnh
           const sliderNavHtml = hasMultipleImages ? `
@@ -703,12 +703,12 @@
 
           const pSlug = createSlug(p.title);
           const pUrl = `/chitiet/${p.id}-${pSlug}`;
-          const cardHtml = `
+          return `
             <article class="product-card" id="prop-${p.id}" style="cursor: pointer; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
               <!-- Slider hình ảnh -->
               <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="display: block; text-decoration: none; color: inherit; width: 100%;">
                 <div class="card-slider-container">
-                  <img class="card-slider-img" width="400" height="250" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+                  <img class="card-slider-img" width="380" height="240" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
                   ${sliderNavHtml}
                 </div>
               </a>
@@ -801,8 +801,8 @@
               </div>
             </article>
           `;
-          productsGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
+        productsGrid.innerHTML = cardsHtmlList.join('');
       }
 
       // Hàm lọc sản phẩm realtime
@@ -5063,6 +5063,10 @@ Nguyên tắc trả lời:
 
       function renderAdminTable() {
         if (!adminTableBody) return;
+        // Tối ưu hóa hiệu năng: không render DOM bảng quản trị khi chưa đăng nhập hoặc đang ở trang chủ
+        if (!isAdminLoggedIn || (adminPageWrapper && adminPageWrapper.style.display === 'none')) {
+          return;
+        }
         adminTableBody.innerHTML = '';
 
         // Update counts on sub-tabs dynamically
