@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 export default function handler(req: VercelRequest, res: VercelResponse) {
   const robots = `User-agent: *
 Allow: /
+Disallow: /api/
 Sitemap: https://thanhtrabds.vercel.app/sitemap.xml`;
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
