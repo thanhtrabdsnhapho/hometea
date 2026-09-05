@@ -7962,6 +7962,55 @@ DỮ LIỆU THÔ: "${textToParse}"`;
       window.fetchPropertiesFromSupabase = fetchPropertiesFromSupabase;
       window.initSupabaseState = initSupabaseState;
 
+      function randomizeDescOrder() {
+        const textarea = document.getElementById('formDesc');
+        if (!textarea) return;
+        let text = textarea.value;
+        const lines = text.split('\n');
+
+        const headingRegex = /^H[IỆ]?ỆN TRẠNG/i;
+        let startIdx = -1;
+        for (let i = 0; i < lines.length; i++) {
+          if (headingRegex.test(lines[i].trim())) {
+            startIdx = i + 1;
+            break;
+          }
+        }
+        if (startIdx !== -1) {
+          let endIdx = startIdx;
+          while (endIdx < lines.length && lines[endIdx].trim().startsWith('-')) {
+            endIdx++;
+          }
+          const bulletLines = lines.slice(startIdx, endIdx);
+          for (let i = bulletLines.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [bulletLines[i], bulletLines[j]] = [bulletLines[j], bulletLines[i]];
+          }
+          for (let i = 0; i < bulletLines.length; i++) {
+            lines[startIdx + i] = bulletLines[i];
+          }
+        }
+
+        const closingVariants = [
+          'Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.',
+          'Anh/chị quan tâm sản phẩm này vui lòng liên hệ để được tư vấn thêm và hẹn lịch xem thực tế.',
+          'Quý khách có nhu cầu tìm hiểu thêm hoặc xem trực tiếp sản phẩm, vui lòng liên hệ để được hỗ trợ nhanh nhất.',
+          'Để biết thêm chi tiết hoặc sắp xếp lịch xem tận nơi, quý khách vui lòng liên hệ trực tiếp.',
+          'Liên hệ ngay để được tư vấn chi tiết và sắp xếp lịch xem tài sản trong thời gian sớm nhất.',
+          'Quý khách quan tâm vui lòng liên hệ để được cung cấp thêm thông tin và sắp xếp lịch xem nhà/đất.'
+        ];
+        for (let i = lines.length - 1; i >= 0; i--) {
+          if (/vui lòng liên hệ/i.test(lines[i])) {
+            const randomClosing = closingVariants[Math.floor(Math.random() * closingVariants.length)];
+            lines[i] = randomClosing;
+            break;
+          }
+        }
+
+        textarea.value = lines.join('\n');
+      }
+      window.randomizeDescOrder = randomizeDescOrder;
+
       function setupThemeToggle() {
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeToggleIcon = document.getElementById('themeToggleIcon');

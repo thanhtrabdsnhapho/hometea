@@ -1493,7 +1493,10 @@
             </div>
 
             <div class="admin-form-group" style="margin-bottom: 24px;">
-              <label for="formDesc" style="display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 6px;">Nội dung mô tả đầy đủ hấp dẫn *</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <label for="formDesc" style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin:0;">Nội dung mô tả đầy đủ hấp dẫn *</label>
+                <button type="button" onclick="randomizeDescOrder()" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-dark); cursor: pointer;">🎲 Random lại</button>
+              </div>
               <textarea id="formDesc" class="admin-form-control" style="width:100%; height: 200px; resize: vertical; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline:none;" placeholder="Dùng icon đầu dòng để tăng tỷ lệ chuyển đổi khi chia sẻ..." required></textarea>
             </div>
 
