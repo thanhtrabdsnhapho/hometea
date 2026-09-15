@@ -555,8 +555,8 @@
             <span id="spAlertText"></span>
           </div>
 
-          <!-- Tên chủ nhà & Số điện thoại -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+          <!-- Tên chủ nhà, Số điện thoại & Khu vực -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
             <div class="sp-form-group">
               <label class="sp-label" for="spOwnerName">
                 <span>👤 Tên chủ nhà</span>
@@ -571,6 +571,34 @@
                 <span class="sp-required">*</span>
               </label>
               <input type="tel" id="spPhone" class="sp-input" placeholder="Ví dụ: 0912 345 678" autocomplete="tel" required>
+            </div>
+
+            <div class="sp-form-group">
+              <label class="sp-label" for="spKhuVuc">
+                <span>📍 Khu vực (Quận/Huyện)</span>
+                <span class="sp-required">*</span>
+              </label>
+              <select id="spKhuVuc" class="sp-input" required style="cursor: pointer;">
+                <option value="">-- Chọn Quận/Huyện * --</option>
+                <option value="Quận 1">Quận 1</option>
+                <option value="Quận 3">Quận 3</option>
+                <option value="Quận 4">Quận 4</option>
+                <option value="Quận 5">Quận 5</option>
+                <option value="Quận 6">Quận 6</option>
+                <option value="Quận 7">Quận 7</option>
+                <option value="Quận 8">Quận 8</option>
+                <option value="Quận 10">Quận 10</option>
+                <option value="Quận 11">Quận 11</option>
+                <option value="Quận 12">Quận 12</option>
+                <option value="Quận Bình Tân">Quận Bình Tân</option>
+                <option value="Quận Bình Thạnh">Quận Bình Thạnh</option>
+                <option value="Quận Gò Vấp">Quận Gò Vấp</option>
+                <option value="Quận Phú Nhuận">Quận Phú Nhuận</option>
+                <option value="Quận Tân Bình">Quận Tân Bình</option>
+                <option value="Quận Tân Phú">Quận Tân Phú</option>
+                <option value="TP. Thủ Đức">TP. Thủ Đức</option>
+                <option value="Khác">Khác</option>
+              </select>
             </div>
           </div>
 
@@ -1965,6 +1993,6 @@
 
     <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG (Minified) --- -->
     <script src="/js/submit-property.js" defer></script>
-    <script src="/js/app.min.js?v=3" defer></script>
+    <script src="/js/app.min.js?v=4" defer></script>
   </body>
 </html>

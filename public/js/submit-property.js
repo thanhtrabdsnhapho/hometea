@@ -353,6 +353,7 @@
   function resetForm() {
     const nameInput = document.getElementById('spOwnerName');
     const phoneInput = document.getElementById('spPhone');
+    const khuVucSelect = document.getElementById('spKhuVuc');
     const fbInput = document.getElementById('spFacebook');
     const webInput = document.getElementById('spWebsite');
     const contentInput = document.getElementById('spContent');
@@ -360,6 +361,7 @@
 
     if (nameInput) nameInput.value = '';
     if (phoneInput) phoneInput.value = '';
+    if (khuVucSelect) khuVucSelect.value = '';
     if (fbInput) fbInput.value = '';
     if (webInput) webInput.value = '';
     if (contentInput) contentInput.value = '';
@@ -376,6 +378,7 @@
 
     const nameInput = document.getElementById('spOwnerName');
     const phoneInput = document.getElementById('spPhone');
+    const khuVucSelect = document.getElementById('spKhuVuc');
     const fbInput = document.getElementById('spFacebook');
     const webInput = document.getElementById('spWebsite');
     const contentInput = document.getElementById('spContent');
@@ -388,6 +391,7 @@
 
     const name = nameInput ? nameInput.value.trim() : '';
     const phone = phoneInput ? phoneInput.value.trim() : '';
+    const khuVuc = khuVucSelect ? khuVucSelect.value.trim() : '';
     const facebookLink = fbInput ? fbInput.value.trim() : '';
     const websiteLink = webInput ? webInput.value.trim() : '';
     const content = contentInput ? contentInput.value.trim() : '';
@@ -409,6 +413,13 @@
     if (!validateVNPhone(phone)) {
       showAlert('Số điện thoại không đúng định dạng Việt Nam (Ví dụ: 0912 345 678)!', 'error');
       if (phoneInput) phoneInput.focus();
+      return;
+    }
+
+    // Validate Khu vực (Quận/Huyện)
+    if (!khuVuc) {
+      showAlert('Vui lòng chọn Khu vực (Quận/Huyện)!', 'error');
+      if (khuVucSelect) khuVucSelect.focus();
       return;
     }
 
@@ -445,6 +456,7 @@
       const recordPayload = {
         name: name,
         phone: phone.replace(/[\s\-\.\(\)]/g, ''),
+        district: khuVuc,
         facebook_link: facebookLink || null,
         website_link: websiteLink || null,
         content: content || null,
