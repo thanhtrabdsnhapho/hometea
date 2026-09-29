@@ -5822,9 +5822,43 @@ Nguyên tắc trả lời:
         if (formImg) formImg.value = url;
       }
 
-      let uploadedImagesList = []; // Mảng danh sách chuỗi Base64 ảnh thực tế
+      let uploadedImagesList = []; // Mảng danh sách chuỗi URL/Base64 ảnh thực tế
+      let draggedImageIndex = null; // Chỉ mục ảnh đang được kéo
 
-      // Hàm hiển thị list ảnh đã chọn
+      function moveUploadedImage(fromIndex, toIndex) {
+        if (fromIndex < 0 || fromIndex >= uploadedImagesList.length) return;
+        if (toIndex < 0 || toIndex >= uploadedImagesList.length) return;
+        const item = uploadedImagesList.splice(fromIndex, 1)[0];
+        uploadedImagesList.splice(toIndex, 0, item);
+        renderUploadedImagesPreviews();
+        if (typeof showToast === 'function') {
+          showToast(`✓ Đã đổi thứ tự: Ảnh ${fromIndex + 1} ➔ Ảnh ${toIndex + 1}`, true);
+        }
+      }
+      window.moveUploadedImage = moveUploadedImage;
+
+      function setCoverUploadedImage(index) {
+        if (index <= 0 || index >= uploadedImagesList.length) return;
+        const item = uploadedImagesList.splice(index, 1)[0];
+        uploadedImagesList.unshift(item);
+        renderUploadedImagesPreviews();
+        if (typeof showToast === 'function') {
+          showToast('⭐ Đã đặt làm Ảnh Đại Diện (Ảnh Bìa) thành công!', true);
+        }
+      }
+      window.setCoverUploadedImage = setCoverUploadedImage;
+
+      function removeUploadedImage(index) {
+        if (index < 0 || index >= uploadedImagesList.length) return;
+        uploadedImagesList.splice(index, 1);
+        renderUploadedImagesPreviews();
+        if (typeof showToast === 'function') {
+          showToast('Đã xóa 1 ảnh khỏi danh sách', true);
+        }
+      }
+      window.removeUploadedImage = removeUploadedImage;
+
+      // Hàm hiển thị list ảnh đã chọn có kéo thả thay đổi thứ tự
       function renderUploadedImagesPreviews() {
         const container = document.getElementById('realImagesPreviews');
         if (!container) return;
@@ -5839,31 +5873,164 @@ Nguyên tắc trả lời:
           return;
         }
 
+        // Thanh hướng dẫn kéo thả & số lượng ảnh
+        const banner = document.createElement('div');
+        banner.style.gridColumn = '1/-1';
+        banner.style.display = 'flex';
+        banner.style.alignItems = 'center';
+        banner.style.justifyContent = 'space-between';
+        banner.style.flexWrap = 'wrap';
+        banner.style.gap = '8px';
+        banner.style.fontSize = '12px';
+        banner.style.color = 'var(--text-dark)';
+        banner.style.background = 'linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(249, 115, 22, 0.02))';
+        banner.style.padding = '8px 12px';
+        banner.style.borderRadius = '8px';
+        banner.style.border = '1px dashed rgba(249, 115, 22, 0.35)';
+        banner.style.marginBottom = '2px';
+        banner.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 15px;">🖐️</span>
+            <span><strong>Kéo thả ảnh</strong> để thay đổi vị trí. <strong>Ảnh 1</strong> sẽ tự động là <strong>Ảnh đại diện (Ảnh bìa)</strong>.</span>
+          </div>
+          <span style="font-size: 11px; background: rgba(249, 115, 22, 0.15); color: var(--accent); font-weight: 800; padding: 2px 8px; border-radius: 99px;">
+            ${uploadedImagesList.length} / 10 ảnh
+          </span>
+        `;
+        container.appendChild(banner);
+
         uploadedImagesList.forEach((base64, index) => {
           const div = document.createElement('div');
-          div.className = 'real-img-preview-card';
+          div.className = 'real-img-preview-card' + (index === 0 ? ' is-cover' : '');
+          div.draggable = true;
+          div.setAttribute('data-index', String(index));
           div.style.position = 'relative';
           div.style.borderRadius = '8px';
           div.style.overflow = 'hidden';
           div.style.aspectRatio = '1/1';
-          div.style.border = '1px solid var(--border)';
+          div.style.border = index === 0 ? '2px solid #f97316' : '1px solid var(--border)';
+          div.style.cursor = 'grab';
           
           div.innerHTML = `
-            <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover;">
-            <button type="button" onclick="removeUploadedImage(${index})" style="position: absolute; top: 4px; right: 4px; background: rgba(220, 38, 38, 0.85); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.25);" title="Xóa ảnh này">
+            <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none;" alt="Ảnh ${index + 1}">
+            
+            ${index === 0 
+              ? `<span style="position: absolute; top: 6px; left: 6px; background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; font-size: 9.5px; font-weight: 800; padding: 2.5px 6px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.35); text-transform: uppercase; letter-spacing: 0.3px; pointer-events: none; z-index: 3; display: flex; align-items: center; gap: 3px;">⭐ Ảnh bìa</span>`
+              : `<span class="drag-grip" style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.65); color: #fff; width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 13px; z-index: 3; cursor: grab;" title="Kéo thả đổi thứ tự">⠿</span>
+                 <button type="button" class="btn-make-cover" onclick="event.stopPropagation(); setCoverUploadedImage(${index})" style="position: absolute; top: 32px; left: 6px; background: rgba(0,0,0,0.75); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; cursor: pointer; z-index: 3;" title="Đặt làm Ảnh 1 (Ảnh bìa đại diện)">⭐ Làm bìa</button>`
+            }
+
+            <button type="button" onclick="event.stopPropagation(); removeUploadedImage(${index})" style="position: absolute; top: 6px; right: 6px; background: rgba(220, 38, 38, 0.88); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 3;" title="Xóa ảnh này">
               ✕
             </button>
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 10px; text-align: center; padding: 2px 0;">
-              Ảnh ${index + 1}
+
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 75%, transparent 100%); color: white; font-size: 11px; padding: 8px 6px 4px 6px; display: flex; align-items: center; justify-content: space-between; z-index: 3;">
+              <button type="button" onclick="event.stopPropagation(); moveUploadedImage(${index}, ${index - 1});" ${index === 0 ? 'disabled style="opacity: 0.2; cursor: default; background: transparent; border: none; color: white; padding: 2px 4px;"' : 'style="cursor: pointer; background: rgba(255,255,255,0.22); border: none; color: white; border-radius: 3px; padding: 2px 5px; font-size: 10px; line-height: 1;" title="Chuyển sang trước"'} aria-label="Lùi ảnh">◀</button>
+              <span style="font-weight: 700; font-size: 10.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${index === 0 ? 'Ảnh 1 (Bìa)' : 'Ảnh ' + (index + 1)}</span>
+              <button type="button" onclick="event.stopPropagation(); moveUploadedImage(${index}, ${index + 1});" ${index === uploadedImagesList.length - 1 ? 'disabled style="opacity: 0.2; cursor: default; background: transparent; border: none; color: white; padding: 2px 4px;"' : 'style="cursor: pointer; background: rgba(255,255,255,0.22); border: none; color: white; border-radius: 3px; padding: 2px 5px; font-size: 10px; line-height: 1;" title="Chuyển ra sau"'} aria-label="Tiến ảnh">▶</button>
             </div>
           `;
+
+          // Gắn sự kiện kéo thả (HTML5 Drag & Drop)
+          div.addEventListener('dragstart', (e) => {
+            draggedImageIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(index));
+            div.classList.add('is-dragging');
+            div.style.cursor = 'grabbing';
+          });
+
+          div.addEventListener('dragend', () => {
+            div.classList.remove('is-dragging');
+            div.style.cursor = 'grab';
+            draggedImageIndex = null;
+            document.querySelectorAll('.real-img-preview-card').forEach(c => {
+              c.classList.remove('drag-over');
+            });
+          });
+
+          div.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            if (draggedImageIndex !== null && draggedImageIndex !== index) {
+              div.classList.add('drag-over');
+            }
+          });
+
+          div.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            div.classList.remove('drag-over');
+          });
+
+          div.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            div.classList.remove('drag-over');
+            
+            let fromIdx = draggedImageIndex;
+            if (fromIdx === null) {
+              const textData = e.dataTransfer.getData('text/plain');
+              if (textData !== '') fromIdx = parseInt(textData, 10);
+            }
+            
+            if (fromIdx !== null && !isNaN(fromIdx) && fromIdx !== index && fromIdx >= 0 && fromIdx < uploadedImagesList.length) {
+              const movedItem = uploadedImagesList.splice(fromIdx, 1)[0];
+              uploadedImagesList.splice(index, 0, movedItem);
+              renderUploadedImagesPreviews();
+              if (typeof showToast === 'function') {
+                showToast(`✓ Đã đổi thứ tự ảnh: Ảnh ${fromIdx + 1} ➔ Ảnh ${index + 1}`, true);
+              }
+            }
+            draggedImageIndex = null;
+          });
+
+          // Hỗ trợ Touch Drag cho thiết bị di động (Smart Touch Reordering)
+          let touchStartY = 0;
+          let touchStartX = 0;
+          let isTouchDragging = false;
+
+          div.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            isTouchDragging = false;
+          }, { passive: true });
+
+          div.addEventListener('touchmove', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            const touch = e.touches[0];
+            const diffX = Math.abs(touch.clientX - touchStartX);
+            const diffY = Math.abs(touch.clientY - touchStartY);
+            if (diffX > 15 || diffY > 15) {
+              isTouchDragging = true;
+              div.classList.add('is-dragging');
+            }
+          }, { passive: true });
+
+          div.addEventListener('touchend', (e) => {
+            div.classList.remove('is-dragging');
+            if (!isTouchDragging) return;
+            isTouchDragging = false;
+            const touch = e.changedTouches[0];
+            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetCard = targetElement ? targetElement.closest('.real-img-preview-card') : null;
+            if (targetCard && targetCard !== div) {
+              const targetIdx = parseInt(targetCard.getAttribute('data-index'), 10);
+              if (!isNaN(targetIdx) && targetIdx !== index && targetIdx >= 0 && targetIdx < uploadedImagesList.length) {
+                const movedItem = uploadedImagesList.splice(index, 1)[0];
+                uploadedImagesList.splice(targetIdx, 0, movedItem);
+                renderUploadedImagesPreviews();
+                if (typeof showToast === 'function') {
+                  showToast(`✓ Đã đổi thứ tự ảnh: Ảnh ${index + 1} ➔ Ảnh ${targetIdx + 1}`, true);
+                }
+              }
+            }
+          });
+
           container.appendChild(div);
         });
-      }
-
-      function removeUploadedImage(index) {
-        uploadedImagesList.splice(index, 1);
-        renderUploadedImagesPreviews();
       }
 
       function handleRealImagesUpload(e) {

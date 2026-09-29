@@ -1544,8 +1544,8 @@
               
               <input type="file" id="formRealImages" accept="image/*" multiple style="display: none;">
               
-              <!-- Preview vùng chứa các ảnh thực tế đã tải -->
-              <div id="realImagesPreviews" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 14px;"></div>
+              <!-- Preview vùng chứa các ảnh thực tế đã tải (Hỗ trợ kéo thả đổi thứ tự) -->
+              <div id="realImagesPreviews" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); gap: 12px; margin-top: 14px;"></div>
               
               <!-- Link ảnh gốc fallback hoặc ảnh URL nhanh nếu cần -->
               <input type="hidden" id="formImg">

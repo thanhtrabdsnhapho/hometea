@@ -81,7 +81,26 @@
     }
   }
 
-  // Cập nhật giao diện danh sách ảnh đã chọn
+  let spDraggedImageIndex = null;
+
+  // Di chuyển thứ tự ảnh trong danh sách
+  function moveSelectedImage(fromIndex, toIndex) {
+    if (fromIndex < 0 || fromIndex >= selectedImages.length) return;
+    if (toIndex < 0 || toIndex >= selectedImages.length) return;
+    const item = selectedImages.splice(fromIndex, 1)[0];
+    selectedImages.splice(toIndex, 0, item);
+    updateImagePreviews();
+  }
+
+  // Đặt ảnh làm ảnh đại diện (đầu tiên)
+  function makeFirstSelectedImage(index) {
+    if (index <= 0 || index >= selectedImages.length) return;
+    const item = selectedImages.splice(index, 1)[0];
+    selectedImages.unshift(item);
+    updateImagePreviews();
+  }
+
+  // Cập nhật giao diện danh sách ảnh đã chọn có kéo thả thay đổi thứ tự
   function updateImagePreviews() {
     const previewContainer = document.getElementById('spImagePreviews');
     const badge = document.getElementById('spImageCountBadge');
@@ -100,14 +119,57 @@
     }
 
     previewContainer.innerHTML = '';
+    
+    if (selectedImages.length > 1) {
+      const tip = document.createElement('div');
+      tip.style.gridColumn = '1/-1';
+      tip.style.fontSize = '12px';
+      tip.style.color = '#c2410c';
+      tip.style.background = 'rgba(249, 115, 22, 0.08)';
+      tip.style.padding = '6px 12px';
+      tip.style.borderRadius = '6px';
+      tip.style.border = '1px dashed rgba(249, 115, 22, 0.35)';
+      tip.style.display = 'flex';
+      tip.style.alignItems = 'center';
+      tip.style.gap = '6px';
+      tip.style.marginBottom = '4px';
+      tip.innerHTML = `<span>🖐️</span><span><strong>Kéo thả ảnh</strong> để thay đổi vị trí. <strong>Ảnh 1</strong> là Ảnh Đại Diện.</span>`;
+      previewContainer.appendChild(tip);
+    }
+
     selectedImages.forEach((file, index) => {
       const item = document.createElement('div');
-      item.className = 'sp-image-item';
+      item.className = 'sp-image-item' + (index === 0 ? ' is-cover' : '');
+      item.draggable = true;
+      item.setAttribute('data-index', String(index));
+      item.style.cursor = 'grab';
       
       const img = document.createElement('img');
       img.src = URL.createObjectURL(file);
       img.alt = `Ảnh ${index + 1}`;
+      img.style.pointerEvents = 'none';
+      item.appendChild(img);
+
+      // Badge ảnh bìa hoặc nút chọn làm bìa
+      if (index === 0) {
+        const coverBadge = document.createElement('span');
+        coverBadge.style.cssText = 'position: absolute; top: 4px; left: 4px; background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 4px; z-index: 2; pointer-events: none; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.3);';
+        coverBadge.textContent = '⭐ Bìa';
+        item.appendChild(coverBadge);
+      } else {
+        const setCoverBtn = document.createElement('button');
+        setCoverBtn.type = 'button';
+        setCoverBtn.style.cssText = 'position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fbbf24; font-size: 8.5px; font-weight: 700; padding: 2px 5px; border-radius: 4px; z-index: 2; border: 1px solid rgba(251,191,36,0.3); cursor: pointer;';
+        setCoverBtn.textContent = '⭐ Bìa';
+        setCoverBtn.title = 'Đặt làm ảnh đại diện';
+        setCoverBtn.onclick = (e) => {
+          e.stopPropagation();
+          makeFirstSelectedImage(index);
+        };
+        item.appendChild(setCoverBtn);
+      }
       
+      // Nút xóa ảnh
       const removeBtn = document.createElement('button');
       removeBtn.className = 'sp-remove-img-btn';
       removeBtn.innerHTML = '&times;';
@@ -117,9 +179,136 @@
         e.stopPropagation();
         removeImage(index);
       };
-
-      item.appendChild(img);
       item.appendChild(removeBtn);
+
+      // Thanh điều hướng thứ tự dưới cùng
+      const navBar = document.createElement('div');
+      navBar.style.cssText = 'position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85)); color: white; font-size: 10px; padding: 6px 4px 2px 4px; display: flex; align-items: center; justify-content: space-between; z-index: 2;';
+      
+      const prevBtn = document.createElement('button');
+      prevBtn.type = 'button';
+      prevBtn.textContent = '◀';
+      prevBtn.title = 'Đổi lên trước';
+      if (index === 0) {
+        prevBtn.disabled = true;
+        prevBtn.style.cssText = 'opacity: 0.2; cursor: default; background: transparent; border: none; color: white; padding: 1px 3px; font-size: 9px;';
+      } else {
+        prevBtn.style.cssText = 'cursor: pointer; background: rgba(255,255,255,0.25); border: none; color: white; border-radius: 2px; padding: 1px 4px; font-size: 9px;';
+        prevBtn.onclick = (e) => {
+          e.stopPropagation();
+          moveSelectedImage(index, index - 1);
+        };
+      }
+
+      const orderLabel = document.createElement('span');
+      orderLabel.style.fontWeight = '700';
+      orderLabel.textContent = `${index + 1}`;
+
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.textContent = '▶';
+      nextBtn.title = 'Đổi ra sau';
+      if (index === selectedImages.length - 1) {
+        nextBtn.disabled = true;
+        nextBtn.style.cssText = 'opacity: 0.2; cursor: default; background: transparent; border: none; color: white; padding: 1px 3px; font-size: 9px;';
+      } else {
+        nextBtn.style.cssText = 'cursor: pointer; background: rgba(255,255,255,0.25); border: none; color: white; border-radius: 2px; padding: 1px 4px; font-size: 9px;';
+        nextBtn.onclick = (e) => {
+          e.stopPropagation();
+          moveSelectedImage(index, index + 1);
+        };
+      }
+
+      navBar.appendChild(prevBtn);
+      navBar.appendChild(orderLabel);
+      navBar.appendChild(nextBtn);
+      item.appendChild(navBar);
+
+      // Sự kiện Drag & Drop
+      item.addEventListener('dragstart', (e) => {
+        spDraggedImageIndex = index;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(index));
+        item.classList.add('is-dragging');
+        item.style.cursor = 'grabbing';
+      });
+
+      item.addEventListener('dragend', () => {
+        item.classList.remove('is-dragging');
+        item.style.cursor = 'grab';
+        spDraggedImageIndex = null;
+        document.querySelectorAll('.sp-image-item').forEach(el => el.classList.remove('drag-over'));
+      });
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+        if (spDraggedImageIndex !== null && spDraggedImageIndex !== index) {
+          item.classList.add('drag-over');
+        }
+      });
+
+      item.addEventListener('dragleave', () => {
+        item.classList.remove('drag-over');
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        item.classList.remove('drag-over');
+        let fromIdx = spDraggedImageIndex;
+        if (fromIdx === null) {
+          const t = e.dataTransfer.getData('text/plain');
+          if (t !== '') fromIdx = parseInt(t, 10);
+        }
+        if (fromIdx !== null && !isNaN(fromIdx) && fromIdx !== index && fromIdx >= 0 && fromIdx < selectedImages.length) {
+          const moved = selectedImages.splice(fromIdx, 1)[0];
+          selectedImages.splice(index, 0, moved);
+          updateImagePreviews();
+        }
+        spDraggedImageIndex = null;
+      });
+
+      // Touch events
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isTouchDragging = false;
+
+      item.addEventListener('touchstart', (e) => {
+        if (e.target.tagName === 'BUTTON') return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isTouchDragging = false;
+      }, { passive: true });
+
+      item.addEventListener('touchmove', (e) => {
+        if (e.target.tagName === 'BUTTON') return;
+        const diffX = Math.abs(e.touches[0].clientX - touchStartX);
+        const diffY = Math.abs(e.touches[0].clientY - touchStartY);
+        if (diffX > 15 || diffY > 15) {
+          isTouchDragging = true;
+          item.classList.add('is-dragging');
+        }
+      }, { passive: true });
+
+      item.addEventListener('touchend', (e) => {
+        item.classList.remove('is-dragging');
+        if (!isTouchDragging) return;
+        isTouchDragging = false;
+        const touch = e.changedTouches[0];
+        const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+        const targetItem = targetEl ? targetEl.closest('.sp-image-item') : null;
+        if (targetItem && targetItem !== item) {
+          const targetIdx = parseInt(targetItem.getAttribute('data-index'), 10);
+          if (!isNaN(targetIdx) && targetIdx !== index && targetIdx >= 0 && targetIdx < selectedImages.length) {
+            const moved = selectedImages.splice(index, 1)[0];
+            selectedImages.splice(targetIdx, 0, moved);
+            updateImagePreviews();
+          }
+        }
+      });
+
       previewContainer.appendChild(item);
     });
 

@@ -3150,3 +3150,86 @@
         color: #166534;
         border-color: #86efac;
       }
+
+      /* --- DRAG & DROP CHO ẢNH TRONG FORM ĐĂNG TIN (ADMIN & PUBLIC) --- */
+      .real-img-preview-card {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
+        border: 1px solid var(--border);
+        background: var(--card-bg, #ffffff);
+        cursor: grab;
+        user-select: none;
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+      }
+
+      .real-img-preview-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+      }
+
+      .real-img-preview-card.is-cover {
+        border: 2px solid #f97316;
+        box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.3);
+      }
+
+      .real-img-preview-card.is-dragging {
+        opacity: 0.35 !important;
+        transform: scale(0.92) !important;
+        border: 2px dashed #f97316 !important;
+        cursor: grabbing !important;
+      }
+
+      .real-img-preview-card.drag-over {
+        border: 2px solid #ea580c !important;
+        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.3) !important;
+        transform: scale(1.04) !important;
+      }
+
+      .real-img-preview-card .btn-make-cover {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .real-img-preview-card:hover .btn-make-cover {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      @media (max-width: 768px) {
+        .real-img-preview-card .btn-make-cover {
+          opacity: 0.9;
+          pointer-events: auto;
+        }
+      }
+
+      /* Drag & drop styles cho modal ký gửi / đăng tin nhà đất public */
+      .sp-image-item {
+        cursor: grab;
+        user-select: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+      }
+
+      .sp-image-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      .sp-image-item.is-cover {
+        border: 2px solid #f97316 !important;
+        box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.3);
+      }
+
+      .sp-image-item.is-dragging {
+        opacity: 0.35 !important;
+        transform: scale(0.92) !important;
+        border: 2px dashed #f97316 !important;
+        cursor: grabbing !important;
+      }
+
+      .sp-image-item.drag-over {
+        border: 2px solid #ea580c !important;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3) !important;
+        transform: scale(1.05) !important;
+      }
