@@ -209,9 +209,9 @@ async function startServer() {
   // Hỗ trợ cả hai chế độ: Chế độ gửi File qua FormData ('image') và gửi chuỗi Base64 ('req.body.image')
   app.post("/api/upload", upload.single("image"), async (req, res) => {
     try {
-      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-      const apiKey = process.env.CLOUDINARY_API_KEY;
-      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || "dwjbwoz4p";
+      const apiKey = process.env.CLOUDINARY_API_KEY || "225728752648116";
+      const apiSecret = process.env.CLOUDINARY_API_SECRET || "ZCc01PqviD5W2-ocq_TB5VTfTRU";
 
       if (!cloudName || !apiKey || !apiSecret) {
         return res.status(400).json({
@@ -1418,6 +1418,25 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
   app.get("/sitemap.xml", getSitemapXmlHandler);
   app.get("/robots.txt", getRobotsTxtHandler);
   app.get("/api/robots", getRobotsTxtHandler);
+
+  // Đảm bảo tất cả các route /api/* trả về JSON, không bao giờ rơi vào SPA fallback HTML
+  app.use("/api/*", (req, res) => {
+    res.status(404).json({
+      success: false,
+      error: `API route ${req.method} ${req.originalUrl} không tồn tại`
+    });
+  });
+
+  // Bộ bắt lỗi tập trung cho /api để đảm bảo mọi ngoại lệ Express/Multer đều trả về JSON
+  app.use("/api", (err: any, req: any, res: any, next: any) => {
+    console.error("[API Error Handler]", req.method, req.path, err);
+    if (!res.headersSent) {
+      res.status(err.status || err.statusCode || 500).json({
+        success: false,
+        error: err.message || "Lỗi xử lý yêu cầu máy chủ"
+      });
+    }
+  });
 
   // Thêm rule rewrite /chitiet/:slug để chạy chuẩn trên cả dev/prod container với SSR meta tags cho SEO
   app.get("/chitiet/:slug", async (req, res, next) => {

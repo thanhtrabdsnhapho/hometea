@@ -231,6 +231,9 @@
 
 
       function savePropertyDataToStorage() {
+        if (typeof invalidateDuplicateCache === 'function') {
+          invalidateDuplicateCache();
+        }
         try {
           localStorage.setItem('property_data', JSON.stringify(propertyData));
         } catch (e) {
@@ -5065,6 +5068,931 @@ Nguyên tắc trả lời:
         }
       }
 
+      // ============================================================
+      // HỆ THỐNG CHỐNG TRÙNG TIN ĐĂNG BẤT ĐỘNG SẢN (DUPLICATE DETECTOR)
+      // ============================================================
+
+      function normVN(s) {
+        return (s || '').toString().toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd')
+          .replace(/\b(duong|hem|hxh|pho|phuong|p|ql|quoc lo)\b/g, ' ')
+          .replace(/[^a-z0-9]+/g, ' ')
+          .trim();
+      }
+      window.normVN = normVN;
+
+      function normalizeVietnamese(str) {
+        if (!str) return '';
+        return String(str)
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd')
+          .replace(/[^a-z0-9\s]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function normalizeStreetName(street) {
+        if (!street) return '';
+        let s = normalizeVietnamese(street);
+        s = s.replace(/^(duong|d|hem|ngo|khu|duong so|mat tien|mat pho)\s+/i, '');
+        return s.trim();
+      }
+
+      function normalizeHouseNumber(hn) {
+        if (!hn) return '';
+        return String(hn).toLowerCase().trim()
+          .replace(/[\s\.\-]+/g, '/')
+          .replace(/[^a-z0-9\/]/g, '')
+          .replace(/\/+/g, '/')
+          .replace(/^\/|\/$/g, '');
+      }
+
+      function extractImageId(url) {
+        if (!url || typeof url !== 'string') return '';
+        const cleanUrl = url.split('?')[0].trim();
+        if (cleanUrl.includes('images.unsplash.com')) return '';
+        const match = cleanUrl.match(/\/upload\/(?:[^\/]+\/)*(?:v\d+\/)?([^\.\/]+(?:\/[^\.\/]+)*)(?:\.[a-zA-Z0-9]+)?$/);
+        if (match) {
+          const parts = match[1].split('/');
+          return parts[parts.length - 1];
+        }
+        const lastPart = cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1).split('.')[0];
+        return lastPart.length > 5 ? lastPart : cleanUrl;
+      }
+
+      function getPropertyImages(p) {
+        const set = new Set();
+        if (p.img && typeof p.img === 'string') {
+          const id = extractImageId(p.img);
+          if (id) set.add(id);
+        }
+        let list = p.imgList || p.img_list;
+        if (typeof list === 'string' && list.trim()) {
+          try { list = JSON.parse(list); } catch (e) { list = [list]; }
+        }
+        if (Array.isArray(list)) {
+          list.forEach(url => {
+            if (typeof url === 'string') {
+              const id = extractImageId(url);
+              if (id) set.add(id);
+            }
+          });
+        }
+        return set;
+      }
+
+      const STOP_WORDS_DUP = new Set(["ban", "nha", "dat", "gia", "ty", "m2", "pho", "phuong"]);
+      function getTitleKeywords(title) {
+        const norm = normVN(title);
+        if (!norm) return new Set();
+        const words = norm.split(/\s+/).filter(w => w.length > 0 && !STOP_WORDS_DUP.has(w));
+        return new Set(words);
+      }
+
+      function jaccardSimilarity(setA, setB) {
+        if (setA.size === 0 || setB.size === 0) return 0;
+        let inter = 0;
+        for (const w of setA) {
+          if (setB.has(w)) inter++;
+        }
+        const union = setA.size + setB.size - inter;
+        return union > 0 ? inter / union : 0;
+      }
+
+      function getIgnoredDuplicatePairs() {
+        try {
+          const raw = localStorage.getItem('dup_ignored_pairs');
+          return new Set(JSON.parse(raw || '[]'));
+        } catch (e) {
+          return new Set();
+        }
+      }
+
+      function isDuplicatePairIgnored(id1, id2, ignoredSet) {
+        const minId = String(id1) < String(id2) ? String(id1) : String(id2);
+        const maxId = String(id1) < String(id2) ? String(id2) : String(id1);
+        return ignoredSet.has(`${minId}_${maxId}`);
+      }
+
+      function ignoreDuplicatePair(id1, id2) {
+        const minId = String(id1) < String(id2) ? String(id1) : String(id2);
+        const maxId = String(id1) < String(id2) ? String(id2) : String(id1);
+        const pairKey = `${minId}_${maxId}`;
+
+        try {
+          const list = JSON.parse(localStorage.getItem('dup_ignored_pairs') || '[]');
+          if (!list.includes(pairKey)) {
+            list.push(pairKey);
+            localStorage.setItem('dup_ignored_pairs', JSON.stringify(list));
+          }
+        } catch (e) {
+          localStorage.setItem('dup_ignored_pairs', JSON.stringify([pairKey]));
+        }
+
+        closeDuplicateConfirmModal();
+        buildDuplicateIndex();
+        renderAdminTable();
+        if (typeof showToast === 'function') {
+          showToast(`Đã lưu: Cặp #${id1} và #${id2} được đánh dấu không phải là tin trùng.`);
+        }
+      }
+      window.ignoreDuplicatePair = ignoreDuplicatePair;
+
+      async function resolveDuplicateKeepFirst(keepId, deleteId) {
+        closeDuplicateConfirmModal();
+        await deleteAdminProperty(deleteId);
+      }
+      window.resolveDuplicateKeepFirst = resolveDuplicateKeepFirst;
+
+      function getPairDuplicateInfo(a, b) {
+        const hnA = normalizeHouseNumber(a.houseNumber || a.house_number);
+        const hnB = normalizeHouseNumber(b.houseNumber || b.house_number);
+
+        const areaA = parseFloat(a.area) || 0;
+        const areaB = parseFloat(b.area) || 0;
+        const areaDiff = Math.abs(areaA - areaB);
+
+        let score = 0;
+        const reasons = [];
+
+        // +5 Cùng số nhà (cả hai đều có)
+        if (hnA && hnB && hnA === hnB) {
+          score += 5;
+          reasons.push(`cùng số nhà (${a.houseNumber || a.house_number})`);
+        }
+
+        // +5 Chung ảnh
+        const imgsA = getPropertyImages(a);
+        const imgsB = getPropertyImages(b);
+        let hasCommon = false;
+        for (const id of imgsA) {
+          if (imgsB.has(id)) { hasCommon = true; break; }
+        }
+        if (hasCommon) {
+          score += 5;
+          reasons.push("chung ít nhất 1 ảnh");
+        }
+
+        // +2 Diện tích lệch <= 1m2
+        if (areaDiff <= 1) {
+          score += 2;
+          reasons.push(areaDiff === 0 ? "cùng diện tích" : `diện tích lệch ${areaDiff}m²`);
+        }
+
+        // +2 Giá lệch <= 10%
+        const priceA = parseFloat(a.price) || 0;
+        const priceB = parseFloat(b.price) || 0;
+        if (priceA > 0 && priceB > 0) {
+          const maxP = Math.max(priceA, priceB);
+          const pct = Math.round((Math.abs(priceA - priceB) / maxP) * 100);
+          if (pct <= 10) {
+            score += 2;
+            reasons.push(`giá lệch ${pct}%`);
+          }
+        }
+
+        // +2 Tiêu đề Jaccard >= 0.6
+        const kwA = getTitleKeywords(a.title);
+        const kwB = getTitleKeywords(b.title);
+        const sim = jaccardSimilarity(kwA, kwB);
+        if (sim >= 0.6) {
+          score += 2;
+          reasons.push(`độ giống tiêu đề ${Math.round(sim * 100)}%`);
+        }
+
+        // +1 Cùng loai_vi_tri
+        const lvtA = (a.loaiViTri || a.loai_vi_tri || '').trim().toLowerCase();
+        const lvtB = (b.loaiViTri || b.loai_vi_tri || '').trim().toLowerCase();
+        if (lvtA && lvtB && lvtA === lvtB) {
+          score += 1;
+          reasons.push("cùng loại vị trí");
+        }
+
+        // +1 Cùng số tầng và số phòng ngủ (> 0)
+        const flA = parseInt(a.floors) || 0;
+        const flB = parseInt(b.floors) || 0;
+        const brA = parseInt(a.bedrooms) || 0;
+        const brB = parseInt(b.bedrooms) || 0;
+        if (flA > 0 && flB > 0 && brA > 0 && brB > 0 && flA === flB && brA === brB) {
+          score += 1;
+          reasons.push("cùng số tầng & PN");
+        }
+
+        const level = score >= 6 ? 'certain' : (score >= 4 ? 'suspect' : 'none');
+        return { score, level, reasons };
+      }
+
+      // Quản lý trạng thái và chỉ mục trùng lặp
+      let currentDuplicateMap = new Map();
+      let duplicateIndexDebounceTimer = null;
+      let showSuspectDuplicates = false;
+
+      function updateDuplicateTabCounts() {
+        const adminDuplicateCountEl = document.getElementById('adminDuplicateCount');
+        if (!adminDuplicateCountEl) return;
+        const duplicateCertainCount = Array.from(currentDuplicateMap.values()).filter(d => d.level === 'certain').length;
+        const duplicateAllCount = currentDuplicateMap.size;
+        const displayCount = showSuspectDuplicates ? duplicateAllCount : duplicateCertainCount;
+        adminDuplicateCountEl.textContent = displayCount;
+        adminDuplicateCountEl.title = `Chắc chắn: ${duplicateCertainCount} tin, Nghi ngờ: ${duplicateAllCount - duplicateCertainCount} tin`;
+      }
+
+      function toggleShowSuspectDuplicates(checked) {
+        showSuspectDuplicates = !!checked;
+        const chk = document.getElementById('chkShowSuspectDuplicates');
+        if (chk && chk.checked !== showSuspectDuplicates) chk.checked = showSuspectDuplicates;
+        updateDuplicateTabCounts();
+        if (typeof renderAdminTable === 'function') {
+          renderAdminTable();
+        }
+      }
+      window.toggleShowSuspectDuplicates = toggleShowSuspectDuplicates;
+
+      // Gom nhóm theo khóa ward|street rồi tính chỉ mục trùng lặp bằng CHẤM ĐIỂM
+      function buildDuplicateIndex() {
+        if (!Array.isArray(propertyData) || propertyData.length === 0) {
+          currentDuplicateMap = new Map();
+          updateDuplicateTabCounts();
+          return currentDuplicateMap;
+        }
+
+        const ignoredSet = getIgnoredDuplicatePairs();
+        const list = propertyData;
+        const len = list.length;
+
+        // Chuẩn hóa trước 1 lần (O(N))
+        const prepList = new Array(len);
+        for (let i = 0; i < len; i++) {
+          const item = list[i];
+          prepList[i] = {
+            raw: item,
+            id: item.id,
+            title: item.title || '',
+            wardKey: normVN(item.ward),
+            streetKey: normVN(item.street),
+            houseNumberNorm: normalizeHouseNumber(item.houseNumber || item.house_number),
+            area: parseFloat(item.area) || 0,
+            price: parseFloat(item.price) || 0,
+            imageIds: getPropertyImages(item),
+            titleKeywords: getTitleKeywords(item.title),
+            loaiViTri: (item.loaiViTri || item.loai_vi_tri || '').trim().toLowerCase(),
+            floors: parseInt(item.floors) || 0,
+            bedrooms: parseInt(item.bedrooms) || 0
+          };
+        }
+
+        // Gom nhóm trước bằng Map theo khóa ward|street
+        const groupMap = new Map();
+        for (let i = 0; i < len; i++) {
+          const it = prepList[i];
+          if (!it.wardKey || !it.streetKey) continue;
+          const key = `${it.wardKey}|${it.streetKey}`;
+          if (!groupMap.has(key)) groupMap.set(key, []);
+          groupMap.get(key).push(it);
+        }
+
+        const dupMap = new Map();
+
+        groupMap.forEach(group => {
+          const glen = group.length;
+          if (glen < 2) return;
+
+          for (let i = 0; i < glen; i++) {
+            const a = group[i];
+            for (let j = i + 1; j < glen; j++) {
+              const b = group[j];
+
+              // Bỏ qua nếu cặp đã được người dùng chọn "Không phải trùng"
+              if (isDuplicatePairIgnored(a.id, b.id, ignoredSet)) continue;
+
+              // 1. ĐIỀU KIỆN CẦN (loại ngay nếu không thỏa)
+              // Cùng phường và cùng đường (đã đảm bảo qua groupMap)
+              // Nếu cả hai tin đều có số nhà mà KHÁC nhau: loại
+              if (a.houseNumberNorm && b.houseNumberNorm && a.houseNumberNorm !== b.houseNumberNorm) {
+                continue;
+              }
+              // Diện tích lệch <= 2m2
+              const areaDiff = Math.abs(a.area - b.area);
+              if (areaDiff > 2) {
+                continue;
+              }
+
+              // 2. CHẤM ĐIỂM (cộng dồn)
+              let score = 0;
+              const reasons = [];
+
+              // +5: Cùng số nhà (cả hai đều có)
+              if (a.houseNumberNorm && b.houseNumberNorm && a.houseNumberNorm === b.houseNumberNorm) {
+                score += 5;
+                reasons.push(`cùng số nhà (${a.raw.houseNumber || a.raw.house_number})`);
+              }
+
+              // +5: Có chung ít nhất 1 ảnh
+              let hasCommonImg = false;
+              for (const imgId of a.imageIds) {
+                if (b.imageIds.has(imgId)) {
+                  hasCommonImg = true;
+                  break;
+                }
+              }
+              if (hasCommonImg) {
+                score += 5;
+                reasons.push("chung 1 ảnh");
+              }
+
+              // +2: Diện tích lệch <= 1m2
+              if (areaDiff <= 1) {
+                score += 2;
+                reasons.push(areaDiff === 0 ? "cùng diện tích" : `diện tích lệch ${areaDiff}m²`);
+              }
+
+              // +2: Giá lệch <= 10%
+              if (a.price > 0 && b.price > 0) {
+                const maxP = Math.max(a.price, b.price);
+                const priceDiffPct = Math.round((Math.abs(a.price - b.price) / maxP) * 100);
+                if (priceDiffPct <= 10) {
+                  score += 2;
+                  reasons.push(`giá lệch ${priceDiffPct}%`);
+                }
+              }
+
+              // +2: Độ giống tiêu đề >= 0.6 (Jaccard)
+              const titleSim = jaccardSimilarity(a.titleKeywords, b.titleKeywords);
+              if (titleSim >= 0.6) {
+                score += 2;
+                reasons.push(`tiêu đề giống ${Math.round(titleSim * 100)}%`);
+              }
+
+              // +1: Cùng loai_vi_tri
+              if (a.loaiViTri && b.loaiViTri && a.loaiViTri === b.loaiViTri) {
+                score += 1;
+                reasons.push("cùng loại vị trí");
+              }
+
+              // +1: Cùng số tầng và số phòng ngủ (cả hai > 0)
+              if (a.floors > 0 && b.floors > 0 && a.bedrooms > 0 && b.bedrooms > 0 &&
+                  a.floors === b.floors && a.bedrooms === b.bedrooms) {
+                score += 1;
+                reasons.push("cùng số tầng & PN");
+              }
+
+              // 3. HAI MỨC
+              // Trùng chắc chắn: điểm >= 6
+              // Nghi ngờ: điểm 4 đến 5
+              // Dưới 4: không báo
+              if (score >= 4) {
+                const level = score >= 6 ? 'certain' : 'suspect';
+
+                if (!dupMap.has(a.id)) {
+                  dupMap.set(a.id, { matches: [], reasons: [], level: 'suspect', maxScore: 0 });
+                }
+                if (!dupMap.has(b.id)) {
+                  dupMap.set(b.id, { matches: [], reasons: [], level: 'suspect', maxScore: 0 });
+                }
+
+                const entryA = dupMap.get(a.id);
+                entryA.matches.push({ id: b.id, property: b.raw, score, level, reasons });
+                entryA.reasons.push(...reasons);
+                if (score > entryA.maxScore) entryA.maxScore = score;
+                if (level === 'certain') entryA.level = 'certain';
+
+                const entryB = dupMap.get(b.id);
+                entryB.matches.push({ id: a.id, property: a.raw, score, level, reasons });
+                entryB.reasons.push(...reasons);
+                if (score > entryB.maxScore) entryB.maxScore = score;
+                if (level === 'certain') entryB.level = 'certain';
+              }
+            }
+          }
+        });
+
+        currentDuplicateMap = dupMap;
+        updateDuplicateTabCounts();
+        return currentDuplicateMap;
+      }
+      window.buildDuplicateIndex = buildDuplicateIndex;
+
+      function debouncedBuildDuplicateIndex() {
+        clearTimeout(duplicateIndexDebounceTimer);
+        duplicateIndexDebounceTimer = setTimeout(() => {
+          buildDuplicateIndex();
+          if (typeof renderAdminTable === 'function' && isAdminLoggedIn) {
+            renderAdminTable();
+          }
+        }, 300);
+      }
+      window.debouncedBuildDuplicateIndex = debouncedBuildDuplicateIndex;
+
+      // Hàm chẩn đoán 10 cặp đang bị báo trùng nhiều nhất (console.table)
+      function debugDuplicateGroups() {
+        if (!Array.isArray(propertyData) || propertyData.length === 0) {
+          console.warn("Chưa có dữ liệu propertyData để chẩn đoán.");
+          return;
+        }
+
+        const len = propertyData.length;
+        const normList = new Array(len);
+        for (let i = 0; i < len; i++) {
+          const item = propertyData[i];
+          const normTitle = (item.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+          const words = normTitle ? normTitle.split(' ').filter(w => w.length > 1) : [];
+          normList[i] = {
+            raw: item,
+            id: item.id,
+            hn: (item.houseNumber || item.house_number || '').toString().toLowerCase().replace(/[^a-z0-9/]/g, '').trim(),
+            street: normVN(item.street),
+            ward: normVN(item.ward),
+            price: parseFloat(item.price) || 0,
+            area: parseInt(item.area) || 0,
+            title: item.title ? item.title.trim() : '',
+            wordsSet: new Set(words),
+            wordsCount: words.length
+          };
+        }
+
+        const oldDuplicatePairs = [];
+        for (let i = 0; i < len; i++) {
+          const a = normList[i];
+          for (let j = i + 1; j < len; j++) {
+            const b = normList[j];
+            let confidence = 'none';
+            const reasons = [];
+
+            const hasAAddress = a.hn.length > 0 && a.street.length > 1;
+            const hasBAddress = b.hn.length > 0 && b.street.length > 1;
+            if (hasAAddress && hasBAddress && a.hn === b.hn && a.street === b.street) {
+              if (!a.ward || !b.ward || a.ward === b.ward) {
+                reasons.push(`Trùng số nhà (${a.raw.houseNumber || a.raw.house_number}) và đường (${a.raw.street})`);
+                confidence = 'high';
+              }
+            }
+
+            if (a.wordsCount >= 3 && b.wordsCount >= 3) {
+              const minW = Math.min(a.wordsCount, b.wordsCount);
+              const maxW = Math.max(a.wordsCount, b.wordsCount);
+              if (minW / maxW >= 0.6) {
+                let inter = 0;
+                for (const w of a.wordsSet) if (b.wordsSet.has(w)) inter++;
+                const union = a.wordsSet.size + b.wordsSet.size - inter;
+                const sim = union > 0 ? inter / union : 0;
+                if (sim >= 0.85) {
+                  reasons.push(`Tiêu đề giống ${Math.round(sim * 100)}%`);
+                  confidence = 'high';
+                } else if (sim >= 0.72) {
+                  reasons.push(`Tiêu đề tương đồng ${Math.round(sim * 100)}%`);
+                  if (confidence === 'none') confidence = 'medium';
+                }
+              }
+            }
+
+            if (a.ward && b.ward && a.ward === b.ward) {
+              const samePrice = a.price > 0 && b.price > 0 && Math.abs(a.price - b.price) <= 0.05;
+              const sameArea = a.area > 0 && b.area > 0 && Math.abs(a.area - b.area) <= 1;
+              if (samePrice && sameArea) {
+                reasons.push(`Cùng Phường, DT và Giá`);
+                if (confidence === 'none') confidence = 'medium';
+              }
+            }
+
+            if (confidence !== 'none') {
+              oldDuplicatePairs.push({ a: a.raw, b: b.raw, reasons, confidence });
+            }
+          }
+        }
+
+        console.log(`%c[CHẨN ĐOÁN] Tổng số cặp bị logic cũ gắn cờ trùng lặp: ${oldDuplicatePairs.length} cặp (dẫn đến ~80 tin bị báo)`, "font-weight:bold; color:#dc2626; font-size:14px;");
+        console.log("%cDưới đây là 10 cặp đang bị báo trùng nhiều nhất ở logic cũ (chủ yếu do không kiểm tra số nhà hoặc chỉ trùng tiêu đề/đường):", "color:#b45309; font-size:12px;");
+
+        const tableRows = [];
+        oldDuplicatePairs.slice(0, 10).forEach((pair, idx) => {
+          tableRows.push({
+            "Cặp": `${idx + 1}A`,
+            id: pair.a.id,
+            title: pair.a.title,
+            street: pair.a.street || "(Trống)",
+            houseNumber: pair.a.houseNumber || pair.a.house_number || "(Trống)",
+            area: pair.a.area,
+            price: pair.a.price,
+            "Lý do cũ báo trùng": pair.reasons.join("; ")
+          });
+          tableRows.push({
+            "Cặp": `${idx + 1}B`,
+            id: pair.b.id,
+            title: pair.b.title,
+            street: pair.b.street || "(Trống)",
+            houseNumber: pair.b.houseNumber || pair.b.house_number || "(Trống)",
+            area: pair.b.area,
+            price: pair.b.price,
+            "Lý do cũ báo trùng": pair.reasons.join("; ")
+          });
+        });
+
+        console.table(tableRows);
+
+        buildDuplicateIndex();
+        const certainCount = Array.from(currentDuplicateMap.values()).filter(d => d.level === 'certain').length;
+        const suspectCount = currentDuplicateMap.size - certainCount;
+        console.log(`%c[KẾT QUẢ CHẤM ĐIỂM MỚI] Trùng chắc chắn: ${certainCount} tin | Nghi ngờ: ${suspectCount} tin | Tổng: ${currentDuplicateMap.size} tin`, "font-weight:bold; color:#16a34a; font-size:13px;");
+      }
+      window.debugDuplicateGroups = debugDuplicateGroups;
+
+      // Cảnh báo trùng tin thời gian thực ngay trong form
+      let duplicateCheckTimer = null;
+
+      function triggerDuplicateCheckInForm() {
+        clearTimeout(duplicateCheckTimer);
+        duplicateCheckTimer = setTimeout(() => {
+          const formPropIdEl = document.getElementById('formPropId');
+          const idVal = formPropIdEl ? formPropIdEl.value : "";
+          const titleVal = document.getElementById('formTitle')?.value?.trim() || "";
+          const houseNumberVal = document.getElementById('ap_hn_fld')?.value?.trim() || "";
+          const streetVal = document.getElementById('ap_st_fld')?.value?.trim() || "";
+          const wardVal = document.getElementById('ap_wd_fld')?.value?.trim() || "";
+          const priceVal = parseFloat(document.getElementById('formPrice')?.value) || 0;
+          const areaVal = parseInt(document.getElementById('formArea')?.value) || 0;
+          const widthVal = parseFloat(document.getElementById('formWidth')?.value) || 0;
+
+          // Điều kiện kích hoạt: đã nhập số nhà + đường, hoặc tiêu đề dài, hoặc phường + giá + DT
+          const hasEnoughInfo = (houseNumberVal && streetVal) || 
+                                (titleVal.length >= 10) || 
+                                (wardVal && priceVal > 0 && areaVal > 0);
+
+          if (!hasEnoughInfo) {
+            hideDuplicateNoticeBanner();
+            return;
+          }
+
+          const candidate = {
+            id: idVal,
+            title: titleVal,
+            houseNumber: houseNumberVal,
+            street: streetVal,
+            ward: wardVal,
+            price: priceVal,
+            area: areaVal,
+            width: widthVal
+          };
+
+          const duplicates = findDuplicateProperties(candidate, idVal);
+          if (duplicates.length > 0) {
+            showDuplicateNoticeBanner(duplicates);
+          } else {
+            hideDuplicateNoticeBanner();
+          }
+        }, 320);
+      }
+
+      function showDuplicateNoticeBanner(duplicates) {
+        const banner = document.getElementById('propDuplicateNoticeBanner');
+        const list = document.getElementById('propDuplicateNoticeList');
+        const sub = document.getElementById('propDuplicateNoticeSub');
+        if (!banner || !list) return;
+
+        if (sub) {
+          sub.textContent = `Hệ thống tìm thấy ${duplicates.length} tin đăng đã có trên trang có địa chỉ, tiêu đề hoặc thông số tương đồng.`;
+        }
+
+        list.innerHTML = duplicates.slice(0, 3).map(d => {
+          const p = d.property;
+          const badgeBg = d.confidence === 'high' ? '#dc2626' : '#d97706';
+          const badgeText = d.confidence === 'high' ? 'Trùng khớp cao' : 'Nghi trùng thông số';
+          return `
+            <div style="background: var(--card-bg, #ffffff); border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 260px;">
+                <img src="${getOptimizedCloudinaryUrl(p.img, 65, 50)}" style="width: 55px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0;" alt="">
+                <div style="min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <span style="font-size: 10px; font-weight: 800; color: #ffffff; background: ${badgeBg}; padding: 1.5px 6px; border-radius: 3px; text-transform: uppercase;">${badgeText}</span>
+                    <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted);">#${p.id}</span>
+                    <span style="font-size: 11px; color: #b45309; font-weight: 600;">${escapeHtml(d.reasons[0] || '')}</span>
+                  </div>
+                  <div style="font-weight: 700; font-size: 13.5px; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 420px; margin-top: 2px;">
+                    ${escapeHtml(p.title)}
+                  </div>
+                  <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 1px;">
+                    ${p.priceText || (p.price + ' Tỷ')} • ${p.area}m² • Phường ${p.ward} • ${getPublicDisplayAddress(p)}
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button type="button" onclick="window.open('/chitiet.html?id=${p.id}', '_blank')" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text-dark);" title="Xem tin này ngoài website">
+                  👁️ Xem tin
+                </button>
+                <button type="button" onclick="showAdminForm('${p.id}')" style="padding: 6px 12px; font-size: 11.5px; font-weight: 700; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer;" title="Chuyển sang sửa tin này thay vì tạo mới">
+                  ✏️ Sửa tin này
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        banner.style.display = 'block';
+      }
+
+      function hideDuplicateNoticeBanner() {
+        const banner = document.getElementById('propDuplicateNoticeBanner');
+        if (banner) banner.style.display = 'none';
+      }
+
+      function dismissDuplicateNoticeBanner(e) {
+        if (e) e.preventDefault();
+        hideDuplicateNoticeBanner();
+      }
+      window.dismissDuplicateNoticeBanner = dismissDuplicateNoticeBanner;
+
+      // Xử lý Modal cảnh báo trùng tin khi nhấn Lưu
+      let currentActiveDuplicateTargetId = null;
+
+      function openDuplicateConfirmModal(candidate, duplicates) {
+        const modal = document.getElementById('duplicateConfirmModal');
+        const body = document.getElementById('duplicateModalBody');
+        const btnEditExisting = document.getElementById('btnEditExistingDuplicate');
+        const headerTitle = document.getElementById('dupModalHeaderTitle');
+        const headerSub = document.getElementById('dupModalHeaderSub');
+        if (!modal || !body) return;
+
+        const topDup = duplicates[0];
+        currentActiveDuplicateTargetId = topDup.property.id;
+
+        if (headerTitle) headerTitle.textContent = "Cảnh Báo: Phát Hiện Trùng Tin Đăng BĐS!";
+        if (headerSub) headerSub.textContent = "Hệ thống phát hiện thông tin bạn vừa nhập có dấu hiệu trùng khớp với tin đã có trong kho.";
+
+        if (btnEditExisting) {
+          btnEditExisting.style.display = 'inline-flex';
+          btnEditExisting.innerHTML = `✏️ Cập nhật tin #${topDup.property.id} đã có`;
+        }
+
+        body.innerHTML = `
+          <div style="background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 14px 18px;">
+            <div style="font-weight: 800; color: #92400e; font-size: 14.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              <span>⚠️</span> Phát hiện ${duplicates.length} tin đăng đã có trên hệ thống tương đồng với tin bạn đang nhập:
+            </div>
+            <div style="font-size: 13px; color: #b45309; line-height: 1.5;">
+              ${topDup.reasons.map(r => `• <strong>${escapeHtml(r)}</strong>`).join('<br>')}
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Cột 1: Tin đang chuẩn bị đăng -->
+            <div style="background: var(--bg-secondary); border: 1.5px dashed var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; color: var(--accent); background: rgba(249, 115, 22, 0.1); padding: 3px 8px; border-radius: 4px;">
+                  📝 Tin bạn đang tạo
+                </span>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Mới soạn</span>
+              </div>
+              <div style="font-weight: 700; font-size: 14px; color: var(--text-dark); line-height: 1.4;">
+                ${escapeHtml(candidate.title || 'Chưa đặt tiêu đề')}
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-muted);">
+                <div>📍 <strong>Địa chỉ:</strong> ${escapeHtml((candidate.houseNumber ? candidate.houseNumber + ', ' : '') + (candidate.street ? candidate.street + ', ' : '') + 'Phường ' + (candidate.ward || 'Chưa rõ'))}</div>
+                <div>💰 <strong>Giá bán:</strong> <span style="font-weight: 800; color: var(--price-color); font-size: 14px;">${candidate.price || 0} Tỷ</span></div>
+                <div>📐 <strong>Diện tích:</strong> ${candidate.area || 0}m² ${candidate.width ? `(Ngang ${candidate.width}m)` : ''}</div>
+                <div>🏠 <strong>Kết cấu:</strong> ${candidate.floors ? candidate.floors + ' tầng' : 'Đất/C4'}, ${candidate.bedrooms || 3}PN - ${candidate.bathrooms || 3}WC</div>
+              </div>
+            </div>
+
+            <!-- Cột 2: Tin đã tồn tại trên hệ thống -->
+            <div style="background: #fefce8; border: 1.5px solid #fde047; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; color: #854d0e; background: #fef08a; padding: 3px 8px; border-radius: 4px;">
+                  🔍 Tin đã có (#${topDup.property.id})
+                </span>
+                <span style="font-size: 11px; color: #a16207; font-weight: 700;">
+                  ${topDup.confidence === 'high' ? '🔴 Trùng khớp cao' : '🟡 Nghi trùng'}
+                </span>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <img src="${getOptimizedCloudinaryUrl(topDup.property.img, 80, 60)}" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px; flex-shrink: 0;" alt="">
+                <div style="font-weight: 700; font-size: 13.5px; color: var(--text-dark); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                  ${escapeHtml(topDup.property.title)}
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-muted);">
+                <div>📍 <strong>Địa chỉ:</strong> ${escapeHtml(getPublicDisplayAddress(topDup.property))}</div>
+                <div>💰 <strong>Giá bán:</strong> <span style="font-weight: 800; color: var(--price-color); font-size: 14px;">${topDup.property.priceText || (topDup.property.price + ' Tỷ')}</span></div>
+                <div>📐 <strong>Diện tích:</strong> ${topDup.property.area || 0}m² ${topDup.property.width ? `(Ngang ${topDup.property.width}m)` : ''}</div>
+                <div>🏠 <strong>Kết cấu:</strong> ${topDup.property.floors ? topDup.property.floors + ' tầng' : 'Đất/C4'}</div>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <button type="button" onclick="window.open('/chitiet.html?id=${topDup.property.id}', '_blank')" style="flex: 1; padding: 6px 10px; font-size: 11.5px; font-weight: 700; background: var(--bg-light); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text-dark);">
+                  👁️ Xem ngoài web
+                </button>
+                <button type="button" onclick="openExistingDuplicateFromModal('${topDup.property.id}')" style="flex: 1; padding: 6px 10px; font-size: 11.5px; font-weight: 700; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                  ✏️ Sửa tin này
+                </button>
+              </div>
+            </div>
+          </div>
+
+          ${duplicates.length > 1 ? `
+            <div style="margin-top: 6px;">
+              <details style="font-size: 12.5px; color: var(--text-muted); cursor: pointer;">
+                <summary style="font-weight: 700; color: var(--accent); padding: 4px 0;">Xem thêm ${duplicates.length - 1} tin khác cũng có dấu hiệu tương đồng ▾</summary>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                  ${duplicates.slice(1).map(d => `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border); gap: 10px;">
+                      <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                        <span style="font-weight: 800; color: var(--text-dark); font-size: 12px;">#${d.property.id}</span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; color: var(--text-dark);">${escapeHtml(d.property.title)}</span>
+                        <span style="font-weight: 700; color: var(--price-color); white-space: nowrap;">${d.property.price} Tỷ</span>
+                      </div>
+                      <button type="button" onclick="openExistingDuplicateFromModal('${d.property.id}')" style="padding: 4px 8px; font-size: 11px; font-weight: 700; background: #0284c7; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;">
+                        Sửa tin này
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              </details>
+            </div>
+          ` : ''}
+        `;
+
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.style.opacity = '1';
+          modal.style.pointerEvents = 'auto';
+          const card = modal.querySelector('div');
+          if (card) card.style.transform = 'scale(1)';
+        }, 10);
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDuplicateConfirmModal() {
+        const modal = document.getElementById('duplicateConfirmModal');
+        if (modal) {
+          modal.style.opacity = '0';
+          modal.style.pointerEvents = 'none';
+          const card = modal.querySelector('div');
+          if (card) card.style.transform = 'scale(0.92)';
+          setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+          }, 250);
+        }
+      }
+      window.closeDuplicateConfirmModal = closeDuplicateConfirmModal;
+
+      function openExistingDuplicateFromModal(propId) {
+        closeDuplicateConfirmModal();
+        const targetId = propId || currentActiveDuplicateTargetId;
+        if (targetId) {
+          showAdminForm(targetId);
+        }
+      }
+      window.openExistingDuplicateFromModal = openExistingDuplicateFromModal;
+
+      function forceSavePropertyFromModal() {
+        closeDuplicateConfirmModal();
+        saveAdminProperty(null, true);
+      }
+      window.forceSavePropertyFromModal = forceSavePropertyFromModal;
+
+      // So sánh trực quan 2 tin đăng nghi trùng lặp từ bảng quản trị Admin
+      function openDuplicateComparisonModal(id1, id2) {
+        const p1 = propertyData.find(p => String(p.id).trim() === String(id1).trim());
+        const p2 = propertyData.find(p => String(p.id).trim() === String(id2).trim());
+        if (!p1 || !p2) {
+          alert("Không tìm thấy thông tin sản phẩm cần so sánh!");
+          return;
+        }
+
+        const modal = document.getElementById('duplicateConfirmModal');
+        const body = document.getElementById('duplicateModalBody');
+        const btnEditExisting = document.getElementById('btnEditExistingDuplicate');
+        const headerTitle = document.getElementById('dupModalHeaderTitle');
+        const headerSub = document.getElementById('dupModalHeaderSub');
+        if (!modal || !body) return;
+
+        const pairInfo = getPairDuplicateInfo(p1, p2);
+        const isCertain = pairInfo.score >= 6;
+        const levelBadgeColor = isCertain ? '#dc2626' : '#d97706';
+        const levelBg = isCertain ? '#fef2f2' : '#fffbeb';
+        const levelBorder = isCertain ? '#fca5a5' : '#fde68a';
+        const levelText = isCertain ? 'Trùng chắc chắn' : 'Nghi ngờ trùng';
+        const reasonsText = pairInfo.reasons.length > 0 ? pairInfo.reasons.join(', ') : 'Thông số tương đồng';
+
+        if (headerTitle) headerTitle.textContent = `So Sánh 2 Tin Đăng Trùng Lặp (#${p1.id} & #${p2.id})`;
+        if (headerSub) headerSub.textContent = `Điểm số: ${pairInfo.score} điểm (${levelText}) – Lý do: ${reasonsText}`;
+        if (btnEditExisting) btnEditExisting.style.display = 'none';
+
+        body.innerHTML = `
+          <!-- Khối hiển thị điểm số và lý do khớp -->
+          <div style="background: ${levelBg}; border: 1.5px solid ${levelBorder}; border-radius: 12px; padding: 14px 18px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+              <div style="font-weight: 800; color: ${levelBadgeColor}; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                <span>${isCertain ? '🔴' : '🟡'}</span>
+                <span>${levelText}</span>
+                <span style="background: ${levelBadgeColor}; color: white; padding: 2px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 800;">
+                  ${pairInfo.score} điểm
+                </span>
+              </div>
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">
+                ${isCertain ? 'Mức cao (≥ 6 điểm)' : 'Mức nghi ngờ (4 - 5 điểm)'}
+              </span>
+            </div>
+            <div style="font-size: 13.5px; color: ${isCertain ? '#991b1b' : '#92400e'}; margin-top: 6px; line-height: 1.5;">
+              <strong>Lý do khớp:</strong> ${escapeHtml(reasonsText)}
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Tin 1 -->
+            <div style="background: var(--card-bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 800; font-size: 13px; color: var(--primary);">Tin đăng #${p1.id}</span>
+                <span style="font-size: 11px; color: var(--text-muted);">${p1.isSold ? '🔴 Đã bán' : '🟢 Đang bán'}</span>
+              </div>
+              <img src="${getOptimizedCloudinaryUrl(p1.img, 300, 200)}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" alt="">
+              <div style="font-weight: 700; font-size: 14.5px; color: var(--text-dark); line-height: 1.4;">
+                ${escapeHtml(p1.title)}
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-muted); background: var(--bg-secondary); padding: 12px; border-radius: 8px;">
+                <div>💰 <strong>Giá bán:</strong> <span style="font-weight: 800; color: var(--price-color); font-size: 15px;">${p1.priceText || (p1.price + ' Tỷ')}</span></div>
+                <div>📐 <strong>Diện tích:</strong> ${p1.area}m² ${p1.width ? `(Ngang ${p1.width}m)` : ''}</div>
+                <div>📍 <strong>Địa chỉ:</strong> ${escapeHtml(getPublicDisplayAddress(p1))}</div>
+                <div>🏠 <strong>Số nhà:</strong> ${p1.houseNumber || p1.house_number || '(Chưa có số nhà)'}</div>
+                <div>🏢 <strong>Phường:</strong> Phường ${p1.ward} • Đường: ${p1.street || '—'}</div>
+                <div>📑 <strong>Pháp lý:</strong> ${escapeHtml(p1.legal || 'Sổ hồng riêng')}</div>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: auto;">
+                <button type="button" onclick="closeDuplicateConfirmModal(); showAdminForm('${p1.id}')" style="flex: 1; padding: 8px; font-size: 12.5px; font-weight: 700; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                  ✏️ Sửa tin #${p1.id}
+                </button>
+                <button type="button" onclick="closeDuplicateConfirmModal(); deleteAdminProperty('${p1.id}')" style="padding: 8px 12px; font-size: 12.5px; font-weight: 700; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; cursor: pointer;" title="Xóa tin này">
+                  🗑️ Xóa
+                </button>
+              </div>
+            </div>
+
+            <!-- Tin 2 -->
+            <div style="background: var(--card-bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 800; font-size: 13px; color: var(--accent);">Tin đăng #${p2.id}</span>
+                <span style="font-size: 11px; color: var(--text-muted);">${p2.isSold ? '🔴 Đã bán' : '🟢 Đang bán'}</span>
+              </div>
+              <img src="${getOptimizedCloudinaryUrl(p2.img, 300, 200)}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" alt="">
+              <div style="font-weight: 700; font-size: 14.5px; color: var(--text-dark); line-height: 1.4;">
+                ${escapeHtml(p2.title)}
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-muted); background: var(--bg-secondary); padding: 12px; border-radius: 8px;">
+                <div>💰 <strong>Giá bán:</strong> <span style="font-weight: 800; color: var(--price-color); font-size: 15px;">${p2.priceText || (p2.price + ' Tỷ')}</span></div>
+                <div>📐 <strong>Diện tích:</strong> ${p2.area}m² ${p2.width ? `(Ngang ${p2.width}m)` : ''}</div>
+                <div>📍 <strong>Địa chỉ:</strong> ${escapeHtml(getPublicDisplayAddress(p2))}</div>
+                <div>🏠 <strong>Số nhà:</strong> ${p2.houseNumber || p2.house_number || '(Chưa có số nhà)'}</div>
+                <div>🏢 <strong>Phường:</strong> Phường ${p2.ward} • Đường: ${p2.street || '—'}</div>
+                <div>📑 <strong>Pháp lý:</strong> ${escapeHtml(p2.legal || 'Sổ hồng riêng')}</div>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: auto;">
+                <button type="button" onclick="closeDuplicateConfirmModal(); showAdminForm('${p2.id}')" style="flex: 1; padding: 8px; font-size: 12.5px; font-weight: 700; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                  ✏️ Sửa tin #${p2.id}
+                </button>
+                <button type="button" onclick="closeDuplicateConfirmModal(); deleteAdminProperty('${p2.id}')" style="padding: 8px 12px; font-size: 12.5px; font-weight: 700; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; cursor: pointer;" title="Xóa tin này">
+                  🗑️ Xóa
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nút hành động nhanh: Giữ A xóa B, Giữ B xóa A, Không phải trùng -->
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 4px;">
+            <button type="button" onclick="resolveDuplicateKeepFirst('${p1.id}', '${p2.id}')" style="padding: 10px 16px; background: #16a34a; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 750; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" title="Giữ lại tin #${p1.id} và gỡ bỏ tin trùng #${p2.id}">
+              🛡️ Giữ #${p1.id} (Xóa #${p2.id})
+            </button>
+            <button type="button" onclick="resolveDuplicateKeepFirst('${p2.id}', '${p1.id}')" style="padding: 10px 16px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 750; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" title="Giữ lại tin #${p2.id} và gỡ bỏ tin trùng #${p1.id}">
+              🛡️ Giữ #${p2.id} (Xóa #${p1.id})
+            </button>
+            <button type="button" onclick="ignoreDuplicatePair('${p1.id}', '${p2.id}')" style="padding: 10px 16px; background: #64748b; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 750; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" title="Xác nhận 2 tin này khác nhau, lưu vào danh sách bỏ qua">
+              ✕ Không phải trùng
+            </button>
+          </div>
+        `;
+
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.style.opacity = '1';
+          modal.style.pointerEvents = 'auto';
+          const card = modal.querySelector('div');
+          if (card) card.style.transform = 'scale(1)';
+        }, 10);
+        document.body.style.overflow = 'hidden';
+      }
+      window.openDuplicateComparisonModal = openDuplicateComparisonModal;
+
+      function setupDuplicateCheckListeners() {
+        const fieldIds = ['formTitle', 'ap_hn_fld', 'ap_st_fld', 'ap_wd_fld', 'formPrice', 'formArea', 'formWidth'];
+        fieldIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener('input', triggerDuplicateCheckInForm);
+            el.addEventListener('change', triggerDuplicateCheckInForm);
+          }
+        });
+      }
+
       function renderAdminTable() {
         if (!adminTableBody) return;
         // Tối ưu hóa hiệu năng: không render DOM bảng quản trị khi chưa đăng nhập hoặc đang ở trang chủ
@@ -5073,13 +6001,32 @@ Nguyên tắc trả lời:
         }
         adminTableBody.innerHTML = '';
 
-        // Update counts on sub-tabs dynamically
+        // Hiệu năng cao: Sử dụng currentDuplicateMap đã tính sẵn từ buildDuplicateIndex(), không tính lại O(N^2) trong render
+        if (!currentDuplicateMap || (currentDuplicateMap.size === 0 && propertyData.length > 0)) {
+          buildDuplicateIndex();
+        }
+
+        // Cập nhật số lượng trên các tab con
         const sellingCount = propertyData.filter(p => !p.isSold).length;
         const soldCount = propertyData.filter(p => p.isSold).length;
+        const duplicateCertainCount = Array.from(currentDuplicateMap.values()).filter(d => d.level === 'certain').length;
+        const duplicateAllCount = currentDuplicateMap.size;
+        const displayDuplicateCount = showSuspectDuplicates ? duplicateAllCount : duplicateCertainCount;
+
         const adminSellingCountEl = document.getElementById('adminSellingCount');
         const adminSoldCountEl = document.getElementById('adminSoldCount');
+        const adminDuplicateCountEl = document.getElementById('adminDuplicateCount');
         if (adminSellingCountEl) adminSellingCountEl.textContent = sellingCount;
         if (adminSoldCountEl) adminSoldCountEl.textContent = soldCount;
+        if (adminDuplicateCountEl) {
+          adminDuplicateCountEl.textContent = displayDuplicateCount;
+          adminDuplicateCountEl.title = `Chắc chắn: ${duplicateCertainCount} tin, Nghi ngờ: ${duplicateAllCount - duplicateCertainCount} tin`;
+        }
+
+        const chkSuspect = document.getElementById('chkShowSuspectDuplicates');
+        if (chkSuspect && chkSuspect.checked !== showSuspectDuplicates) {
+          chkSuspect.checked = showSuspectDuplicates;
+        }
         
         const qInput = document.getElementById('adminSearchQuery');
         const q = qInput ? qInput.value.trim().toLowerCase() : "";
@@ -5092,11 +6039,17 @@ Nguyên tắc trả lời:
 
         let filtered = [...propertyData];
 
-        // 1. Filter by sub-tab: Selling vs Sold
+        // 1. Filter by sub-tab: Selling vs Sold vs Duplicate
         if (currentAdminSubTab === 'selling') {
           filtered = filtered.filter(p => !p.isSold);
         } else if (currentAdminSubTab === 'sold') {
           filtered = filtered.filter(p => p.isSold);
+        } else if (currentAdminSubTab === 'duplicate') {
+          filtered = filtered.filter(p => {
+            const dup = currentDuplicateMap.get(p.id);
+            if (!dup) return false;
+            return showSuspectDuplicates ? (dup.level === 'certain' || dup.level === 'suspect') : (dup.level === 'certain');
+          });
         }
 
         // 2. Lọc theo chuỗi tìm kiếm
@@ -5133,6 +6086,12 @@ Nguyên tắc trả lời:
             return p.isPriceReduced && 
               p.priceUpdatedAt &&
               (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
+          });
+        } else if (sortVal === "duplicates") {
+          filtered = filtered.filter(p => {
+            const dup = currentDuplicateMap.get(p.id);
+            if (!dup) return false;
+            return showSuspectDuplicates ? (dup.level === 'certain' || dup.level === 'suspect') : (dup.level === 'certain');
           });
         }
 
@@ -5180,12 +6139,34 @@ Nguyên tắc trả lời:
             badgeHtml += ' <span style="background: #16a34a; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">📉 Giảm giá</span>';
           }
 
+          // Kiểm tra và hiển thị nhãn tin trùng lặp theo CHẤM ĐIỂM
+          const dupInfo = currentDuplicateMap.get(p.id);
+          const isDuplicate = dupInfo && (showSuspectDuplicates ? (dupInfo.level === 'certain' || dupInfo.level === 'suspect') : (dupInfo.level === 'certain'));
+          let duplicateBadgeHtml = '';
+          let duplicateActionBtnHtml = '';
+          if (isDuplicate) {
+            const isCertain = dupInfo.level === 'certain';
+            const badgeBg = isCertain ? '#fee2e2' : '#fef3c7';
+            const badgeColor = isCertain ? '#b91c1c' : '#92400e';
+            const badgeBorder = isCertain ? '#fca5a5' : '#fde68a';
+            const matchedIds = dupInfo.matches.map(m => '#' + m.id).join(', ');
+            const labelText = isCertain ? `Trùng chắc chắn với ${matchedIds}` : `Nghi ngờ trùng ${matchedIds}`;
+            const targetCompareId = dupInfo.matches[0] ? dupInfo.matches[0].id : '';
+
+            duplicateBadgeHtml = ` <span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 800; margin-left: 6px; display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; cursor: pointer;" onclick="openDuplicateComparisonModal('${p.id}', '${targetCompareId}')" title="${labelText} (Điểm: ${dupInfo.maxScore})">${isCertain ? '🔴' : '🟡'} ${labelText}</span>`;
+            duplicateActionBtnHtml = `
+              <button type="button" class="btn-action-dup" onclick="openDuplicateComparisonModal('${p.id}', '${targetCompareId}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; font-size: 11.5px; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; border-radius: 6px; cursor: pointer; transition: all 0.2s;" title="So sánh chi tiết với tin bị trùng (${dupInfo.maxScore} điểm)">
+                🔍 Xem trùng
+              </button>
+            `;
+          }
+
           tr.innerHTML = `
             <td style="padding: 16px;">
               <img src="${adminImgSrc}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
             </td>
             <td style="padding: 16px;">
-              <div class="admin-prop-title" style="font-weight: 700; font-size: 15px;">${p.title}${badgeHtml}</div>
+              <div class="admin-prop-title" style="font-weight: 700; font-size: 15px;">${p.title}${badgeHtml}${duplicateBadgeHtml}</div>
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ID: #${p.id} • ${p.area}m² • Đường/Hẻm: ${getPublicDisplayAddress(p)}</div>
             </td>
             <td style="padding: 16px; position: relative;" class="inline-price-cell" data-id="${p.id}">
@@ -5232,6 +6213,7 @@ Nguyên tắc trả lời:
             </td>
             <td style="padding: 16px; text-align: center;">
               <div class="admin-actions-cell" style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                ${duplicateActionBtnHtml}
                 <button class="btn-action-edit" onclick="showAdminForm('${p.id}')">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-8.5a2.625 2.625 0 113.75 3.75L12 18.5H8.5V15L19.5 4z" />
@@ -5253,6 +6235,7 @@ Nguyên tắc trả lời:
       }
 
       function showAdminForm(id) {
+        hideDuplicateNoticeBanner();
         const formSection = document.getElementById('adminFormSection');
         const dashboardSection = document.getElementById('adminDashboardSection');
         const formTitleHeader = document.getElementById('adminFormTitle');
@@ -5386,6 +6369,7 @@ Nguyên tắc trả lời:
 
       function hideAdminForm(e) {
         if (e) e.preventDefault();
+        hideDuplicateNoticeBanner();
         const formSection = document.getElementById('adminFormSection');
         const dashboardSection = document.getElementById('adminDashboardSection');
         if (formSection) formSection.style.display = 'none';
@@ -5398,28 +6382,22 @@ Nguyên tắc trả lời:
         
         const tabSelling = document.getElementById('adminSubTab_selling');
         const tabSold = document.getElementById('adminSubTab_sold');
+        const tabDuplicate = document.getElementById('adminSubTab_duplicate');
         
-        if (subTab === 'selling') {
-          if (tabSelling) {
-            tabSelling.style.background = 'var(--accent)';
-            tabSelling.style.color = '#ffffff';
-          }
-          if (tabSold) {
-            tabSold.style.background = 'var(--bg-light)';
-            tabSold.style.color = 'var(--text-dark)';
-            tabSold.style.border = '1px solid var(--border)';
-          }
-        } else {
-          if (tabSelling) {
-            tabSelling.style.background = 'var(--bg-light)';
-            tabSelling.style.color = 'var(--text-dark)';
-            tabSelling.style.border = '1px solid var(--border)';
-          }
-          if (tabSold) {
-            tabSold.style.background = '#ef4444';
-            tabSold.style.color = '#ffffff';
-            tabSold.style.border = 'none';
-          }
+        if (tabSelling) {
+          tabSelling.style.background = subTab === 'selling' ? 'var(--accent)' : 'var(--bg-light)';
+          tabSelling.style.color = subTab === 'selling' ? '#ffffff' : 'var(--text-dark)';
+          tabSelling.style.border = subTab === 'selling' ? 'none' : '1px solid var(--border)';
+        }
+        if (tabSold) {
+          tabSold.style.background = subTab === 'sold' ? '#ef4444' : 'var(--bg-light)';
+          tabSold.style.color = subTab === 'sold' ? '#ffffff' : 'var(--text-dark)';
+          tabSold.style.border = subTab === 'sold' ? 'none' : '1px solid var(--border)';
+        }
+        if (tabDuplicate) {
+          tabDuplicate.style.background = subTab === 'duplicate' ? '#f59e0b' : 'var(--bg-light)';
+          tabDuplicate.style.color = subTab === 'duplicate' ? '#ffffff' : 'var(--text-dark)';
+          tabDuplicate.style.border = subTab === 'duplicate' ? 'none' : '1px solid var(--border)';
         }
         
         renderAdminTable();
@@ -6086,24 +7064,61 @@ Nguyên tắc trả lời:
               throw new Error("Không thể chuyển đổi ảnh thành chuỗi Base64");
             }
 
-            const response = await fetch('/api/upload', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ image: base64String })
-            });
-            
-            const data = await response.json();
-            if (response.ok && data.success && data.secure_url) {
-              uploadedImagesList.push(data.secure_url);
+            let uploadedUrl = null;
+            try {
+              const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: base64String })
+              });
+              
+              const cType = response.headers.get('content-type') || '';
+              if (response.ok && cType.includes('application/json')) {
+                const data = await response.json();
+                if (data.success && data.secure_url) {
+                  uploadedUrl = data.secure_url;
+                }
+              }
+            } catch (apiErr) {
+              console.warn("Lỗi gọi /api/upload trong uploadRawFile, thử phương thức dự phòng:", apiErr);
+            }
+
+            // Dự phòng trực tiếp lên Cloudinary nếu API máy chủ không phản hồi JSON
+            if (!uploadedUrl) {
+              try {
+                const fd = new FormData();
+                fd.append('file', base64String);
+                fd.append('upload_preset', 'datathanhtra2026');
+                fd.append('folder', 'thanhtrabds');
+
+                const directRes = await fetch('https://api.cloudinary.com/v1_1/xkenwzvh/image/upload', {
+                  method: 'POST',
+                  body: fd
+                });
+                const cType = directRes.headers.get('content-type') || '';
+                if (directRes.ok && cType.includes('application/json')) {
+                  const dData = await directRes.json();
+                  if (dData.secure_url || dData.url) {
+                    uploadedUrl = dData.secure_url || dData.url;
+                  }
+                }
+              } catch (directErr) {
+                console.warn("Lỗi dự phòng Cloudinary trực tiếp:", directErr);
+              }
+            }
+
+            if (uploadedUrl) {
+              uploadedImagesList.push(uploadedUrl);
               successCount++;
             } else {
-              console.error("Lỗi upload file:", data?.error || response.statusText);
-              failCount++;
+              // Lưu giữ ảnh base64 nén an toàn để không mất hình ảnh của người dùng
+              uploadedImagesList.push(base64String);
+              successCount++;
             }
           } catch (err) {
-            console.error("Lỗi kết nối upload file:", err);
+            console.error("Lỗi xử lý upload file:", err);
             failCount++;
           } finally {
             processedCount++;
@@ -6223,27 +7238,192 @@ Nguyên tắc trả lời:
         }
         try {
           const compressed = await compressBase64Image(base64Str);
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: compressed })
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.secure_url) {
-              return data.secure_url;
+          // 1. Thử qua Server API /api/upload
+          try {
+            const response = await fetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: compressed })
+            });
+            const cType = response.headers.get('content-type') || '';
+            if (response.ok && cType.includes('application/json')) {
+              const data = await response.json();
+              if (data.success && data.secure_url) {
+                return data.secure_url;
+              }
             }
-          } else {
-            const errData = await response.json().catch(() => ({}));
-            console.error("Lỗi API upload:", errData?.error || response.statusText);
+          } catch (apiErr) {
+            console.warn("Lỗi gọi /api/upload trong uploadBase64ToCloudinary:", apiErr);
+          }
+
+          // 2. Dự phòng trực tiếp lên Cloudinary nếu Server API không khả dụng
+          try {
+            const fd = new FormData();
+            fd.append('file', compressed);
+            fd.append('upload_preset', 'datathanhtra2026');
+            fd.append('folder', 'thanhtrabds');
+
+            const directRes = await fetch('https://api.cloudinary.com/v1_1/xkenwzvh/image/upload', {
+              method: 'POST',
+              body: fd
+            });
+            const cType = directRes.headers.get('content-type') || '';
+            if (directRes.ok && cType.includes('application/json')) {
+              const dData = await directRes.json();
+              if (dData.secure_url || dData.url) {
+                return dData.secure_url || dData.url;
+              }
+            }
+          } catch (directErr) {
+            console.warn("Lỗi dự phòng Cloudinary trực tiếp trong uploadBase64ToCloudinary:", directErr);
           }
         } catch (err) {
           console.error("Lỗi uploadBase64ToCloudinary:", err);
         }
-        return null;
+        return base64Str;
+      }
+
+      // ===== CHỐNG TRÙNG TIN ĐĂNG =====
+      let isSavingProperty = false;
+
+      function findDuplicateProperties(c, excludeId) {
+        const cWard = normVN(c.ward);
+        const cStreet = normVN(c.street);
+        const cHouse = normalizeHouseNumber(c.houseNumber);
+        if (!cStreet || !cWard) return [];
+
+        const cArea = parseFloat(c.area) || 0;
+        const cPrice = parseFloat(c.price) || 0;
+        const cImages = getPropertyImages(c);
+        const cKeywords = getTitleKeywords(c.title);
+        const cLvt = (c.loaiViTri || c.loai_vi_tri || '').trim().toLowerCase();
+        const cFloors = parseInt(c.floors) || 0;
+        const cBedrooms = parseInt(c.bedrooms) || 0;
+
+        const ignoredSet = getIgnoredDuplicatePairs();
+        const results = [];
+
+        propertyData.forEach(p => {
+          if (excludeId && String(p.id).trim() === String(excludeId).trim()) return;
+          if (c.id && isDuplicatePairIgnored(c.id, p.id, ignoredSet)) return;
+
+          // Điều kiện cần
+          if (normVN(p.ward) !== cWard) return;
+          if (normVN(p.street) !== cStreet) return;
+
+          const pHouse = normalizeHouseNumber(p.houseNumber || p.house_number);
+          if (cHouse && pHouse && cHouse !== pHouse) return;
+
+          const pArea = parseFloat(p.area) || 0;
+          const areaDiff = Math.abs(pArea - cArea);
+          if (areaDiff > 2) return;
+
+          // Chấm điểm
+          let score = 0;
+          const reasons = [];
+
+          if (cHouse && pHouse && cHouse === pHouse) {
+            score += 5;
+            reasons.push(`cùng số nhà (${c.houseNumber})`);
+          }
+
+          const pImages = getPropertyImages(p);
+          let hasCommon = false;
+          for (const id of cImages) {
+            if (pImages.has(id)) { hasCommon = true; break; }
+          }
+          if (hasCommon) {
+            score += 5;
+            reasons.push('chung ít nhất 1 ảnh');
+          }
+
+          if (areaDiff <= 1) {
+            score += 2;
+            reasons.push(areaDiff === 0 ? 'cùng diện tích' : `diện tích lệch ${areaDiff}m²`);
+          }
+
+          const pPrice = parseFloat(p.price) || 0;
+          if (cPrice > 0 && pPrice > 0) {
+            const maxP = Math.max(cPrice, pPrice);
+            const pct = Math.round((Math.abs(cPrice - pPrice) / maxP) * 100);
+            if (pct <= 10) {
+              score += 2;
+              reasons.push(`giá lệch ${pct}%`);
+            }
+          }
+
+          const pKeywords = getTitleKeywords(p.title);
+          const sim = jaccardSimilarity(cKeywords, pKeywords);
+          if (sim >= 0.6) {
+            score += 2;
+            reasons.push(`tiêu đề giống ${Math.round(sim * 100)}%`);
+          }
+
+          const pLvt = (p.loaiViTri || p.loai_vi_tri || '').trim().toLowerCase();
+          if (cLvt && pLvt && cLvt === pLvt) {
+            score += 1;
+            reasons.push('cùng loại vị trí');
+          }
+
+          const pFloors = parseInt(p.floors) || 0;
+          const pBedrooms = parseInt(p.bedrooms) || 0;
+          if (cFloors > 0 && pFloors > 0 && cBedrooms > 0 && pBedrooms > 0 &&
+              cFloors === pFloors && cBedrooms === pBedrooms) {
+            score += 1;
+            reasons.push('cùng số tầng & PN');
+          }
+
+          if (score >= 4) {
+            const level = score >= 6 ? 'certain' : 'suspect';
+            results.push(Object.assign({}, p, {
+              property: p,
+              score,
+              level,
+              confidence: level === 'certain' ? 'high' : 'medium',
+              reasons
+            }));
+          }
+        });
+
+        results.sort((a, b) => b.score - a.score);
+        return results;
       }
 
       async function saveAdminProperty(e) {
+        if (e) e.preventDefault();
+        if (isSavingProperty) return;
+
+        const idVal = formPropId ? formPropId.value : "";
+
+        if (!idVal) {
+          const candidate = {
+            houseNumber: document.getElementById('ap_hn_fld').value.trim(),
+            street: document.getElementById('ap_st_fld').value.trim(),
+            ward: document.getElementById('ap_wd_fld').value,
+            area: parseInt(document.getElementById('formArea').value) || 0,
+            price: parseFloat(document.getElementById('formPrice').value) || 0
+          };
+          const dups = findDuplicateProperties(candidate, null);
+          if (dups.length > 0) {
+            const list = dups.slice(0, 3)
+              .map(p => `• #${p.id} – ${p.title} (${p.area}m², ${p.price} Tỷ${p.isSold ? ', ĐÃ BÁN' : ''})`)
+              .join('\n');
+            const ok = confirm(
+              `⚠️ Có thể trùng với ${dups.length} tin đã đăng:\n\n${list}\n\nBấm OK để VẪN ĐĂNG MỚI, Cancel để quay lại kiểm tra.`
+            );
+            if (!ok) return;
+          }
+        }
+
+        isSavingProperty = true;
+        try {
+          await _saveAdminPropertyCore(null);
+        } finally {
+          isSavingProperty = false;
+        }
+      }
+
+      async function _saveAdminPropertyCore(e) {
         if (e) e.preventDefault();
         
         const idVal = formPropId ? formPropId.value : "";
@@ -6537,6 +7717,7 @@ Nguyên tắc trả lời:
         }
 
         savePropertyDataToStorage();
+        debouncedBuildDuplicateIndex();
         renderAdminTable();
         applyFilters();
 
@@ -7315,6 +8496,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                 
                 // Lưu dự phòng cục bộ
                 savePropertyDataToStorage();
+                buildDuplicateIndex();
                 
                 // Tự động quét và dọn sạch dữ liệu ảnh cũ dạng base64 nếu có
                 autoMigrateBase64Properties();
@@ -7420,6 +8602,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
 
         propertyData = propertyData.filter(p => String(p.id).trim() !== String(id).trim());
         savePropertyDataToStorage();
+        buildDuplicateIndex();
         renderAdminTable();
         applyFilters();
         
@@ -7914,22 +9097,63 @@ DỮ LIỆU THÔ: "${textToParse}"`;
               throw new Error("Không thể chuyển đổi ảnh thành chuỗi Base64");
             }
 
-            const uploadResponse = await fetch('/api/upload', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ image: base64String })
-            });
+            let uploadedUrl = null;
 
-            if (uploadResponse.ok) {
-              const uData = await uploadResponse.json();
-              if (uData.success && uData.secure_url) {
-                uploadedUrlsList.push(udataUrlFilter(uData.secure_url));
+            // 1. Thử tải qua Server API Route (/api/upload)
+            try {
+              const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: base64String })
+              });
+
+              const cType = uploadResponse.headers.get('content-type') || '';
+              if (uploadResponse.ok && cType.includes('application/json')) {
+                const uData = await uploadResponse.json();
+                if (uData.success && uData.secure_url) {
+                  uploadedUrl = udataUrlFilter(uData.secure_url);
+                }
+              } else {
+                const errText = await uploadResponse.text().catch(() => "");
+                console.warn(`Máy chủ trả về trạng thái ${uploadResponse.status} cho ${file.name}, chuyển sang phương thức dự phòng trực tiếp.`, errText.substring(0, 100));
               }
+            } catch (serverErr) {
+              console.warn(`Lỗi kết nối /api/upload cho ${file.name}, kích hoạt dự phòng:`, serverErr);
+            }
+
+            // 2. Phương thức dự phòng: Tải trực tiếp lên Cloudinary Client-side
+            if (!uploadedUrl) {
+              try {
+                const fd = new FormData();
+                fd.append('file', base64String);
+                fd.append('upload_preset', 'datathanhtra2026');
+                fd.append('folder', 'thanhtrabds');
+
+                const directRes = await fetch('https://api.cloudinary.com/v1_1/xkenwzvh/image/upload', {
+                  method: 'POST',
+                  body: fd
+                });
+
+                const cType = directRes.headers.get('content-type') || '';
+                if (directRes.ok && cType.includes('application/json')) {
+                  const dData = await directRes.json();
+                  if (dData.secure_url || dData.url) {
+                    uploadedUrl = udataUrlFilter(dData.secure_url || dData.url);
+                  }
+                }
+              } catch (directErr) {
+                console.warn(`Lỗi dự phòng Cloudinary trực tiếp cho ${file.name}:`, directErr);
+              }
+            }
+
+            if (uploadedUrl) {
+              uploadedUrlsList.push(uploadedUrl);
             } else {
-              const errorText = await uploadResponse.text();
-              console.error(`Không thể tải ảnh nhanh: ${file.name}`, errorText);
+              // 3. Fallback an toàn: giữ lại chuỗi ảnh base64 để người dùng không bị mất ảnh
+              console.warn(`Giữ lại chuỗi Base64 cục bộ cho ảnh: ${file.name}`);
+              uploadedUrlsList.push(base64String);
             }
           } catch (uploadError) {
             console.error(`Không thể tải ảnh nhanh: ${file.name}`, uploadError);
@@ -8092,6 +9316,7 @@ DỮ LIỆU THÔ: "${textToParse}"`;
       window.generateAIDescription = generateAIDescription;
       window.analyzeRawDataAI = analyzeRawDataAI;
       window.saveAdminProperty = saveAdminProperty;
+      window._saveAdminPropertyCore = _saveAdminPropertyCore;
       window.deleteAdminProperty = deleteAdminProperty;
       window.openProductModal = openProductModal;
       window.closeProductModal = closeProductModal;
@@ -8214,6 +9439,7 @@ DỮ LIỆU THÔ: "${textToParse}"`;
         renderProducts(currentFilteredProducts, false);
       });
       setupThemeToggle();
+      setupDuplicateCheckListeners();
       checkAdminSession();
       initSupabaseState();
       checkUrlParams();

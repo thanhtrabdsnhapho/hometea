@@ -840,6 +840,43 @@
       </div>
     </div>
 
+    <!-- MODAL CẢNH BÁO & SO SÁNH TRÙNG TIN ĐĂNG BẤT ĐỘNG SẢN (DUPLICATE CONFIRM & COMPARISON MODAL) -->
+    <div id="duplicateConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(8px); z-index: 10001; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;">
+      <div style="background: var(--card-bg); border-radius: 20px; width: 95%; max-width: 720px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); border: 1.5px solid #f59e0b; transform: scale(0.92); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: auto; overflow: hidden;">
+        <!-- Header modal -->
+        <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.03)); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; background: #fef3c7; border: 2px solid #fde68a; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 22px;">
+              ⚠️
+            </div>
+            <div>
+              <h3 id="dupModalHeaderTitle" style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0;">Cảnh Báo: Phát Hiện Trùng Tin Đăng BĐS!</h3>
+              <p id="dupModalHeaderSub" style="font-size: 13px; color: var(--text-muted); margin: 3px 0 0;">Hệ thống phát hiện thông tin bạn vừa nhập có dấu hiệu trùng khớp với tin đã có.</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeDuplicateConfirmModal()" style="background: transparent; border: none; font-size: 22px; color: var(--text-muted); cursor: pointer; padding: 4px; line-height: 1;">✕</button>
+        </div>
+
+        <!-- Body modal (scrollable) -->
+        <div id="duplicateModalBody" style="padding: 20px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;">
+          <!-- Content dynamically rendered via JS -->
+        </div>
+
+        <!-- Footer modal -->
+        <div id="duplicateModalFooter" style="padding: 16px 24px; border-top: 1px solid var(--border); background: var(--bg-secondary); display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+          <button type="button" onclick="closeDuplicateConfirmModal()" style="padding: 10px 18px; background: var(--card-bg); color: var(--text-dark); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+            Quay lại kiểm tra
+          </button>
+          <button type="button" id="btnEditExistingDuplicate" onclick="openExistingDuplicateFromModal()" style="display: none; padding: 10px 18px; background: #0284c7; color: #ffffff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+            ✏️ Mở tin đã có để sửa
+          </button>
+          <button type="button" id="btnForceSaveDuplicate" onclick="forceSavePropertyFromModal()" style="padding: 10px 18px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: #ffffff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow);">
+            ✓ Vẫn tiếp tục lưu (Xác nhận căn khác)
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- KHU VỰC TRANG QUẢN TRỊ (ADMIN PAGE WRAPPER) -->
     <div id="adminPageWrapper" style="display: none; padding-top: 110px; min-height: 80vh; max-width: 1200px; margin: 0 auto; padding-left: 24px; padding-right: 24px; padding-bottom: 80px;">
       
@@ -1081,6 +1118,7 @@
                   <option value="price_desc">Giá giảm dần</option>
                   <option value="area_desc">Diện tích lớn nhất</option>
                   <option value="discount">Có tag giảm giá</option>
+                  <option value="duplicates">⚠️ Nghi trùng lặp</option>
                 </select>
               </div>
             </div>
@@ -1089,14 +1127,21 @@
             </div>
           </div>
 
-          <!-- Hai tab con: Đang bán & Đã bán -->
-          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <!-- Ba tab con: Đang bán & Đã bán & Nghi trùng lặp -->
+          <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
             <button id="adminSubTab_selling" onclick="switchAdminSubTab('selling')" style="border: none; padding: 8px 16px; font-weight: 700; font-size: 13.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--accent); color: #ffffff; display: flex; align-items: center; gap: 6px;">
               🟢 Đang bán (<span id="adminSellingCount">0</span>)
             </button>
-            <button id="adminSubTab_sold" onclick="switchAdminSubTab('sold')" style="border: none; padding: 8px 16px; font-weight: 700; font-size: 13.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--bg-light); color: var(--text-dark); display: flex; align-items: center; gap: 6px; border: 1px solid var(--border);">
+            <button id="adminSubTab_sold" onclick="switchAdminSubTab('sold')" style="border: 1px solid var(--border); padding: 8px 16px; font-weight: 700; font-size: 13.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--bg-light); color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
               🔴 Đã bán (<span id="adminSoldCount">0</span>)
             </button>
+            <button id="adminSubTab_duplicate" onclick="switchAdminSubTab('duplicate')" style="border: 1px solid var(--border); padding: 8px 16px; font-weight: 700; font-size: 13.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--bg-light); color: var(--text-dark); display: flex; align-items: center; gap: 6px;" title="Danh sách các tin đăng có dấu hiệu trùng lặp cần rà soát">
+              ⚠️ Nghi trùng lặp (<span id="adminDuplicateCount">0</span>)
+            </button>
+            <label id="lblShowSuspectDuplicates" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-dark); cursor: pointer; padding: 7px 12px; background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; user-select: none; margin-left: 4px;" title="Hiển thị thêm các tin có điểm trùng nghi ngờ (4 - 5 điểm)">
+              <input type="checkbox" id="chkShowSuspectDuplicates" onchange="toggleShowSuspectDuplicates(this.checked)" style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--accent);">
+              Hiện cả nghi ngờ
+            </label>
           </div>
 
           <div class="admin-table-container" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; box-shadow: var(--shadow); margin-bottom: 24px;">
@@ -1388,6 +1433,23 @@
             <!-- Hidden field for ID -->
             <input type="hidden" id="formPropId">
             <input type="hidden" id="formAddress">
+
+            <!-- CẢNH BÁO TRÙNG TIN ĐĂNG THỜI GIAN THỰC (REAL-TIME DUPLICATE WARNING BANNER) -->
+            <div id="propDuplicateNoticeBanner" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 24px; line-height: 1;">⚠️</span>
+                  <div>
+                    <h5 style="margin: 0; font-size: 15px; font-weight: 800; color: #92400e;">CẢNH BÁO: Phát hiện tin đăng có dấu hiệu trùng lặp</h5>
+                    <p id="propDuplicateNoticeSub" style="margin: 2px 0 0; font-size: 12.5px; color: #b45309;">Hệ thống phát hiện các thông số bạn đang nhập giống với bài đăng đã có trong kho.</p>
+                  </div>
+                </div>
+                <button type="button" onclick="dismissDuplicateNoticeBanner(event)" style="background: transparent; border: none; font-size: 18px; color: #92400e; cursor: pointer; padding: 2px 6px; line-height: 1;" title="Tạm ẩn cảnh báo">✕</button>
+              </div>
+              <div id="propDuplicateNoticeList" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;">
+                <!-- Danh sách tin trùng được nạp động từ JS -->
+              </div>
+            </div>
 
             <!-- PHẦN 1: VỊ TRÍ -->
             <div style="font-size: 14.5px; font-weight: 700; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid rgba(249,115,22,0.1); padding-bottom: 8px; text-transform: uppercase;">
