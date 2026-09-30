@@ -5112,6 +5112,7 @@ Nguyên tắc trả lời:
 
       function extractImageId(url) {
         if (!url || typeof url !== 'string') return '';
+        if (url.startsWith('data:')) return '';
         const cleanUrl = url.split('?')[0].trim();
         if (cleanUrl.includes('images.unsplash.com')) return '';
         const match = cleanUrl.match(/\/upload\/(?:[^\/]+\/)*(?:v\d+\/)?([^\.\/]+(?:\/[^\.\/]+)*)(?:\.[a-zA-Z0-9]+)?$/);
@@ -5208,30 +5209,51 @@ Nguyên tắc trả lời:
       window.resolveDuplicateKeepFirst = resolveDuplicateKeepFirst;
 
       function getPairDuplicateInfo(a, b) {
+        // Điều kiện cần 1: Cùng phường và cùng đường (đã normVN)
+        const wardA = normVN(a.ward);
+        const wardB = normVN(b.ward);
+        const streetA = normVN(a.street);
+        const streetB = normVN(b.street);
+        if (!wardA || !wardB || wardA !== wardB || !streetA || !streetB || streetA !== streetB) {
+          return { score: 0, level: 'none', reasons: [] };
+        }
+
         const hnA = normalizeHouseNumber(a.houseNumber || a.house_number);
         const hnB = normalizeHouseNumber(b.houseNumber || b.house_number);
+
+        // Điều kiện cần 2: Nếu cả hai tin đều có số nhà mà KHÁC nhau: loại
+        if (hnA && hnB && hnA !== hnB) {
+          return { score: 0, level: 'none', reasons: [] };
+        }
 
         const areaA = parseFloat(a.area) || 0;
         const areaB = parseFloat(b.area) || 0;
         const areaDiff = Math.abs(areaA - areaB);
 
+        // Điều kiện cần 3: Diện tích lệch <= 2m2
+        if (areaDiff > 2) {
+          return { score: 0, level: 'none', reasons: [] };
+        }
+
         let score = 0;
         const reasons = [];
+        let hasSameHouseNumber = false;
+        let hasCommonImg = false;
 
         // +5 Cùng số nhà (cả hai đều có)
         if (hnA && hnB && hnA === hnB) {
           score += 5;
+          hasSameHouseNumber = true;
           reasons.push(`cùng số nhà (${a.houseNumber || a.house_number})`);
         }
 
         // +5 Chung ảnh
         const imgsA = getPropertyImages(a);
         const imgsB = getPropertyImages(b);
-        let hasCommon = false;
         for (const id of imgsA) {
-          if (imgsB.has(id)) { hasCommon = true; break; }
+          if (imgsB.has(id)) { hasCommonImg = true; break; }
         }
-        if (hasCommon) {
+        if (hasCommonImg) {
           score += 5;
           reasons.push("chung ít nhất 1 ảnh");
         }
@@ -5281,12 +5303,19 @@ Nguyên tắc trả lời:
           reasons.push("cùng số tầng & PN");
         }
 
-        const level = score >= 6 ? 'certain' : (score >= 4 ? 'suspect' : 'none');
-        return { score, level, reasons };
+        // Mức 'certain' chỉ áp dụng khi có (cùng số nhà, cả hai đều có) HOẶC (chung ít nhất 1 ảnh).
+        // Nếu không có cả hai tín hiệu này thì dù điểm >= 6 vẫn chỉ xếp 'suspect'.
+        let level = 'none';
+        if (score >= 4) {
+          const hasStrongSignal = hasSameHouseNumber || hasCommonImg;
+          level = (score >= 6 && hasStrongSignal) ? 'certain' : 'suspect';
+        }
+        return { score, level, reasons, hasSameHouseNumber, hasCommonImg };
       }
 
       // Quản lý trạng thái và chỉ mục trùng lặp
       let currentDuplicateMap = new Map();
+      let duplicateIndexBuilt = false;
       let duplicateIndexDebounceTimer = null;
       let showSuspectDuplicates = false;
 
@@ -5313,6 +5342,7 @@ Nguyên tắc trả lời:
 
       // Gom nhóm theo khóa ward|street rồi tính chỉ mục trùng lặp bằng CHẤM ĐIỂM
       function buildDuplicateIndex() {
+        duplicateIndexBuilt = true;
         if (!Array.isArray(propertyData) || propertyData.length === 0) {
           currentDuplicateMap = new Map();
           updateDuplicateTabCounts();
@@ -5385,8 +5415,10 @@ Nguyên tắc trả lời:
               const reasons = [];
 
               // +5: Cùng số nhà (cả hai đều có)
+              let hasSameHouseNumber = false;
               if (a.houseNumberNorm && b.houseNumberNorm && a.houseNumberNorm === b.houseNumberNorm) {
                 score += 5;
+                hasSameHouseNumber = true;
                 reasons.push(`cùng số nhà (${a.raw.houseNumber || a.raw.house_number})`);
               }
 
@@ -5440,11 +5472,12 @@ Nguyên tắc trả lời:
               }
 
               // 3. HAI MỨC
-              // Trùng chắc chắn: điểm >= 6
-              // Nghi ngờ: điểm 4 đến 5
+              // Trùng chắc chắn: điểm >= 6 VÀ có (cùng số nhà HOẶC chung ít nhất 1 ảnh)
+              // Nghi ngờ: điểm 4 đến 5, hoặc điểm >= 6 nhưng không có cả 2 tín hiệu trên
               // Dưới 4: không báo
               if (score >= 4) {
-                const level = score >= 6 ? 'certain' : 'suspect';
+                const hasStrongSignal = hasSameHouseNumber || hasCommonImg;
+                const level = (score >= 6 && hasStrongSignal) ? 'certain' : 'suspect';
 
                 if (!dupMap.has(a.id)) {
                   dupMap.set(a.id, { matches: [], reasons: [], level: 'suspect', maxScore: 0 });
@@ -5476,6 +5509,7 @@ Nguyên tắc trả lời:
       window.buildDuplicateIndex = buildDuplicateIndex;
 
       function debouncedBuildDuplicateIndex() {
+        duplicateIndexBuilt = false;
         clearTimeout(duplicateIndexDebounceTimer);
         duplicateIndexDebounceTimer = setTimeout(() => {
           buildDuplicateIndex();
@@ -5868,7 +5902,7 @@ Nguyên tắc trả lời:
         if (!modal || !body) return;
 
         const pairInfo = getPairDuplicateInfo(p1, p2);
-        const isCertain = pairInfo.score >= 6;
+        const isCertain = pairInfo.level === 'certain';
         const levelBadgeColor = isCertain ? '#dc2626' : '#d97706';
         const levelBg = isCertain ? '#fef2f2' : '#fffbeb';
         const levelBorder = isCertain ? '#fca5a5' : '#fde68a';
@@ -5891,7 +5925,7 @@ Nguyên tắc trả lời:
                 </span>
               </div>
               <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">
-                ${isCertain ? 'Mức cao (≥ 6 điểm)' : 'Mức nghi ngờ (4 - 5 điểm)'}
+                ${isCertain ? 'Mức chắc chắn (≥ 6 điểm & có số nhà/ảnh chung)' : 'Mức nghi ngờ'}
               </span>
             </div>
             <div style="font-size: 13.5px; color: ${isCertain ? '#991b1b' : '#92400e'}; margin-top: 6px; line-height: 1.5;">
@@ -6002,7 +6036,7 @@ Nguyên tắc trả lời:
         adminTableBody.innerHTML = '';
 
         // Hiệu năng cao: Sử dụng currentDuplicateMap đã tính sẵn từ buildDuplicateIndex(), không tính lại O(N^2) trong render
-        if (!currentDuplicateMap || (currentDuplicateMap.size === 0 && propertyData.length > 0)) {
+        if (!duplicateIndexBuilt) {
           buildDuplicateIndex();
         }
 
@@ -7113,9 +7147,9 @@ Nguyên tắc trả lời:
               uploadedImagesList.push(uploadedUrl);
               successCount++;
             } else {
-              // Lưu giữ ảnh base64 nén an toàn để không mất hình ảnh của người dùng
-              uploadedImagesList.push(base64String);
-              successCount++;
+              // BỎ tầng dự phòng lưu chuỗi base64: cả server API và Cloudinary trực tiếp đều thất bại
+              failCount++;
+              console.error("Tải ảnh thất bại qua cả Server API và Cloudinary trực tiếp.");
             }
           } catch (err) {
             console.error("Lỗi xử lý upload file:", err);
@@ -7140,7 +7174,7 @@ Nguyên tắc trả lời:
               showToast(`Đã tối ưu & tải lên Cloudinary thành công ${successCount} hình ảnh!`, true);
             }
             if (failCount > 0) {
-              alert(`Có ${failCount} hình ảnh tải lên thất bại. Vui lòng đảm bảo bạn đã điền các biến môi trường Cloudinary thích hợp ở server.`);
+              alert(`Có ${failCount} hình ảnh tải lên thất bại qua cả Server API và Cloudinary trực tiếp. Hệ thống không lưu chuỗi Base64. Form được giữ nguyên, vui lòng kiểm tra kết nối mạng và thử lại!`);
             }
           }
         }
@@ -7280,26 +7314,14 @@ Nguyên tắc trả lời:
         } catch (err) {
           console.error("Lỗi uploadBase64ToCloudinary:", err);
         }
-        return base64Str;
+        return null;
       }
 
       // ===== CHỐNG TRÙNG TIN ĐĂNG =====
       let isSavingProperty = false;
 
       function findDuplicateProperties(c, excludeId) {
-        const cWard = normVN(c.ward);
-        const cStreet = normVN(c.street);
-        const cHouse = normalizeHouseNumber(c.houseNumber);
-        if (!cStreet || !cWard) return [];
-
-        const cArea = parseFloat(c.area) || 0;
-        const cPrice = parseFloat(c.price) || 0;
-        const cImages = getPropertyImages(c);
-        const cKeywords = getTitleKeywords(c.title);
-        const cLvt = (c.loaiViTri || c.loai_vi_tri || '').trim().toLowerCase();
-        const cFloors = parseInt(c.floors) || 0;
-        const cBedrooms = parseInt(c.bedrooms) || 0;
-
+        if (!c || !c.ward || !c.street) return [];
         const ignoredSet = getIgnoredDuplicatePairs();
         const results = [];
 
@@ -7307,80 +7329,14 @@ Nguyên tắc trả lời:
           if (excludeId && String(p.id).trim() === String(excludeId).trim()) return;
           if (c.id && isDuplicatePairIgnored(c.id, p.id, ignoredSet)) return;
 
-          // Điều kiện cần
-          if (normVN(p.ward) !== cWard) return;
-          if (normVN(p.street) !== cStreet) return;
-
-          const pHouse = normalizeHouseNumber(p.houseNumber || p.house_number);
-          if (cHouse && pHouse && cHouse !== pHouse) return;
-
-          const pArea = parseFloat(p.area) || 0;
-          const areaDiff = Math.abs(pArea - cArea);
-          if (areaDiff > 2) return;
-
-          // Chấm điểm
-          let score = 0;
-          const reasons = [];
-
-          if (cHouse && pHouse && cHouse === pHouse) {
-            score += 5;
-            reasons.push(`cùng số nhà (${c.houseNumber})`);
-          }
-
-          const pImages = getPropertyImages(p);
-          let hasCommon = false;
-          for (const id of cImages) {
-            if (pImages.has(id)) { hasCommon = true; break; }
-          }
-          if (hasCommon) {
-            score += 5;
-            reasons.push('chung ít nhất 1 ảnh');
-          }
-
-          if (areaDiff <= 1) {
-            score += 2;
-            reasons.push(areaDiff === 0 ? 'cùng diện tích' : `diện tích lệch ${areaDiff}m²`);
-          }
-
-          const pPrice = parseFloat(p.price) || 0;
-          if (cPrice > 0 && pPrice > 0) {
-            const maxP = Math.max(cPrice, pPrice);
-            const pct = Math.round((Math.abs(cPrice - pPrice) / maxP) * 100);
-            if (pct <= 10) {
-              score += 2;
-              reasons.push(`giá lệch ${pct}%`);
-            }
-          }
-
-          const pKeywords = getTitleKeywords(p.title);
-          const sim = jaccardSimilarity(cKeywords, pKeywords);
-          if (sim >= 0.6) {
-            score += 2;
-            reasons.push(`tiêu đề giống ${Math.round(sim * 100)}%`);
-          }
-
-          const pLvt = (p.loaiViTri || p.loai_vi_tri || '').trim().toLowerCase();
-          if (cLvt && pLvt && cLvt === pLvt) {
-            score += 1;
-            reasons.push('cùng loại vị trí');
-          }
-
-          const pFloors = parseInt(p.floors) || 0;
-          const pBedrooms = parseInt(p.bedrooms) || 0;
-          if (cFloors > 0 && pFloors > 0 && cBedrooms > 0 && pBedrooms > 0 &&
-              cFloors === pFloors && cBedrooms === pBedrooms) {
-            score += 1;
-            reasons.push('cùng số tầng & PN');
-          }
-
-          if (score >= 4) {
-            const level = score >= 6 ? 'certain' : 'suspect';
+          const pairInfo = getPairDuplicateInfo(c, p);
+          if (pairInfo.score >= 4) {
             results.push(Object.assign({}, p, {
               property: p,
-              score,
-              level,
-              confidence: level === 'certain' ? 'high' : 'medium',
-              reasons
+              score: pairInfo.score,
+              level: pairInfo.level,
+              confidence: pairInfo.level === 'certain' ? 'high' : 'medium',
+              reasons: pairInfo.reasons
             }));
           }
         });
@@ -7395,21 +7351,51 @@ Nguyên tắc trả lời:
 
         const idVal = formPropId ? formPropId.value : "";
 
+        // Kiểm tra trùng lặp lúc đăng tin mới bằng getPairDuplicateInfo với tin đang nhập làm ứng viên
         if (!idVal) {
+          const formImgEl = document.getElementById('formImg');
+          const formImgVal = formImgEl ? formImgEl.value.trim() : "";
           const candidate = {
-            houseNumber: document.getElementById('ap_hn_fld').value.trim(),
-            street: document.getElementById('ap_st_fld').value.trim(),
-            ward: document.getElementById('ap_wd_fld').value,
-            area: parseInt(document.getElementById('formArea').value) || 0,
-            price: parseFloat(document.getElementById('formPrice').value) || 0
+            title: document.getElementById('formTitle')?.value?.trim() || "",
+            houseNumber: document.getElementById('ap_hn_fld')?.value?.trim() || "",
+            street: document.getElementById('ap_st_fld')?.value?.trim() || "",
+            ward: document.getElementById('ap_wd_fld')?.value || "",
+            area: parseFloat(document.getElementById('formArea')?.value) || 0,
+            price: parseFloat(document.getElementById('formPrice')?.value) || 0,
+            img: formImgVal,
+            imgList: (typeof uploadedImagesList !== 'undefined' && uploadedImagesList.length > 0) ? uploadedImagesList : [formImgVal],
+            loaiViTri: document.getElementById('formLoaiViTri')?.value || "",
+            floors: parseInt(document.getElementById('formFloors')?.value) || 0,
+            bedrooms: parseInt(document.getElementById('formBedrooms')?.value) || 0
           };
-          const dups = findDuplicateProperties(candidate, null);
+
+          const ignoredSet = getIgnoredDuplicatePairs();
+          const dups = [];
+          for (const p of propertyData) {
+            if (isDuplicatePairIgnored('new', p.id, ignoredSet)) continue;
+            const pairInfo = getPairDuplicateInfo(candidate, p);
+            if (pairInfo.score >= 4) {
+              dups.push({
+                property: p,
+                id: p.id,
+                title: p.title,
+                area: p.area,
+                price: p.price,
+                isSold: p.isSold,
+                score: pairInfo.score,
+                level: pairInfo.level,
+                reasons: pairInfo.reasons
+              });
+            }
+          }
+          dups.sort((a, b) => b.score - a.score);
+
           if (dups.length > 0) {
             const list = dups.slice(0, 3)
-              .map(p => `• #${p.id} – ${p.title} (${p.area}m², ${p.price} Tỷ${p.isSold ? ', ĐÃ BÁN' : ''})`)
+              .map(p => `• #${p.id} [${p.level === 'certain' ? '🔴 Trùng chắc chắn' : '🟡 Nghi ngờ'}] – ${p.title} (${p.area}m², ${p.price} Tỷ${p.isSold ? ', ĐÃ BÁN' : ''}) – Lý do: ${p.reasons.join(', ')}`)
               .join('\n');
             const ok = confirm(
-              `⚠️ Có thể trùng với ${dups.length} tin đã đăng:\n\n${list}\n\nBấm OK để VẪN ĐĂNG MỚI, Cancel để quay lại kiểm tra.`
+              `⚠️ Phát hiện ${dups.length} tin đăng có thể trùng lặp theo hệ thống chấm điểm:\n\n${list}\n\nBấm OK để VẪN ĐĂNG MỚI, Cancel để quay lại kiểm tra.`
             );
             if (!ok) return;
           }
@@ -7492,10 +7478,11 @@ Nguyên tắc trả lời:
           for (let img of imgListVal) {
             if (img && typeof img === 'string' && img.startsWith('data:image/') && img.includes(';base64,')) {
               const secureUrl = await uploadBase64ToCloudinary(img);
-              if (secureUrl) {
+              if (secureUrl && !secureUrl.startsWith('data:')) {
                 cleanedImgList.push(secureUrl);
               } else {
-                cleanedImgList.push("https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80");
+                alert("Tải hình ảnh lên máy chủ / Cloudinary thất bại. Hệ thống không lưu tin để tránh lưu trữ chuỗi ảnh Base64. Toàn bộ form đã được giữ nguyên để bạn thử lại!");
+                return;
               }
             } else {
               cleanedImgList.push(img);
