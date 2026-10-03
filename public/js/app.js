@@ -45,7 +45,7 @@
       }
 
       // Hàm hiện thông báo xác nhận tự chế sang trọng, tương thích hoàn hảo trong iframe sandbox
-      function showCustomConfirm(title, message) {
+      function showCustomConfirm(title, message, proceedText = "Xác nhận", proceedColor = "#16a34a", icon = "⚠️", iconBg = "rgba(249, 115, 22, 0.1)", iconBorder = "#fee2e2") {
         return new Promise((resolve) => {
           const modal = document.getElementById('customConfirmModal');
           if (!modal) {
@@ -57,9 +57,21 @@
           const msgEl = document.getElementById('customConfirmMessage');
           const btnCancel = document.getElementById('btnConfirmCancel');
           const btnProceed = document.getElementById('btnConfirmProceed');
+          const iconEl = document.getElementById('customConfirmIcon');
+          const iconWrap = document.getElementById('customConfirmIconWrap');
           
           if (titleEl) titleEl.textContent = title;
           if (msgEl) msgEl.textContent = message;
+          if (btnProceed) {
+            btnProceed.textContent = proceedText;
+            btnProceed.style.background = proceedColor;
+            btnProceed.style.boxShadow = `0 4px 6px -1px ${proceedColor}40`;
+          }
+          if (iconEl) iconEl.textContent = icon;
+          if (iconWrap) {
+            iconWrap.style.background = iconBg;
+            iconWrap.style.borderColor = iconBorder;
+          }
           
           console.log("Opening custom confirm modal...");
           modal.style.display = 'flex';
@@ -113,9 +125,25 @@
 
       // Khai báo các biến trạng thái toàn cục trước để tránh lỗi TDZ (Temporal Dead Zone)
       let isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
+      if (isAdminLoggedIn) {
+        try {
+          document.cookie = "admin_logged_in=true; path=/; max-age=" + (7 * 86400) + "; SameSite=Lax";
+        } catch (e) {}
+      }
       const cardImageIndexes = {};
       let currentFilteredProducts = [];
       let displayedProductLimit = 12;
+
+      function getPropertyEffectiveTime(p) {
+        if (!p) return 0;
+        const tUp = p.updated_at || p.updatedAt ? new Date(p.updated_at || p.updatedAt).getTime() : 0;
+        const tCr = p.created_at || p.createdAt ? new Date(p.created_at || p.createdAt).getTime() : 0;
+        const maxTime = Math.max(isNaN(tUp) ? 0 : tUp, isNaN(tCr) ? 0 : tCr);
+        if (maxTime > 0) return maxTime;
+        const numId = parseInt(p.id) || 0;
+        return numId > 1000000000 ? numId * 1000 : numId;
+      }
+      window.getPropertyEffectiveTime = getPropertyEffectiveTime;
 
       function formatFloors(floors) {
         if (floors === undefined || floors === null) return "Đất trống";
@@ -193,7 +221,7 @@
       const initialDefaultData = [];
 
       // Cơ chế tự động giải phóng cache khi hệ thống cập nhật phiên bản mới
-      const APP_CACHE_VERSION = "v3.0";
+      const APP_CACHE_VERSION = "v3.1";
       const savedVersion = localStorage.getItem("app_cache_version");
       if (savedVersion !== APP_CACHE_VERSION) {
         localStorage.removeItem("property_data"); // Xóa cache dữ liệu cũ để cập nhật mới sạch sẽ
@@ -211,6 +239,15 @@
           const oldId = p.id;
           p.id = Math.floor(parseInt(p.id) / 1000);
           console.log(`Đã chuẩn hóa ID lớn ${oldId} thành ID an toàn ${p.id}`);
+        }
+        if (p && !p.publish_status && !p.publishStatus) {
+          if (p.badge && /bản\s*nháp/i.test(p.badge)) {
+            p.publish_status = 'draft';
+            p.publishStatus = 'draft';
+          } else {
+            p.publish_status = 'published';
+            p.publishStatus = 'published';
+          }
         }
       });
       
@@ -688,9 +725,10 @@
           const viewsCount = p.views !== undefined ? p.views : 0;
 
           const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-          // "Mới đăng": dùng created_at thực từ Supabase
-          const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
-          const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
+          const tUp = p.updated_at ? new Date(p.updated_at).getTime() : 0;
+          const tCr = p.created_at ? new Date(p.created_at).getTime() : 0;
+          const latest = Math.max(isNaN(tUp) ? 0 : tUp, isNaN(tCr) ? 0 : tCr);
+          const isNew = (p.badge && /mới(\s*đăng)?/i.test(p.badge)) || (latest > 0 && (Date.now() - latest) <= threeDaysMs);
           const isReduced = p.isPriceReduced && 
             p.priceUpdatedAt &&
             (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
@@ -825,8 +863,9 @@
         const priceMax = filterPriceMax && filterPriceMax.value !== '' ? parseFloat(filterPriceMax.value) : null;
 
         let filtered = propertyData.filter(p => {
-          // Hide sold listings from public pages
-          if (p.isSold) {
+          // Phía người xem chỉ lấy tin có is_sold = false VÀ publish_status = 'published'
+          const isDraft = (p.publish_status === 'draft' || p.publishStatus === 'draft' || (p.badge && /bản\s*nháp/i.test(p.badge)));
+          if (p.isSold || isDraft || (p.publish_status && p.publish_status !== 'published')) {
             return false;
           }
 
@@ -877,12 +916,36 @@
           return true;
         });
 
-        // Áp dụng bộ lọc Tab hiện tại (ví dụ tab Có tag giảm giá)
+        // Sắp xếp các sản phẩm để tin mới đăng / vừa sửa luôn xuất hiện ở ĐẦU TRANG
+        filtered.sort((a, b) => {
+          const timeA = Math.max(
+            a.updated_at ? new Date(a.updated_at).getTime() : 0,
+            a.created_at ? new Date(a.created_at).getTime() : 0,
+            typeof a.id === 'number' && a.id > 1000000000 ? a.id * 1000 : 0
+          );
+          const timeB = Math.max(
+            b.updated_at ? new Date(b.updated_at).getTime() : 0,
+            b.created_at ? new Date(b.created_at).getTime() : 0,
+            typeof b.id === 'number' && b.id > 1000000000 ? b.id * 1000 : 0
+          );
+          if (timeB !== timeA) return timeB - timeA;
+          return Number(b.id) - Number(a.id);
+        });
+
+        // Áp dụng bộ lọc Tab hiện tại (ví dụ tab Có tag giảm giá hoặc Mới đăng)
         if (currentHomeTab === 'discount') {
           filtered = filtered.filter(p => {
             return p.isPriceReduced && 
               p.priceUpdatedAt &&
               (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
+          });
+        } else if (currentHomeTab === 'new') {
+          const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+          filtered = filtered.filter(p => {
+            const tUp = p.updated_at ? new Date(p.updated_at).getTime() : 0;
+            const tCr = p.created_at ? new Date(p.created_at).getTime() : 0;
+            const latest = Math.max(isNaN(tUp) ? 0 : tUp, isNaN(tCr) ? 0 : tCr);
+            return (p.badge && /mới(\s*đăng)?/i.test(p.badge)) || (latest > 0 && (Date.now() - latest) <= threeDaysMs);
           });
         }
 
@@ -955,8 +1018,8 @@
       const btnSearchSubmit = document.getElementById('btnSearchSubmit');
       if (btnSearchSubmit) btnSearchSubmit.addEventListener('click', applyFilters);
 
-      // Khởi chạy render lần đầu
-      renderProducts(propertyData);
+      // Khởi chạy render lần đầu (chỉ lấy tin đang bán và đã công khai)
+      applyFilters();
 
 
       /* ==========================================
@@ -2589,7 +2652,8 @@
       // Hệ thống hóa kho nhà phố để gửi chung làm tư liệu mồi cho trí tuệ nhân tạo (Grounding dữ liệu thật)
       function getWarehouseContext() {
         let text = "Dưới đây là danh sách giỏ hàng sản phẩm nhà đất phố đang có sẵn tại Thanh Trà BĐS TP. Thủ Đức để bạn tham khảo giới thiệu đúng chuẩn cho khách:\n";
-        propertyData.forEach(p => {
+        const activeList = propertyData.filter(p => !p.isSold && ((p.publish_status || p.publishStatus) === 'published' || (!p.publish_status && !p.publishStatus)));
+        activeList.forEach(p => {
           text += `- [Căn #${p.id}]: ${p.title}. Giá bán: ${p.priceText}, Phường: ${p.ward}, Diện tích: ${p.area}m², Số tầng: ${p.floors} tầng, Hướng: ${p.direction}. Địa chỉ: ${getPublicDisplayAddress(p)}. Mô tả ngắn: ${p.badge}.\n`;
         });
         return text;
@@ -2868,6 +2932,9 @@ Nguyên tắc trả lời:
       function onAdminLoginSuccess(message) {
         isAdminLoggedIn = true;
         sessionStorage.setItem('admin_logged_in', 'true');
+        try {
+          document.cookie = "admin_logged_in=true; path=/; max-age=" + (7 * 86400) + "; SameSite=Lax";
+        } catch (e) {}
         closeAdminLoginModal();
         switchToPage('admin');
         if (pendingAdminAction === 'create_post') {
@@ -2955,6 +3022,9 @@ Nguyên tắc trả lời:
       function handleAdminLogout() {
         isAdminLoggedIn = false;
         sessionStorage.removeItem('admin_logged_in');
+        try {
+          document.cookie = "admin_logged_in=; path=/; max-age=0;";
+        } catch (e) {}
         switchToPage('home');
         showToast("Đăng xuất quyền quản trị thành công.", true);
         if (typeof logSystemActivity === 'function') {
@@ -3200,8 +3270,8 @@ Nguyên tắc trả lời:
             }
           }
 
-          // 5. KPI BĐS Đã Bán & Doanh Số Ước Tính
-          const soldProperties = propertyData.filter(p => p.isSold);
+          // 5. KPI BĐS Đã Bán & Doanh Số Ước Tính (không tính tin nháp)
+          const soldProperties = propertyData.filter(p => p.isSold && p.publish_status !== 'draft' && p.publishStatus !== 'draft');
           const totalSoldVal = soldProperties.length;
           const estimatedRevenueVal = soldProperties.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
 
@@ -6040,22 +6110,51 @@ Nguyên tắc trả lời:
           buildDuplicateIndex();
         }
 
-        // Cập nhật số lượng trên các tab con
-        const sellingCount = propertyData.filter(p => !p.isSold).length;
-        const soldCount = propertyData.filter(p => p.isSold).length;
+        // Cập nhật số lượng trên các tab con: Bộ đếm "Đang bán", "Đã bán" không tính tin nháp
+        const isDraftProp = (p) => (p.publish_status === 'draft' || p.publishStatus === 'draft' || (p.badge && /bản\s*nháp/i.test(p.badge)));
+        const isPublishedProp = (p) => (!isDraftProp(p));
+
+        const isNewListing = (p) => {
+          const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+          const d = p.published_at ? new Date(p.published_at).getTime() : (p.created_at ? new Date(p.created_at).getTime() : 0);
+          const hasBadge = (p.badge && /mới(\s*đăng)?/i.test(p.badge));
+          return hasBadge || (d > 0 && (Date.now() - d) <= sevenDaysMs);
+        };
+
+        const isIncomplete = (p) => {
+          const hasHouseNum = Boolean(p.houseNumber || p.house_number);
+          const hasStreet = Boolean(p.street);
+          const hasPrice = (parseFloat(p.price) || 0) > 0;
+          const hasArea = (parseInt(p.area) || 0) > 0;
+          const hasWard = Boolean(p.ward);
+          return !hasHouseNum || !hasStreet || !hasPrice || !hasArea || !hasWard;
+        };
+
+        const draftCount = propertyData.filter(isDraftProp).length;
+        const sellingCount = propertyData.filter(p => !p.isSold && isPublishedProp(p)).length;
+        const newCount = propertyData.filter(p => !p.isSold && isPublishedProp(p) && isNewListing(p)).length;
+        const soldCount = propertyData.filter(p => p.isSold && isPublishedProp(p)).length;
         const duplicateCertainCount = Array.from(currentDuplicateMap.values()).filter(d => d.level === 'certain').length;
         const duplicateAllCount = currentDuplicateMap.size;
         const displayDuplicateCount = showSuspectDuplicates ? duplicateAllCount : duplicateCertainCount;
+        const incompleteCount = propertyData.filter(isIncomplete).length;
 
         const adminSellingCountEl = document.getElementById('adminSellingCount');
+        const adminNewCountEl = document.getElementById('adminNewCount');
         const adminSoldCountEl = document.getElementById('adminSoldCount');
+        const adminDraftCountEl = document.getElementById('adminDraftCount');
         const adminDuplicateCountEl = document.getElementById('adminDuplicateCount');
+        const adminIncompleteCountEl = document.getElementById('adminIncompleteCount');
+
         if (adminSellingCountEl) adminSellingCountEl.textContent = sellingCount;
+        if (adminNewCountEl) adminNewCountEl.textContent = newCount;
         if (adminSoldCountEl) adminSoldCountEl.textContent = soldCount;
+        if (adminDraftCountEl) adminDraftCountEl.textContent = draftCount;
         if (adminDuplicateCountEl) {
           adminDuplicateCountEl.textContent = displayDuplicateCount;
           adminDuplicateCountEl.title = `Chắc chắn: ${duplicateCertainCount} tin, Nghi ngờ: ${duplicateAllCount - duplicateCertainCount} tin`;
         }
+        if (adminIncompleteCountEl) adminIncompleteCountEl.textContent = incompleteCount;
 
         const chkSuspect = document.getElementById('chkShowSuspectDuplicates');
         if (chkSuspect && chkSuspect.checked !== showSuspectDuplicates) {
@@ -6073,17 +6172,23 @@ Nguyên tắc trả lời:
 
         let filtered = [...propertyData];
 
-        // 1. Filter by sub-tab: Selling vs Sold vs Duplicate
+        // 1. Filter by sub-tab: Selling vs New vs Sold vs Draft vs Duplicate vs Incomplete
         if (currentAdminSubTab === 'selling') {
-          filtered = filtered.filter(p => !p.isSold);
+          filtered = filtered.filter(p => !p.isSold && isPublishedProp(p));
+        } else if (currentAdminSubTab === 'new') {
+          filtered = filtered.filter(p => !p.isSold && isPublishedProp(p) && isNewListing(p));
         } else if (currentAdminSubTab === 'sold') {
-          filtered = filtered.filter(p => p.isSold);
+          filtered = filtered.filter(p => p.isSold && isPublishedProp(p));
+        } else if (currentAdminSubTab === 'draft') {
+          filtered = filtered.filter(p => isDraftProp(p));
         } else if (currentAdminSubTab === 'duplicate') {
           filtered = filtered.filter(p => {
             const dup = currentDuplicateMap.get(p.id);
             if (!dup) return false;
             return showSuspectDuplicates ? (dup.level === 'certain' || dup.level === 'suspect') : (dup.level === 'certain');
           });
+        } else if (currentAdminSubTab === 'incomplete') {
+          filtered = filtered.filter(isIncomplete);
         }
 
         // 2. Lọc theo chuỗi tìm kiếm
@@ -6166,11 +6271,29 @@ Nguyên tắc trả lời:
               </button>
             `;
           }
+          if (isDraftProp(p)) {
+            badgeHtml += ' <span style="background: #64748b; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">📝 NHÁP</span>';
+          }
           if (isNew) {
             badgeHtml += ' <span style="background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">🔥 Mới</span>';
           }
           if (isReduced) {
             badgeHtml += ' <span style="background: #16a34a; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">📉 Giảm giá</span>';
+          }
+
+          let publishActionBtnHtml = '';
+          if (isDraftProp(p)) {
+            publishActionBtnHtml = `
+              <button class="btn-action-publish" onclick="inlineSetPublishStatus('${p.id}', 'published')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s; background: #16a34a; color: #ffffff; border: none;" title="Đăng công khai tin này ra trang người xem">
+                🚀 Đăng công khai
+              </button>
+            `;
+          } else {
+            publishActionBtnHtml = `
+              <button class="btn-action-draft" onclick="inlineSetPublishStatus('${p.id}', 'draft')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s; background: #64748b; color: #ffffff; border: none;" title="Chuyển về bản nháp (ẩn khỏi người xem)">
+                📥 Chuyển về nháp
+              </button>
+            `;
           }
 
           // Kiểm tra và hiển thị nhãn tin trùng lặp theo CHẤM ĐIỂM
@@ -6254,6 +6377,7 @@ Nguyên tắc trả lời:
                   </svg>
                   Sửa
                 </button>
+                ${publishActionBtnHtml}
                 ${toggleSoldBtnHtml}
                 <button class="btn-action-delete" onclick="deleteAdminProperty('${p.id}')">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -6415,23 +6539,41 @@ Nguyên tắc trả lời:
         currentAdminSubTab = subTab;
         
         const tabSelling = document.getElementById('adminSubTab_selling');
+        const tabNew = document.getElementById('adminSubTab_new');
         const tabSold = document.getElementById('adminSubTab_sold');
+        const tabDraft = document.getElementById('adminSubTab_draft');
         const tabDuplicate = document.getElementById('adminSubTab_duplicate');
+        const tabIncomplete = document.getElementById('adminSubTab_incomplete');
         
         if (tabSelling) {
           tabSelling.style.background = subTab === 'selling' ? 'var(--accent)' : 'var(--bg-light)';
           tabSelling.style.color = subTab === 'selling' ? '#ffffff' : 'var(--text-dark)';
           tabSelling.style.border = subTab === 'selling' ? 'none' : '1px solid var(--border)';
         }
+        if (tabNew) {
+          tabNew.style.background = subTab === 'new' ? '#ef4444' : 'var(--bg-light)';
+          tabNew.style.color = subTab === 'new' ? '#ffffff' : 'var(--text-dark)';
+          tabNew.style.border = subTab === 'new' ? 'none' : '1px solid var(--border)';
+        }
         if (tabSold) {
           tabSold.style.background = subTab === 'sold' ? '#ef4444' : 'var(--bg-light)';
           tabSold.style.color = subTab === 'sold' ? '#ffffff' : 'var(--text-dark)';
           tabSold.style.border = subTab === 'sold' ? 'none' : '1px solid var(--border)';
         }
+        if (tabDraft) {
+          tabDraft.style.background = subTab === 'draft' ? '#64748b' : 'var(--bg-light)';
+          tabDraft.style.color = subTab === 'draft' ? '#ffffff' : 'var(--text-dark)';
+          tabDraft.style.border = subTab === 'draft' ? 'none' : '1px solid var(--border)';
+        }
         if (tabDuplicate) {
           tabDuplicate.style.background = subTab === 'duplicate' ? '#f59e0b' : 'var(--bg-light)';
           tabDuplicate.style.color = subTab === 'duplicate' ? '#ffffff' : 'var(--text-dark)';
           tabDuplicate.style.border = subTab === 'duplicate' ? 'none' : '1px solid var(--border)';
+        }
+        if (tabIncomplete) {
+          tabIncomplete.style.background = subTab === 'incomplete' ? '#8b5cf6' : 'var(--bg-light)';
+          tabIncomplete.style.color = subTab === 'incomplete' ? '#ffffff' : 'var(--text-dark)';
+          tabIncomplete.style.border = subTab === 'incomplete' ? 'none' : '1px solid var(--border)';
         }
         
         renderAdminTable();
@@ -6571,7 +6713,79 @@ Nguyên tắc trả lời:
         }
       }
        window.inlineToggleSold = inlineToggleSold;
- 
+
+      async function inlineSetPublishStatus(id, newStatus) {
+        const item = propertyData.find(p => String(p.id) === String(id));
+        if (!item) return;
+
+        const isPublishing = newStatus === 'published';
+        const confirmTitle = isPublishing ? "Đăng công khai tin" : "Chuyển về bản nháp";
+        const confirmMsg = isPublishing
+          ? `Xác nhận đăng công khai tin #${item.id}? Tin sẽ hiển thị trên trang chủ và danh sách người xem.`
+          : `Xác nhận chuyển tin #${item.id} về bản nháp? Tin sẽ bị ẩn khỏi trang người xem.`;
+
+        const isConfirmed = await showCustomConfirm(confirmTitle, confirmMsg);
+        if (!isConfirmed) return;
+
+        item.publish_status = newStatus;
+        item.publishStatus = newStatus;
+
+        let badgeChanged = false;
+        if (isPublishing && item.badge) {
+          const oldBadge = item.badge;
+          const cleanedBadge = oldBadge
+            .replace(/bản\s*nháp/gi, '')
+            .replace(/nháp/gi, '')
+            .replace(/^[,\s•\-\/]+|[,\s•\-\/]+$/g, '')
+            .trim();
+          if (cleanedBadge !== oldBadge) {
+            item.badge = cleanedBadge;
+            badgeChanged = true;
+          }
+        }
+
+        logSystemActivity('EDIT', `${isPublishing ? 'Đăng công khai' : 'Chuyển về bản nháp'} bất động sản #${item.id} (${item.title}).`);
+
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast(isPublishing ? "Đang xuất bản tin lên Cloud..." : "Đang chuyển tin về nháp trên Cloud...", true);
+          const updatePayload = { publish_status: newStatus };
+          if (badgeChanged) {
+            updatePayload.badge = item.badge;
+          }
+
+          fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatePayload)
+          }).then(res => {
+            if (res.ok) {
+              showToast(isPublishing ? "Đã đăng công khai tin bất động sản thành công!" : "Đã chuyển tin về bản nháp thành công!", true);
+              savePropertyDataToStorage();
+              applyFilters();
+              renderAdminTable();
+              renderAdminReports();
+            } else {
+              showToast("Có lỗi xảy ra khi đồng bộ lên Cloud.", false);
+              console.error("Lỗi đồng bộ publish_status lên Supabase:", res.status);
+            }
+          }).catch(err => {
+            showToast("Có lỗi kết nối khi đồng bộ lên Cloud.", false);
+            console.error("Lỗi đồng bộ publish_status lên Supabase:", err);
+          });
+        } else {
+          showToast(isPublishing ? "Đã đăng công khai tin (Cục bộ)!" : "Đã chuyển tin về bản nháp (Cục bộ)!", true);
+          savePropertyDataToStorage();
+          applyFilters();
+          renderAdminTable();
+          renderAdminReports();
+        }
+      }
+      window.inlineSetPublishStatus = inlineSetPublishStatus;
+
       function startInlineEdit(e, id) {
         if (e) {
           e.stopPropagation();
@@ -7403,13 +7617,26 @@ Nguyên tắc trả lời:
 
         isSavingProperty = true;
         try {
-          await _saveAdminPropertyCore(null);
+          await _saveAdminPropertyCore(null, 'published');
         } finally {
           isSavingProperty = false;
         }
       }
 
-      async function _saveAdminPropertyCore(e) {
+      async function saveAdminPropertyDraft(e) {
+        if (e) e.preventDefault();
+        if (isSavingProperty) return;
+
+        isSavingProperty = true;
+        try {
+          await _saveAdminPropertyCore(null, 'draft');
+        } finally {
+          isSavingProperty = false;
+        }
+      }
+      window.saveAdminPropertyDraft = saveAdminPropertyDraft;
+
+      async function _saveAdminPropertyCore(e, targetPublishStatus = null) {
         if (e) e.preventDefault();
         
         const idVal = formPropId ? formPropId.value : "";
@@ -7554,6 +7781,17 @@ Nguyên tắc trả lời:
             item.isPriceReduced = isPriceReducedChecked;
             item.oldPrice = oldPriceVal;
             item.priceUpdatedAt = priceUpdatedAtVal;
+            if (targetPublishStatus) {
+              item.publish_status = targetPublishStatus;
+              item.publishStatus = targetPublishStatus;
+              if (targetPublishStatus === 'published' && item.badge) {
+                item.badge = item.badge
+                  .replace(/bản\s*nháp/gi, '')
+                  .replace(/nháp/gi, '')
+                  .replace(/^[,\s•\-\/]+|[,\s•\-\/]+$/g, '')
+                  .trim();
+              }
+            }
             finalItem = item;
             lastSavedPropertyId = idVal;
           }
@@ -7599,7 +7837,9 @@ Nguyên tắc trả lời:
             isPriceReduced: isPriceReducedChecked,
             oldPrice: oldPriceVal,
             priceUpdatedAt: priceUpdatedAtVal,
-            isSold: false
+            isSold: false,
+            publish_status: targetPublishStatus || 'published',
+            publishStatus: targetPublishStatus || 'published'
           };
           propertyData.unshift(newItem);
           finalItem = newItem;
@@ -7635,7 +7875,8 @@ Nguyên tắc trả lời:
               is_price_reduced: finalItem.isPriceReduced,
               old_price: finalItem.oldPrice,
               price_updated_at: finalItem.priceUpdatedAt,
-              is_sold: finalItem.isSold || false
+              is_sold: finalItem.isSold || false,
+              publish_status: finalItem.publish_status || finalItem.publishStatus || 'published'
             };
 
             if (!supabaseHasViewsColumn) {
@@ -7722,7 +7963,8 @@ Nguyên tắc trả lời:
         }
 
         if (success) {
-          showToast("Đã lưu trữ tin rao bán bất động sản thành công!", true);
+          const isDraftSaved = (finalItem && (finalItem.publish_status === 'draft' || finalItem.publishStatus === 'draft'));
+          showToast(isDraftSaved ? "Đã lưu bản nháp thành công!" : "Đã lưu trữ tin rao bán bất động sản thành công!", true);
           openSaveSuccessModal();
         } else {
           showToast("Đã lưu tin cục bộ (Lỗi kết nối đồng bộ Cloud Database)", false);
@@ -8378,10 +8620,10 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
         
         try {
-          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold';
+          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,published_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status';
           const urlParams = new URLSearchParams({
             select: selectCols,
-            order: 'id.desc'
+            order: 'published_at.desc.nullslast,created_at.desc'
           });
           if (limitCount && !hasLoadedAllProperties) {
             urlParams.append('limit', limitCount.toString());
@@ -8471,7 +8713,10 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   isPriceReduced: item.is_price_reduced === true || item.is_price_reduced === 'true',
                   oldPrice: (item.old_price !== undefined && item.old_price !== null) ? parseFloat(item.old_price) : null,
                   priceUpdatedAt: item.price_updated_at || null,
-                  isSold: item.is_sold === true || item.is_sold === 'true'
+                  isSold: item.is_sold === true || item.is_sold === 'true',
+                  publish_status: item.publish_status || 'published',
+                  publishStatus: item.publish_status || 'published',
+                  published_at: item.published_at || null
                 }));
 
                 if (limitCount && !hasLoadedAllProperties) {

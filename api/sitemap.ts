@@ -33,6 +33,7 @@ interface PropertyRow {
   img_list: string[] | null;
   created_at: string;
   updated_at: string | null;
+  published_at: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +91,7 @@ function daysSince(dateStr: string): number {
 
 /** Trả về { priority, changefreq } dựa trên tuổi tin và badge */
 function getSeoMeta(row: PropertyRow): { priority: string; changefreq: string } {
-  const age = daysSince(row.updated_at ?? row.created_at);
+  const age = daysSince(row.published_at ?? row.updated_at ?? row.created_at);
 
   if (isHotBadge(row.badge))  return { priority: '0.9', changefreq: 'daily' };
   if (age < 14)               return { priority: '0.8', changefreq: 'weekly' };
@@ -202,7 +203,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Race giữa query thực và timeout — không bao giờ để Vercel hard-kill function
     const queryPromise = supabase
       .from('properties_hometea')
-      .select('id, title, badge, img, img_list, created_at, updated_at')
+      .select('id, title, badge, img, img_list, created_at, updated_at, published_at')
+      .eq('is_sold', false)
+      .eq('publish_status', 'published')
+      .order('published_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(MAX_ROWS);
 

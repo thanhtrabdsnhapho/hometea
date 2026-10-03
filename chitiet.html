@@ -2174,9 +2174,17 @@
       images = parseImgList(item);
       currentImgIndex = 0;
       
+      const imgCounter = document.getElementById('imgCounter');
+      if (imgCounter) {
+        imgCounter.textContent = `1/${images.length}`;
+        imgCounter.style.display = images.length > 0 ? 'block' : 'none';
+      }
+
       // Render main image (optimized dimensions for mobile/desktop view)
       const mainImg = document.getElementById('mainImg');
-      mainImg.src = getOptimizedCloudinaryUrl(images[0], 900, 675, false);
+      if (images.length > 0) {
+        mainImg.src = getOptimizedCloudinaryUrl(images[0], 900, 675, false);
+      }
       
       // Render thumbnails (optimized lightweight 120x90)
       const thumbContainer = document.getElementById('thumbnailContainer');
@@ -2197,11 +2205,9 @@
         });
         document.getElementById('prevBtn').style.display = 'flex';
         document.getElementById('nextBtn').style.display = 'flex';
-        document.getElementById('imgCounter').style.display = 'block';
       } else {
         document.getElementById('prevBtn').style.display = 'none';
         document.getElementById('nextBtn').style.display = 'none';
-        document.getElementById('imgCounter').style.display = 'none';
         thumbContainer.style.display = 'none';
       }
 
@@ -2250,8 +2256,10 @@
       badgeRow.innerHTML = '';
 
       const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-      const createdTime = item.created_at ? new Date(item.created_at).getTime() : 0;
-      const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
+      const tUp = item.updated_at ? new Date(item.updated_at).getTime() : 0;
+      const tCr = item.created_at ? new Date(item.created_at).getTime() : 0;
+      const effectiveTime = Math.max(isNaN(tUp) ? 0 : tUp, isNaN(tCr) ? 0 : tCr);
+      const isNew = effectiveTime > 0 && (Date.now() - effectiveTime) <= threeDaysMs;
       if (isNew) {
         const newBadge = document.createElement('span');
         newBadge.className = 'badge';
@@ -2514,7 +2522,7 @@
 
       const supabaseUrl = 'https://bywboejxhpvdahbfvote.supabase.co';
       const apiKey = 'sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r';
-      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold';
+      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status';
       const endpoint = `${supabaseUrl}/rest/v1/properties_hometea?id=eq.${id}&select=${selectCols}`;
 
       try {
@@ -2537,6 +2545,25 @@
         }
 
         const property = data[0];
+
+        // Kiểm tra trạng thái bản nháp: Nếu là bản nháp mà chưa đăng nhập admin, hiển thị 404 và gắn noindex
+        const isDraft = property.publish_status === 'draft';
+        const isAdmin = sessionStorage.getItem('admin_logged_in') === 'true' || 
+                        localStorage.getItem('admin_logged_in') === 'true' || 
+                        document.cookie.includes('admin_logged_in=true');
+
+        if (isDraft && !isAdmin) {
+          let metaRobots = document.querySelector('meta[name="robots"]');
+          if (!metaRobots) {
+            metaRobots = document.createElement('meta');
+            metaRobots.setAttribute('name', 'robots');
+            document.head.appendChild(metaRobots);
+          }
+          metaRobots.setAttribute('content', 'noindex, nofollow');
+          document.title = '404 - Không tìm thấy bài đăng | Thanh Trà BĐS';
+          showError('404 - Không tìm thấy bất động sản được yêu cầu hoặc tin đăng đang ở trạng thái bản nháp.');
+          return;
+        }
         
         // Tăng lượt xem thực tế của tin đăng và lưu trữ
         let currentViews = (property.views !== undefined && property.views !== null) ? parseInt(property.views) : 0;
@@ -2575,8 +2602,8 @@
 
         renderProperty(property);
 
-        // Background fetch other properties for AI chatbot recommendation (Optimized & limited to 20)
-        const allEndpoint = `${supabaseUrl}/rest/v1/properties_hometea?select=id,title,price,price_text,ward,area,img,img_list,created_at,updated_at&limit=20`;
+        // Background fetch other properties for AI chatbot recommendation (Chỉ lấy tin đang bán và đã công khai)
+        const allEndpoint = `${supabaseUrl}/rest/v1/properties_hometea?is_sold=eq.false&publish_status=eq.published&select=id,title,price,price_text,ward,area,img,img_list,created_at,updated_at&limit=20`;
         fetch(allEndpoint, {
           method: 'GET',
           headers: {
@@ -3786,7 +3813,8 @@
 
     function getWarehouseContext() {
       let text = "Dưới đây là danh sách giỏ hàng sản phẩm nhà đất phố đang có sẵn tại Thanh Trà BĐS TP. Thủ Đức để bạn tham khảo giới thiệu đúng chuẩn cho khách:\n";
-      propertyData.forEach(p => {
+      const activeList = propertyData.filter(p => !p.is_sold && (p.publish_status === 'published' || p.publish_status === undefined));
+      activeList.forEach(p => {
         text += `- [Căn #${p.id}]: ${p.title}. Giá bán: ${p.priceText}, Phường: ${p.ward}, Diện tích: ${p.area}m², Số tầng: ${p.floors} tầng, Hướng: ${p.direction}. Địa chỉ: ${getPublicDisplayAddress(p)}. Mô tả ngắn: ${p.badge}.\n`;
       });
       return text;

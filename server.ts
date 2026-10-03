@@ -419,6 +419,7 @@ async function startServer() {
       const { password } = req.body;
       const adminPassword = process.env.ADMIN_PASSWORD || "123456";
       if (password === adminPassword) {
+        res.setHeader("Set-Cookie", "admin_logged_in=true; Path=/; Max-Age=604800; SameSite=Lax");
         res.json({ success: true, message: "Xác thực quản trị viên thành công!" });
       } else {
         res.status(401).json({ success: false, error: "Sai mật khẩu hệ thống! Vui lòng thử lại." });
@@ -1379,7 +1380,10 @@ ${sanitizedRawInput}`;
     try {
       const { data: properties, error } = await supabase
         .from('properties_hometea')
-        .select('id, title, badge, img, img_list, created_at, updated_at')
+        .select('id, title, badge, img, img_list, created_at, updated_at, published_at')
+        .eq('is_sold', false)
+        .eq('publish_status', 'published')
+        .order('published_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .limit(5000);
 
@@ -1462,7 +1466,7 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
       // Query database Supabase từ bảng properties_hometea
       const { data, error } = await supabase
         .from('properties_hometea')
-        .select('id, title, desc, price_text, ward, img, loai_vi_tri, area, floors, price')
+        .select('id, title, desc, price_text, ward, img, loai_vi_tri, area, floors, price, is_sold, publish_status, published_at')
         .eq('id', propertyId);
 
       if (error) {
@@ -1474,6 +1478,36 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
       if (!p) {
         console.warn(`[SSR-SEO] Property with ID ${propertyId} not found.`);
         return sendHtmlFallback();
+      }
+
+      // Kiểm tra trạng thái bản nháp: Nếu là bản nháp mà chưa đăng nhập admin, trả 404 và có noindex
+      const cookieHeader = req.headers.cookie || "";
+      const isAdmin = cookieHeader.includes("admin_logged_in=true");
+      if (p.publish_status === "draft" && !isAdmin) {
+        res.status(404).header("Content-Type", "text/html; charset=utf-8");
+        return res.send(`<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Không tìm thấy bài đăng | Thanh Trà BĐS</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #0f172a; color: #f8fafc; text-align: center; padding: 20px; }
+    .box { max-width: 480px; padding: 40px 24px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }
+    h1 { font-size: 56px; margin: 0 0 12px 0; color: #f97316; font-weight: 800; }
+    p { font-size: 15px; color: #94a3b8; margin-bottom: 24px; line-height: 1.6; }
+    a { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #f97316; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>404</h1>
+    <p>Không tìm thấy bất động sản được yêu cầu hoặc tin đăng đang ở trạng thái bản nháp.</p>
+    <a href="/">⬅️ Về trang chủ tìm kiếm</a>
+  </div>
+</body>
+</html>`);
       }
 
       // Xác định đường dẫn tập tin chitiet.html tương ứng môi trường phát triển/sản xuất
