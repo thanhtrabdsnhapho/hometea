@@ -602,6 +602,34 @@
         return url;
       }
 
+      function getEffectiveTime(p) {
+        if (!p) return 0;
+        const d = p.published_at || p.publishedAt || p.created_at || p.createdAt;
+        if (!d) return 0;
+        const t = new Date(d).getTime();
+        return isNaN(t) ? 0 : t;
+      }
+      window.getEffectiveTime = getEffectiveTime;
+
+      function universalSortProperties(arr) {
+        if (!Array.isArray(arr)) return arr;
+        return arr.sort((a, b) => {
+          const timeA = getEffectiveTime(a);
+          const timeB = getEffectiveTime(b);
+          if (timeB !== timeA) return timeB - timeA;
+          return 0;
+        });
+      }
+      window.universalSortProperties = universalSortProperties;
+
+      function isNewListing(p) {
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const t = getEffectiveTime(p);
+        const hasBadge = (p.badge && /mới(\s*đăng)?/i.test(p.badge));
+        return hasBadge || (t > 0 && (Date.now() - t) <= sevenDaysMs);
+      }
+      window.isNewListing = isNewListing;
+
       // Hàm hiển thị sản phẩm lên trang
       function renderProducts(products, resetPagination = true) {
         if (resetPagination) {
@@ -609,34 +637,22 @@
         }
 
         // Sắp xếp các sản phẩm theo Tab điều hướng đang kích hoạt
-        const sortedProducts = [...products].sort((a, b) => {
-          if (currentHomeTab === 'views') {
-            return (b.views || 0) - (a.views || 0);
-          }
-          if (currentHomeTab === 'newest') {
-            return b.id - a.id;
-          }
+        const sortedProducts = [...products];
+        if (currentHomeTab === 'views') {
+          sortedProducts.sort((a, b) => (b.views || 0) - (a.views || 0));
+        } else {
+          universalSortProperties(sortedProducts);
           if (currentHomeTab === 'discount') {
-            return b.id - a.id;
+            sortedProducts.sort((a, b) => {
+              const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+              const aReduced = a.isPriceReduced && a.priceUpdatedAt && (Date.now() - new Date(a.priceUpdatedAt).getTime()) < twoDaysMs;
+              const bReduced = b.isPriceReduced && b.priceUpdatedAt && (Date.now() - new Date(b.priceUpdatedAt).getTime()) < twoDaysMs;
+              if (aReduced && !bReduced) return -1;
+              if (!aReduced && bReduced) return 1;
+              return 0;
+            });
           }
-          
-          // Với lựa chọn "all" (Mặc định): Đưa các sản phẩm Giảm giá nổi bật lên hàng đầu
-          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-
-          const aReduced = a.isPriceReduced && 
-            a.priceUpdatedAt &&
-            (Date.now() - new Date(a.priceUpdatedAt).getTime()) < twoDaysMs;
-
-          const bReduced = b.isPriceReduced && 
-            b.priceUpdatedAt &&
-            (Date.now() - new Date(b.priceUpdatedAt).getTime()) < twoDaysMs;
-
-          if (aReduced && !bReduced) return -1;
-          if (!aReduced && bReduced) return 1;
-          
-          // Các căn bình thường sắp xếp ID giảm dần (mới nhất lên đầu)
-          return b.id - a.id;
-        });
+        }
 
         currentFilteredProducts = sortedProducts;
         productsGrid.innerHTML = '';
@@ -916,21 +932,8 @@
           return true;
         });
 
-        // Sắp xếp các sản phẩm để tin mới đăng / vừa sửa luôn xuất hiện ở ĐẦU TRANG
-        filtered.sort((a, b) => {
-          const timeA = Math.max(
-            a.updated_at ? new Date(a.updated_at).getTime() : 0,
-            a.created_at ? new Date(a.created_at).getTime() : 0,
-            typeof a.id === 'number' && a.id > 1000000000 ? a.id * 1000 : 0
-          );
-          const timeB = Math.max(
-            b.updated_at ? new Date(b.updated_at).getTime() : 0,
-            b.created_at ? new Date(b.created_at).getTime() : 0,
-            typeof b.id === 'number' && b.id > 1000000000 ? b.id * 1000 : 0
-          );
-          if (timeB !== timeA) return timeB - timeA;
-          return Number(b.id) - Number(a.id);
-        });
+        // Sắp xếp các sản phẩm theo COALESCE(published_at, created_at) giảm dần
+        universalSortProperties(filtered);
 
         // Áp dụng bộ lọc Tab hiện tại (ví dụ tab Có tag giảm giá hoặc Mới đăng)
         if (currentHomeTab === 'discount') {
@@ -940,13 +943,7 @@
               (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
           });
         } else if (currentHomeTab === 'new') {
-          const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-          filtered = filtered.filter(p => {
-            const tUp = p.updated_at ? new Date(p.updated_at).getTime() : 0;
-            const tCr = p.created_at ? new Date(p.created_at).getTime() : 0;
-            const latest = Math.max(isNaN(tUp) ? 0 : tUp, isNaN(tCr) ? 0 : tCr);
-            return (p.badge && /mới(\s*đăng)?/i.test(p.badge)) || (latest > 0 && (Date.now() - latest) <= threeDaysMs);
-          });
+          filtered = filtered.filter(isNewListing);
         }
 
         renderProducts(filtered);

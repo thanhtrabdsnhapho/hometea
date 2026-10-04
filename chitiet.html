@@ -2034,7 +2034,23 @@
     let currentProperty = null;
     let propertyData = [];
 
-    // Tối ưu hóa ảnh từ Cloudinary/Unsplash cho trang chi tiết
+    function getEffectiveTime(p) {
+      if (!p) return 0;
+      const d = p.published_at || p.publishedAt || p.created_at || p.createdAt;
+      if (!d) return 0;
+      const t = new Date(d).getTime();
+      return isNaN(t) ? 0 : t;
+    }
+
+    function universalSortProperties(arr) {
+      if (!Array.isArray(arr)) return arr;
+      return arr.sort((a, b) => {
+        const timeA = getEffectiveTime(a);
+        const timeB = getEffectiveTime(b);
+        if (timeB !== timeA) return timeB - timeA;
+        return 0;
+      });
+    }
     function getOptimizedCloudinaryUrl(url, width, height, watermark = false) {
       if (!url) return "";
       if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
@@ -2701,8 +2717,8 @@
         return array;
       };
       
-      shuffle(sameWardProps);
-      shuffle(otherWardProps);
+      universalSortProperties(sameWardProps);
+      universalSortProperties(otherWardProps);
 
       // Kết hợp: Ưu tiên cùng phường, nếu thiếu điền từ phường khác cho đủ 4
       let recommended = [...sameWardProps];
@@ -2712,6 +2728,7 @@
       } else {
         recommended = recommended.slice(0, 4);
       }
+      universalSortProperties(recommended);
 
       // Render ra HTML giao diện
       listContainer.innerHTML = '';
