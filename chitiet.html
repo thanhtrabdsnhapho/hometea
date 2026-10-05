@@ -2096,32 +2096,71 @@
     }
 
     function parseImgList(item) {
+      if (!item) return ['https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80'];
       let list = [];
-      if (Array.isArray(item.img_list)) {
-        list = [...item.img_list];
-      } else if (typeof item.img_list === 'string' && item.img_list.trim() !== '') {
+      const rawList = item.img_list || item.imgList;
+      if (Array.isArray(rawList)) {
+        list = [...rawList];
+      } else if (typeof rawList === 'string' && rawList.trim() !== '') {
         try {
-          const parsed = JSON.parse(item.img_list);
+          const parsed = JSON.parse(rawList);
           if (Array.isArray(parsed)) {
             list = parsed;
           } else {
-            list = [item.img_list];
+            list = [rawList];
           }
         } catch (e) {
-          list = [item.img_list];
+          list = [rawList];
         }
       }
       
-      // Make sure main image is at the front of list
-      if (item.img && !list.includes(item.img)) {
-        list.unshift(item.img);
+      // Flatten & clean entries in case of stringified array inside
+      const flatList = [];
+      for (const it of list) {
+        if (!it) continue;
+        if (typeof it === 'string') {
+          const s = it.trim();
+          if (s.startsWith('[') && s.endsWith(']')) {
+            try {
+              const sub = JSON.parse(s);
+              if (Array.isArray(sub)) {
+                for (const subItem of sub) {
+                  if (subItem && typeof subItem === 'string' && subItem.trim() !== '') {
+                    flatList.push(subItem.trim());
+                  }
+                }
+                continue;
+              }
+            } catch (e) {}
+          }
+          if (s !== '') flatList.push(s);
+        }
       }
-      
-      list = list.filter(src => src && typeof src === 'string' && src.trim() !== '');
-      
-      if (list.length === 0 && item.img) {
-        list.push(item.img);
+      list = flatList;
+
+      // Handle item.img: if item.img is a JSON array string, parse it too
+      let mainImg = item.img;
+      if (typeof mainImg === 'string' && mainImg.trim().startsWith('[') && mainImg.trim().endsWith(']')) {
+        try {
+          const parsed = JSON.parse(mainImg);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            mainImg = parsed[0];
+            for (const sub of parsed) {
+              if (sub && typeof sub === 'string' && sub.trim() !== '' && !list.includes(sub.trim())) {
+                list.push(sub.trim());
+              }
+            }
+          }
+        } catch (e) {}
       }
+
+      // Ensure mainImg is valid URL and at front of list
+      if (mainImg && typeof mainImg === 'string' && !mainImg.trim().startsWith('[')) {
+        mainImg = mainImg.trim();
+        list = [mainImg, ...list.filter(src => src !== mainImg)];
+      }
+
+      list = list.filter(src => src && typeof src === 'string' && src.trim() !== '' && !src.trim().startsWith('[') && !src.trim().startsWith('{'));
       
       if (list.length === 0) {
         list.push('https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80');
@@ -2201,6 +2240,10 @@
       if (images.length > 0) {
         mainImg.src = getOptimizedCloudinaryUrl(images[0], 900, 675, false);
       }
+      mainImg.onerror = function() {
+        this.onerror = null;
+        this.src = 'https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80';
+      };
       
       // Render thumbnails (optimized lightweight 120x90)
       const thumbContainer = document.getElementById('thumbnailContainer');
@@ -2213,6 +2256,10 @@
           img.alt = `Ảnh bất động sản ${idx + 1}`;
           img.loading = 'lazy';
           img.decoding = 'async';
+          img.onerror = function() {
+            this.onerror = null;
+            this.src = 'https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80';
+          };
           img.onclick = () => {
             currentImgIndex = idx;
             updateGallery();

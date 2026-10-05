@@ -1564,7 +1564,15 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
       const escapedTitle = escapeHtmlAttr(titleStr);
       const escapedDesc = escapeHtmlAttr(descText);
       const canonicalUrl = `https://thanhtrabds.vercel.app/chitiet/${slug}`;
-      const imageUrl = p.img || 'https://thanhtrabds.vercel.app/og-default.jpg';
+      let imageUrl = p.img || 'https://thanhtrabds.vercel.app/og-default.jpg';
+      if (typeof imageUrl === 'string' && imageUrl.trim().startsWith('[')) {
+        try {
+          const parsed = JSON.parse(imageUrl);
+          if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+            imageUrl = parsed[0];
+          }
+        } catch (e) {}
+      }
 
       // Thay thế chính xác các meta tags trong mã HTML
       html = html.replace(/<title>.*?<\/title>/gi, `<title>${titleStr}</title>`);

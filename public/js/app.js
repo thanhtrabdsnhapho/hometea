@@ -172,6 +172,57 @@
         return `${val} tầng`;
       }
 
+      function cleanImageUrlsList(input) {
+        if (!input) return [];
+        let rawItems = [];
+        if (Array.isArray(input)) {
+          rawItems = input;
+        } else if (typeof input === 'string') {
+          const trimmed = input.trim();
+          if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+              const p = JSON.parse(trimmed);
+              if (Array.isArray(p)) rawItems = p;
+              else rawItems = [trimmed];
+            } catch (e) {
+              rawItems = [trimmed];
+            }
+          } else {
+            rawItems = [trimmed];
+          }
+        }
+        const cleaned = [];
+        for (const it of rawItems) {
+          if (!it) continue;
+          if (typeof it === 'string') {
+            const s = it.trim();
+            if (s.startsWith('[') && s.endsWith(']')) {
+              try {
+                const sub = JSON.parse(s);
+                if (Array.isArray(sub)) {
+                  for (const subItem of sub) {
+                    if (subItem && typeof subItem === 'string' && subItem.trim() !== '') {
+                      cleaned.push(subItem.trim());
+                    }
+                  }
+                  continue;
+                }
+              } catch (e) {}
+            }
+            if (s !== '') {
+              cleaned.push(s);
+            }
+          }
+        }
+        return [...new Set(cleaned)].filter(url => 
+          typeof url === 'string' && 
+          url.trim() !== '' && 
+          !url.trim().startsWith('[') && 
+          !url.trim().startsWith('{')
+        );
+      }
+      window.cleanImageUrlsList = cleanImageUrlsList;
+
       function createSlug(title) {
         // Bảng chuyển đổi tiếng Việt có dấu → không dấu
         const map = {
@@ -239,7 +290,7 @@
       const initialDefaultData = [];
 
       // Cơ chế tự động giải phóng cache khi hệ thống cập nhật phiên bản mới
-      const APP_CACHE_VERSION = "v3.1";
+      const APP_CACHE_VERSION = "v3.2";
       const savedVersion = localStorage.getItem("app_cache_version");
       if (savedVersion !== APP_CACHE_VERSION) {
         localStorage.removeItem("property_data"); // Xóa cache dữ liệu cũ để cập nhật mới sạch sẽ
@@ -5199,20 +5250,26 @@ Nguyên tắc trả lời:
             }
 
             // Với ảnh từ nguonnha: KHÔNG tải về hay gọi uploadRawFile. Mỗi link trong image_urls thêm vào danh sách ảnh của form như một mục loại URL.
-            if (Array.isArray(imageUrls) && imageUrls.length > 0) {
-              const remainingSpace = 10 - uploadedImagesList.length;
-              if (remainingSpace > 0) {
-                const urlsToAdd = imageUrls.slice(0, remainingSpace);
-                for (const url of urlsToAdd) {
-                  if (url && typeof url === 'string') {
-                    uploadedImagesList.push(url.trim());
-                  }
-                }
-                renderUploadedImagesPreviews();
-                if (imageUrls.length > remainingSpace && typeof showToast === 'function') {
-                  showToast(`Chỉ có thể thêm ${remainingSpace} ảnh (giới hạn tối đa 10 ảnh).`, false);
-                }
-              }
+            const rawImages = data.image_urls || data.images || data.img_list || (data.img ? [data.img] : []);
+            const validUrls = cleanImageUrlsList(rawImages);
+            
+            // Xóa danh sách ảnh cũ để nạp danh sách mới từ nguồn sạch sẽ, không trùng lặp
+            uploadedImagesList = [];
+            for (const url of validUrls.slice(0, 10)) {
+              uploadedImagesList.push(url);
+            }
+            
+            const formImgField = document.getElementById('formImg');
+            if (formImgField) {
+              formImgField.value = uploadedImagesList[0] || '';
+            }
+            
+            renderUploadedImagesPreviews();
+            if (typeof updateNguonPublishButtonState === 'function') {
+              updateNguonPublishButtonState();
+            }
+            if (validUrls.length > 10 && typeof showToast === 'function') {
+              showToast(`Đã lấy 10 ảnh đầu tiên (giới hạn tối đa 10 ảnh).`, false);
             }
           });
         }
@@ -6612,22 +6669,18 @@ Nguyên tắc trả lời:
             if (legalInput) legalInput.value = item.legal || 'Sổ hồng riêng';
 
             // Handle images
-            uploadedImagesList = [];
-            if (Array.isArray(item.imgList)) {
-              uploadedImagesList = [...item.imgList];
-            } else if (typeof item.imgList === 'string' && item.imgList.trim() !== '') {
-              try {
-                const parsed = JSON.parse(item.imgList);
-                if (Array.isArray(parsed)) {
-                  uploadedImagesList = parsed;
-                } else {
-                  uploadedImagesList = [parsed];
-                }
-              } catch (e) {
-                uploadedImagesList = [item.imgList];
+            uploadedImagesList = cleanImageUrlsList(item.imgList || item.img_list || item.img);
+            if (item.img && typeof item.img === 'string' && !item.img.trim().startsWith('[')) {
+              const coverImg = item.img.trim();
+              if (uploadedImagesList.includes(coverImg)) {
+                uploadedImagesList = [coverImg, ...uploadedImagesList.filter(u => u !== coverImg)];
+              } else {
+                uploadedImagesList.unshift(coverImg);
               }
-            } else if (item.img) {
-              uploadedImagesList = [item.img];
+            }
+            uploadedImagesList = cleanImageUrlsList(uploadedImagesList);
+            if (formImg) {
+              formImg.value = uploadedImagesList[0] || '';
             }
 
             // Handle sold status button
@@ -7942,8 +7995,21 @@ Nguyên tắc trả lời:
         const formAddress = document.getElementById('formAddress');
         addressVal = (formAddress && formAddress.value.trim() !== "") ? formAddress.value.trim() : addressParts.join(", ");
 
-        let imgVal = formImg.value.trim() || "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80";
-        let imgListVal = uploadedImagesList && uploadedImagesList.length > 0 ? uploadedImagesList : [imgVal];
+        let imgListVal = cleanImageUrlsList(uploadedImagesList);
+        let formImgVal = formImg ? formImg.value.trim() : "";
+        if (formImgVal.startsWith('[') && formImgVal.endsWith(']')) {
+          const parsedFormImg = cleanImageUrlsList(formImgVal);
+          formImgVal = parsedFormImg[0] || "";
+        }
+
+        // Đảm bảo ảnh bìa luôn là imgListVal[0] nếu có ảnh, không bao giờ là chuỗi mảng JSON
+        let imgVal = (imgListVal.length > 0)
+          ? imgListVal[0]
+          : (formImgVal || "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80");
+
+        if (imgListVal.length === 0) {
+          imgListVal = [imgVal];
+        }
 
         // Tự động kiểm tra và đồng bộ hóa các ảnh base64 còn sót rải rác lên Cloudinary trước khi lưu
         let hasBase64 = false;
@@ -8937,18 +9003,19 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   })(),
                   badge: item.badge || "",
                   address: item.address || "",
-                  img: item.img || "",
-                  imgList: (() => {
-                    if (Array.isArray(item.img_list)) return item.img_list;
-                    if (typeof item.img_list === 'string' && item.img_list.trim() !== '') {
-                      try {
-                        const parsed = JSON.parse(item.img_list);
-                        if (Array.isArray(parsed)) return parsed;
-                        return [parsed];
-                      } catch (e) {
-                        return [item.img_list];
-                      }
+                  img: (() => {
+                    const cleanList = cleanImageUrlsList(item.img_list || item.img);
+                    if (cleanList.length > 0) return cleanList[0];
+                    let raw = item.img || "";
+                    if (typeof raw === 'string' && raw.trim().startsWith('[')) {
+                      const parsed = cleanImageUrlsList(raw);
+                      if (parsed.length > 0) return parsed[0];
                     }
+                    return raw || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80";
+                  })(),
+                  imgList: (() => {
+                    const cleanList = cleanImageUrlsList(item.img_list || item.img);
+                    if (cleanList.length > 0) return cleanList;
                     return [item.img || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80"];
                   })(),
                   desc: item.desc || "",
