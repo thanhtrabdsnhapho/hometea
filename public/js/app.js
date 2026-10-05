@@ -2934,10 +2934,17 @@ Nguyên tắc trả lời:
         } catch (e) {}
         closeAdminLoginModal();
         switchToPage('admin');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const nguonMaTk = urlParams.get('nguon') || sessionStorage.getItem('nguon_active_ma_tk');
+
         if (pendingAdminAction === 'create_post') {
           switchAdminTab('products');
           showAdminForm(null);
           pendingAdminAction = null;
+        } else if (nguonMaTk || pendingAdminAction === 'nguon_flow') {
+          pendingAdminAction = null;
+          initNguonNhaListener(nguonMaTk);
         }
         showToast(message || "Xác thực quản trị viên thành công!", true);
       }
@@ -5120,9 +5127,116 @@ Nguyên tắc trả lời:
       window.toggleSystemStoragePopup = toggleSystemStoragePopup;
       window.fetchSystemStorageStatus = fetchSystemStorageStatus;
 
+      function initNguonNhaListener(ma_tk) {
+        if (!ma_tk) return;
+        sessionStorage.setItem('nguon_active_ma_tk', ma_tk);
+
+        switchAdminTab('products');
+        showAdminForm(null);
+
+        if (window.opener) {
+          try {
+            window.opener.postMessage({ type: "nguon-ready" }, "https://hometeadata.vercel.app");
+          } catch (e) {
+            console.warn("Failed to postMessage nguon-ready:", e);
+          }
+        }
+
+        if (!window._nguonGlobalListenerAdded) {
+          window._nguonGlobalListenerAdded = true;
+          window.addEventListener('message', async (event) => {
+            if (event.origin !== "https://hometeadata.vercel.app") {
+              return;
+            }
+            const data = event.data;
+            if (!data || data.type !== "nguon-data") return;
+
+            const currentMaTk = data.ma_tk || sessionStorage.getItem('nguon_active_ma_tk') || ma_tk;
+            const rawText = data.raw_text || "";
+            const imageUrls = data.image_urls || [];
+
+            const badgePrefix = `[${currentMaTk}]`;
+            const existingItem = propertyData.find(p => p.badge && p.badge.trim().startsWith(badgePrefix));
+            if (existingItem) {
+              showNguonDuplicateWarning(currentMaTk, existingItem);
+              return;
+            }
+
+            const existingWarn = document.getElementById('nguonDuplicateWarningBox');
+            if (existingWarn) existingWarn.remove();
+
+            const aiInput = document.getElementById('aiInputPrompt');
+            if (aiInput) {
+              aiInput.value = rawText;
+            }
+
+            const formBadge = document.getElementById('formBadge');
+            if (formBadge) {
+              formBadge.value = `[${currentMaTk}] Bản Nháp`;
+            }
+
+            if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+              const remainingSpace = 10 - uploadedImagesList.length;
+              const urlsToProcess = imageUrls.slice(0, remainingSpace);
+              let failCount = 0;
+              for (const imgUrl of urlsToProcess) {
+                try {
+                  const res = await fetch(imgUrl);
+                  if (!res.ok) throw new Error("HTTP error");
+                  const blob = await res.blob();
+                  const filename = imgUrl.split('/').pop().split('?')[0] || 'image.jpg';
+                  const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+                  await uploadRawFile(file);
+                } catch (imgErr) {
+                  console.warn("Lỗi tải ảnh từ nguồn:", imgUrl, imgErr);
+                  failCount++;
+                }
+              }
+              if (failCount > 0 && typeof showToast === 'function') {
+                showToast(`Đã bỏ qua ${failCount} ảnh tải lỗi từ nguồn`, false);
+              }
+            }
+          });
+        }
+      }
+      window.initNguonNhaListener = initNguonNhaListener;
+
+      function showNguonDuplicateWarning(ma_tk, existingItem) {
+        const formSection = document.getElementById('adminFormSection');
+        if (!formSection) return;
+        
+        switchToPage('admin');
+        switchAdminTab('products');
+        const dashboardSection = document.getElementById('adminDashboardSection');
+        if (dashboardSection) dashboardSection.style.display = 'none';
+        formSection.style.display = 'block';
+
+        let warnEl = document.getElementById('nguonDuplicateWarningBox');
+        if (!warnEl) {
+          warnEl = document.createElement('div');
+          warnEl.id = 'nguonDuplicateWarningBox';
+          warnEl.style.cssText = 'background: #fef2f2; border: 1.5px solid #ef4444; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center; box-shadow: 0 4px 12px rgba(239,68,68,0.15);';
+          formSection.insertBefore(warnEl, formSection.firstChild);
+        }
+        warnEl.innerHTML = `
+          <div style="font-size: 18px; font-weight: 800; color: #dc2626; margin-bottom: 8px;">⚠️ Tin này đã có ([${ma_tk}])</div>
+          <div style="font-size: 14px; color: #4b5563; margin-bottom: 16px;">Mã tài khoản ${ma_tk} đã tồn tại trong hệ thống (ID: #${existingItem.id} - ${existingItem.title || ''}). Vui lòng mở tin hiện có thay vì tạo bản thứ hai.</div>
+          <button onclick="document.getElementById('nguonDuplicateWarningBox').remove(); showAdminForm(${existingItem.id});" style="background: #ef4444; color: white; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 2px 6px rgba(239,68,68,0.3);">
+            📋 Mở tin #${existingItem.id} đang có
+          </button>
+        `;
+      }
+      window.showNguonDuplicateWarning = showNguonDuplicateWarning;
+
       function checkAdminSession() {
         // Tải khởi dựng số liệu thống kê & Hộp thư mẫu cục bộ
         initAdminStats();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const nguonMaTk = urlParams.get('nguon');
+        if (nguonMaTk) {
+          sessionStorage.setItem('nguon_active_ma_tk', nguonMaTk);
+        }
         
         // Tự động điều hướng nếu tải lại trang mà admin còn giữ phiên hoạt động
         if (isAdminLoggedIn) {
@@ -5130,8 +5244,16 @@ Nguyên tắc trả lời:
           switchAdminTab('products');
           renderAdminReports();
           renderAdminInbox();
+          if (nguonMaTk) {
+            initNguonNhaListener(nguonMaTk);
+          }
         } else {
-          switchToPage('home');
+          if (nguonMaTk) {
+            pendingAdminAction = 'nguon_flow';
+            openAdminLoginModal();
+          } else {
+            switchToPage('home');
+          }
         }
       }
 
@@ -7636,6 +7758,11 @@ Nguyên tắc trả lời:
       async function _saveAdminPropertyCore(e, targetPublishStatus = null) {
         if (e) e.preventDefault();
         
+        const activeNguonTk = sessionStorage.getItem('nguon_active_ma_tk') || (new URLSearchParams(window.location.search)).get('nguon');
+        if (activeNguonTk) {
+          targetPublishStatus = 'draft';
+        }
+
         const idVal = formPropId ? formPropId.value : "";
         const isEditing = Boolean(idVal);
         const titleVal = document.getElementById('formTitle').value.trim();
@@ -7962,6 +8089,19 @@ Nguyên tắc trả lời:
         if (success) {
           const isDraftSaved = (finalItem && (finalItem.publish_status === 'draft' || finalItem.publishStatus === 'draft'));
           showToast(isDraftSaved ? "Đã lưu bản nháp thành công!" : "Đã lưu trữ tin rao bán bất động sản thành công!", true);
+          
+          if (activeNguonTk && window.opener && finalItem) {
+            try {
+              window.opener.postMessage({
+                type: "nguon-saved",
+                ma_tk: activeNguonTk,
+                id: finalItem.id
+              }, "https://hometeadata.vercel.app");
+            } catch (errPost) {
+              console.warn("Failed to postMessage nguon-saved:", errPost);
+            }
+          }
+
           openSaveSuccessModal();
         } else {
           showToast("Đã lưu tin cục bộ (Lỗi kết nối đồng bộ Cloud Database)", false);
