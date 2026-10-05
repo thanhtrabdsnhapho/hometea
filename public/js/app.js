@@ -641,10 +641,9 @@
       window.universalSortProperties = universalSortProperties;
 
       function isNewListing(p) {
-        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-        const t = getEffectiveTime(p);
-        const hasBadge = (p.badge && /mới(\s*đăng)?/i.test(p.badge));
-        return hasBadge || (t > 0 && (Date.now() - t) <= sevenDaysMs);
+        const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+        const d = p.created_at || p.createdAt ? new Date(p.created_at || p.createdAt).getTime() : 0;
+        return d > 0 && (Date.now() - d) <= threeDaysMs;
       }
       window.isNewListing = isNewListing;
 
@@ -758,14 +757,11 @@
            // Thiết lập số lượt xem (như trong ảnh hiển thị "0 lượt xem")
           const viewsCount = p.views !== undefined ? p.views : 0;
 
-          const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-          const tUp = p.updated_at ? new Date(p.updated_at).getTime() : 0;
-          const tCr = p.created_at ? new Date(p.created_at).getTime() : 0;
-          const latest = Math.max(isNaN(tUp) ? 0 : tUp, isNaN(tCr) ? 0 : tCr);
-          const isNew = (p.badge && /mới(\s*đăng)?/i.test(p.badge)) || (latest > 0 && (Date.now() - latest) <= threeDaysMs);
+          const isNew = isNewListing(p);
+          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
           const isReduced = p.isPriceReduced && 
             p.priceUpdatedAt &&
-            (Date.now() - new Date(p.priceUpdatedAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
+            (Date.now() - new Date(p.priceUpdatedAt).getTime()) <= twoDaysMs;
 
           let priceDisplayHtml = `<span>${p.price} tỷ</span>`;
           if (isReduced && p.oldPrice) {
@@ -2867,8 +2863,6 @@ Nguyên tắc trả lời:
       const formAddress = document.getElementById('formAddress');
       const formImg = document.getElementById('formImg');
       const formDesc = document.getElementById('formDesc');
-
-      isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
 
       // Chuyển trang/màn hình mượt mà giữa Chợ BĐS và Trang Admin
       function switchToPage(pageName) {
@@ -6265,12 +6259,7 @@ Nguyên tắc trả lời:
         const isDraftProp = (p) => (p.publish_status === 'draft' || p.publishStatus === 'draft' || (p.badge && /bản\s*nháp/i.test(p.badge)));
         const isPublishedProp = (p) => (!isDraftProp(p));
 
-        const isNewListing = (p) => {
-          const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-          const d = p.published_at ? new Date(p.published_at).getTime() : (p.created_at ? new Date(p.created_at).getTime() : 0);
-          const hasBadge = (p.badge && /mới(\s*đăng)?/i.test(p.badge));
-          return hasBadge || (d > 0 && (Date.now() - d) <= sevenDaysMs);
-        };
+        const isNewListing = (p) => window.isNewListing ? window.isNewListing(p) : false;
 
         const isIncomplete = (p) => {
           const hasHouseNum = Boolean(p.houseNumber || p.house_number);
@@ -6397,14 +6386,11 @@ Nguyên tắc trả lời:
           const adminImgSrc = getOptimizedCloudinaryUrl(p.img, 100, 75);
 
           // Tính toán nhãn Mới đăng & Giảm giá & Đã bán
-          const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-          const createdTime = p.created_at ? new Date(p.created_at).getTime() : 0;
-          const isNew = createdTime > 0 && (Date.now() - createdTime) <= threeDaysMs;
-
+          const isNew = isNewListing(p);
           const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
           const isReduced = p.isPriceReduced && 
             p.priceUpdatedAt && 
-            (Date.now() - new Date(p.priceUpdatedAt).getTime()) < twoDaysMs;
+            (Date.now() - new Date(p.priceUpdatedAt).getTime()) <= twoDaysMs;
 
           let badgeHtml = '';
           let toggleSoldBtnHtml = '';
