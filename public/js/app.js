@@ -5127,20 +5127,14 @@ Nguyên tắc trả lời:
       window.toggleSystemStoragePopup = toggleSystemStoragePopup;
       window.fetchSystemStorageStatus = fetchSystemStorageStatus;
 
+      window._processedNguonMtkSet = window._processedNguonMtkSet || new Set();
+
       function initNguonNhaListener(ma_tk) {
         if (!ma_tk) return;
         sessionStorage.setItem('nguon_active_ma_tk', ma_tk);
 
         switchAdminTab('products');
         showAdminForm(null);
-
-        if (window.opener) {
-          try {
-            window.opener.postMessage({ type: "nguon-ready" }, "https://hometeadata.vercel.app");
-          } catch (e) {
-            console.warn("Failed to postMessage nguon-ready:", e);
-          }
-        }
 
         if (!window._nguonGlobalListenerAdded) {
           window._nguonGlobalListenerAdded = true;
@@ -5152,6 +5146,23 @@ Nguyên tắc trả lời:
             if (!data || data.type !== "nguon-data") return;
 
             const currentMaTk = data.ma_tk || sessionStorage.getItem('nguon_active_ma_tk') || ma_tk;
+            if (!currentMaTk) return;
+
+            // Chặn xử lý trùng: mỗi ma_tk chỉ xử lý message "nguon-data" MỘT lần
+            if (window._processedNguonMtkSet.has(currentMaTk)) {
+              return;
+            }
+            window._processedNguonMtkSet.add(currentMaTk);
+
+            // Lần đầu nhận được thì gửi window.opener.postMessage({type:"nguon-ready"}, event.origin)
+            if (window.opener) {
+              try {
+                window.opener.postMessage({ type: "nguon-ready" }, event.origin);
+              } catch (e) {
+                console.warn("Failed to postMessage nguon-ready:", e);
+              }
+            }
+
             const rawText = data.raw_text || "";
             const imageUrls = data.image_urls || [];
 
@@ -5175,25 +5186,20 @@ Nguyên tắc trả lời:
               formBadge.value = `[${currentMaTk}] Bản Nháp`;
             }
 
+            // Với ảnh từ nguonnha: KHÔNG tải về hay gọi uploadRawFile. Mỗi link trong image_urls thêm vào danh sách ảnh của form như một mục loại URL.
             if (Array.isArray(imageUrls) && imageUrls.length > 0) {
               const remainingSpace = 10 - uploadedImagesList.length;
-              const urlsToProcess = imageUrls.slice(0, remainingSpace);
-              let failCount = 0;
-              for (const imgUrl of urlsToProcess) {
-                try {
-                  const res = await fetch(imgUrl);
-                  if (!res.ok) throw new Error("HTTP error");
-                  const blob = await res.blob();
-                  const filename = imgUrl.split('/').pop().split('?')[0] || 'image.jpg';
-                  const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
-                  await uploadRawFile(file);
-                } catch (imgErr) {
-                  console.warn("Lỗi tải ảnh từ nguồn:", imgUrl, imgErr);
-                  failCount++;
+              if (remainingSpace > 0) {
+                const urlsToAdd = imageUrls.slice(0, remainingSpace);
+                for (const url of urlsToAdd) {
+                  if (url && typeof url === 'string') {
+                    uploadedImagesList.push(url.trim());
+                  }
                 }
-              }
-              if (failCount > 0 && typeof showToast === 'function') {
-                showToast(`Đã bỏ qua ${failCount} ảnh tải lỗi từ nguồn`, false);
+                renderUploadedImagesPreviews();
+                if (imageUrls.length > remainingSpace && typeof showToast === 'function') {
+                  showToast(`Chỉ có thể thêm ${remainingSpace} ảnh (giới hạn tối đa 10 ảnh).`, false);
+                }
               }
             }
           });
@@ -7257,7 +7263,10 @@ Nguyên tắc trả lời:
           div.style.cursor = 'grab';
           
           div.innerHTML = `
-            <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none;" alt="Ảnh ${index + 1}">
+            <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none;" alt="Ảnh ${index + 1}" onerror="this.onerror=null; this.style.display='none'; const errEl=this.parentElement.querySelector('.img-err-msg'); if(errEl) errEl.style.display='flex';">
+            <div class="img-err-msg" style="display:none; position: absolute; inset: 0; background: rgba(239, 68, 68, 0.92); color: white; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; text-align: center; padding: 8px; z-index: 2;">
+              ⚠️ Ảnh lỗi
+            </div>
             
             ${index === 0 
               ? `<span style="position: absolute; top: 6px; left: 6px; background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; font-size: 9.5px; font-weight: 800; padding: 2.5px 6px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.35); text-transform: uppercase; letter-spacing: 0.3px; pointer-events: none; z-index: 3; display: flex; align-items: center; gap: 3px;">⭐ Ảnh bìa</span>`
@@ -7378,6 +7387,83 @@ Nguyên tắc trả lời:
         });
       }
 
+      async function uploadRawFile(file) {
+        try {
+          let base64String = null;
+          if (typeof file === 'string') {
+            base64String = file;
+          } else {
+            base64String = await new Promise((resolve) => {
+              const r = new FileReader();
+              r.readAsDataURL(file);
+              r.onload = () => resolve(r.result);
+              r.onerror = () => resolve(null);
+            });
+          }
+
+          if (!base64String) {
+            throw new Error("Không thể chuyển đổi ảnh thành chuỗi Base64");
+          }
+
+          let uploadedUrl = null;
+          try {
+            const response = await fetch('/api/upload', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ image: base64String })
+            });
+            
+            const cType = response.headers.get('content-type') || '';
+            if (response.ok && cType.includes('application/json')) {
+              const data = await response.json();
+              if (data.success && data.secure_url) {
+                uploadedUrl = data.secure_url;
+              }
+            }
+          } catch (apiErr) {
+            console.warn("Lỗi gọi /api/upload trong uploadRawFile, thử phương thức dự phòng:", apiErr);
+          }
+
+          // Dự phòng trực tiếp lên Cloudinary nếu API máy chủ không phản hồi JSON
+          if (!uploadedUrl) {
+            try {
+              const fd = new FormData();
+              fd.append('file', base64String);
+              fd.append('upload_preset', 'datathanhtra2026');
+              fd.append('folder', 'thanhtrabds');
+
+              const directRes = await fetch('https://api.cloudinary.com/v1_1/xkenwzvh/image/upload', {
+                method: 'POST',
+                body: fd
+              });
+              const cType = directRes.headers.get('content-type') || '';
+              if (directRes.ok && cType.includes('application/json')) {
+                const dData = await directRes.json();
+                if (dData.secure_url || dData.url) {
+                  uploadedUrl = dData.secure_url || dData.url;
+                }
+              }
+            } catch (directErr) {
+              console.warn("Lỗi dự phòng Cloudinary trực tiếp:", directErr);
+            }
+          }
+
+          if (uploadedUrl) {
+            uploadedImagesList.push(uploadedUrl);
+            return true;
+          } else {
+            console.error("Tải ảnh thất bại qua cả Server API và Cloudinary trực tiếp.");
+            return false;
+          }
+        } catch (err) {
+          console.error("Lỗi xử lý upload file:", err);
+          return false;
+        }
+      }
+      window.uploadRawFile = uploadRawFile;
+
       function handleRealImagesUpload(e) {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
@@ -7412,86 +7498,6 @@ Nguyên tắc trả lời:
         let processedCount = 0;
         let successCount = 0;
         let failCount = 0;
-
-        async function uploadRawFile(file) {
-          try {
-            let base64String = null;
-            if (typeof file === 'string') {
-              base64String = file;
-            } else {
-              base64String = await new Promise((resolve) => {
-                const r = new FileReader();
-                r.readAsDataURL(file);
-                r.onload = () => resolve(r.result);
-                r.onerror = () => resolve(null);
-              });
-            }
-
-            if (!base64String) {
-              throw new Error("Không thể chuyển đổi ảnh thành chuỗi Base64");
-            }
-
-            let uploadedUrl = null;
-            try {
-              const response = await fetch('/api/upload', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ image: base64String })
-              });
-              
-              const cType = response.headers.get('content-type') || '';
-              if (response.ok && cType.includes('application/json')) {
-                const data = await response.json();
-                if (data.success && data.secure_url) {
-                  uploadedUrl = data.secure_url;
-                }
-              }
-            } catch (apiErr) {
-              console.warn("Lỗi gọi /api/upload trong uploadRawFile, thử phương thức dự phòng:", apiErr);
-            }
-
-            // Dự phòng trực tiếp lên Cloudinary nếu API máy chủ không phản hồi JSON
-            if (!uploadedUrl) {
-              try {
-                const fd = new FormData();
-                fd.append('file', base64String);
-                fd.append('upload_preset', 'datathanhtra2026');
-                fd.append('folder', 'thanhtrabds');
-
-                const directRes = await fetch('https://api.cloudinary.com/v1_1/xkenwzvh/image/upload', {
-                  method: 'POST',
-                  body: fd
-                });
-                const cType = directRes.headers.get('content-type') || '';
-                if (directRes.ok && cType.includes('application/json')) {
-                  const dData = await directRes.json();
-                  if (dData.secure_url || dData.url) {
-                    uploadedUrl = dData.secure_url || dData.url;
-                  }
-                }
-              } catch (directErr) {
-                console.warn("Lỗi dự phòng Cloudinary trực tiếp:", directErr);
-              }
-            }
-
-            if (uploadedUrl) {
-              uploadedImagesList.push(uploadedUrl);
-              successCount++;
-            } else {
-              // BỎ tầng dự phòng lưu chuỗi base64: cả server API và Cloudinary trực tiếp đều thất bại
-              failCount++;
-              console.error("Tải ảnh thất bại qua cả Server API và Cloudinary trực tiếp.");
-            }
-          } catch (err) {
-            console.error("Lỗi xử lý upload file:", err);
-            failCount++;
-          } finally {
-            processedCount++;
-            updateProgressUI();
-          }
-        }
 
         function updateProgressUI() {
           const progressText = document.getElementById('uploadProgressText');
@@ -7544,14 +7550,27 @@ Nguyên tắc trả lời:
                 
                 // Nén JPEG chất lượng cao 0.75
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
-                await uploadRawFile(compressedBase64);
+                const ok = await uploadRawFile(compressedBase64);
+                if (ok) successCount++; else failCount++;
               } catch (err) {
                 console.error("Lỗi nén ảnh:", err);
-                await uploadRawFile(file);
+                const ok = await uploadRawFile(file);
+                if (ok) successCount++; else failCount++;
+              } finally {
+                processedCount++;
+                updateProgressUI();
               }
             };
             img.onerror = async function() {
-              await uploadRawFile(file);
+              try {
+                const ok = await uploadRawFile(file);
+                if (ok) successCount++; else failCount++;
+              } catch (e) {
+                failCount++;
+              } finally {
+                processedCount++;
+                updateProgressUI();
+              }
             };
           };
           reader.readAsDataURL(file);
