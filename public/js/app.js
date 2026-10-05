@@ -124,10 +124,28 @@
       })();
 
       // Khai báo các biến trạng thái toàn cục trước để tránh lỗi TDZ (Temporal Dead Zone)
-      let isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
+      function checkAdminLoginStatus() {
+        try {
+          const raw = localStorage.getItem('admin_login_session');
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (!data || !data.timestamp) return false;
+          const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+          if (Date.now() - data.timestamp > thirtyDays) {
+            localStorage.removeItem('admin_login_session');
+            return false;
+          }
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      window.checkAdminLoginStatus = checkAdminLoginStatus;
+
+      let isAdminLoggedIn = checkAdminLoginStatus();
       if (isAdminLoggedIn) {
         try {
-          document.cookie = "admin_logged_in=true; path=/; max-age=" + (7 * 86400) + "; SameSite=Lax";
+          document.cookie = "admin_logged_in=true; path=/; max-age=" + (30 * 86400) + "; SameSite=Lax; Secure";
         } catch (e) {}
       }
       const cardImageIndexes = {};
@@ -2928,9 +2946,9 @@ Nguyên tắc trả lời:
 
       function onAdminLoginSuccess(message) {
         isAdminLoggedIn = true;
-        sessionStorage.setItem('admin_logged_in', 'true');
         try {
-          document.cookie = "admin_logged_in=true; path=/; max-age=" + (7 * 86400) + "; SameSite=Lax";
+          localStorage.setItem('admin_login_session', JSON.stringify({ timestamp: Date.now() }));
+          document.cookie = "admin_logged_in=true; path=/; max-age=" + (30 * 86400) + "; SameSite=Lax; Secure";
         } catch (e) {}
         closeAdminLoginModal();
         switchToPage('admin');
@@ -3025,9 +3043,9 @@ Nguyên tắc trả lời:
 
       function handleAdminLogout() {
         isAdminLoggedIn = false;
-        sessionStorage.removeItem('admin_logged_in');
         try {
-          document.cookie = "admin_logged_in=; path=/; max-age=0;";
+          localStorage.removeItem('admin_login_session');
+          document.cookie = "admin_logged_in=; path=/; max-age=0; SameSite=Lax; Secure;";
         } catch (e) {}
         switchToPage('home');
         showToast("Đăng xuất quyền quản trị thành công.", true);
@@ -5244,6 +5262,8 @@ Nguyên tắc trả lời:
           sessionStorage.setItem('nguon_active_ma_tk', nguonMaTk);
         }
         
+        isAdminLoggedIn = checkAdminLoginStatus();
+
         // Tự động điều hướng nếu tải lại trang mà admin còn giữ phiên hoạt động
         if (isAdminLoggedIn) {
           switchToPage('admin');
@@ -6212,12 +6232,18 @@ Nguyên tắc trả lời:
       window.openDuplicateComparisonModal = openDuplicateComparisonModal;
 
       function setupDuplicateCheckListeners() {
-        const fieldIds = ['formTitle', 'ap_hn_fld', 'ap_st_fld', 'ap_wd_fld', 'formPrice', 'formArea', 'formWidth'];
+        const fieldIds = ['formTitle', 'ap_hn_fld', 'ap_st_fld', 'ap_wd_fld', 'formPrice', 'formArea', 'formWidth', 'formDesc'];
         fieldIds.forEach(id => {
           const el = document.getElementById(id);
           if (el) {
-            el.addEventListener('input', triggerDuplicateCheckInForm);
-            el.addEventListener('change', triggerDuplicateCheckInForm);
+            el.addEventListener('input', () => {
+              triggerDuplicateCheckInForm();
+              updateNguonPublishButtonState();
+            });
+            el.addEventListener('change', () => {
+              triggerDuplicateCheckInForm();
+              updateNguonPublishButtonState();
+            });
           }
         });
       }
@@ -6644,6 +6670,7 @@ Nguyên tắc trả lời:
         }
 
         renderUploadedImagesPreviews();
+        updateNguonPublishButtonState();
 
         if (dashboardSection) dashboardSection.style.display = 'none';
         if (formSection) formSection.style.display = 'block';
@@ -7385,6 +7412,7 @@ Nguyên tắc trả lời:
 
           container.appendChild(div);
         });
+        updateNguonPublishButtonState();
       }
 
       async function uploadRawFile(file) {
@@ -7761,6 +7789,102 @@ Nguyên tắc trả lời:
         }
       }
 
+      function validateNguonPublishConditions() {
+        const missing = [];
+        
+        const hasImages = Array.isArray(uploadedImagesList) && uploadedImagesList.length > 0;
+        if (!hasImages) missing.push("Thiếu ảnh xem trước");
+
+        const priceVal = parseFloat(document.getElementById('formPrice')?.value) || 0;
+        if (priceVal <= 0) missing.push("Giá phải lớn hơn 0");
+
+        const areaVal = parseFloat(document.getElementById('formArea')?.value) || 0;
+        if (areaVal <= 0) missing.push("Diện tích phải lớn hơn 0");
+
+        const titleVal = document.getElementById('formTitle')?.value?.trim() || "";
+        if (!titleVal) missing.push("Tiêu đề không được để trống");
+
+        const wardVal = document.getElementById('ap_wd_fld')?.value?.trim() || "";
+        if (!wardVal) missing.push("Chưa chọn phường");
+
+        const descVal = document.getElementById('formDesc')?.value || "";
+        const phoneRegex = /(?:(?:\+|0084|84)?[\s.-]?)?(?:0[\s.-]?[1-9][\s.-]?\d{2}[\s.-]?\d{3}[\s.-]?\d{3}|0[1-9]\d{8,9})\b/g;
+        const matches = descVal.match(phoneRegex) || [];
+        
+        const hotlineNorms = ["0854100036", "+84854100036", "84854100036"];
+        for (const match of matches) {
+          const cleaned = match.replace(/[\s.-]/g, '');
+          const isHotline = hotlineNorms.some(h => cleaned.includes(h) || h.includes(cleaned));
+          if (!isHotline) {
+            missing.push("Mô tả chứa số điện thoại khác ngoài hotline Thanh Trà");
+            break;
+          }
+        }
+
+        return missing;
+      }
+      window.validateNguonPublishConditions = validateNguonPublishConditions;
+
+      function updateNguonPublishButtonState() {
+        const btn = document.getElementById('btnNguonPublish');
+        if (!btn) return;
+
+        const activeNguonTk = sessionStorage.getItem('nguon_active_ma_tk') || (new URLSearchParams(window.location.search)).get('nguon');
+        if (!activeNguonTk) {
+          btn.style.display = 'none';
+          return;
+        }
+
+        btn.style.display = 'inline-block';
+        const missing = validateNguonPublishConditions();
+        if (missing.length > 0) {
+          btn.disabled = true;
+          btn.style.opacity = '0.45';
+          btn.style.cursor = 'not-allowed';
+          btn.title = "Chưa đủ điều kiện đăng công khai: " + missing.join(", ");
+        } else {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+          btn.title = "Bấm để lưu và đăng công khai tin lên trang chủ";
+        }
+      }
+      window.updateNguonPublishButtonState = updateNguonPublishButtonState;
+
+      async function saveAdminPropertyNguonPublish(e) {
+        if (e) e.preventDefault();
+        if (isSavingProperty) return;
+
+        const missing = validateNguonPublishConditions();
+        if (missing.length > 0) {
+          alert("Không thể đăng công khai vì thiếu điều kiện: " + missing.join(", "));
+          return;
+        }
+
+        const titleVal = document.getElementById('formTitle')?.value?.trim() || "";
+        const isConfirmed = typeof showCustomConfirm === 'function' 
+          ? await showCustomConfirm("Xác nhận đăng công khai", `Đăng công khai tin "${titleVal}"? Tin sẽ hiện ở đầu trang chủ.`)
+          : confirm(`Đăng công khai tin "${titleVal}"? Tin sẽ hiện ở đầu trang chủ.`);
+        
+        if (!isConfirmed) return;
+
+        // Xóa chữ "Bản Nháp" / "Nháp" khỏi badge khi đăng công khai
+        const badgeEl = document.getElementById('formBadge');
+        if (badgeEl) {
+          let bVal = badgeEl.value || "";
+          bVal = bVal.replace(/bản\s*nháp/gi, '').replace(/nháp/gi, '').replace(/^[,\s•\-\/]+|[,\s•\-\/]+$/g, '').trim();
+          badgeEl.value = bVal;
+        }
+
+        isSavingProperty = true;
+        try {
+          await _saveAdminPropertyCore(null, 'published');
+        } finally {
+          isSavingProperty = false;
+        }
+      }
+      window.saveAdminPropertyNguonPublish = saveAdminPropertyNguonPublish;
+
       async function saveAdminPropertyDraft(e) {
         if (e) e.preventDefault();
         if (isSavingProperty) return;
@@ -7778,7 +7902,7 @@ Nguyên tắc trả lời:
         if (e) e.preventDefault();
         
         const activeNguonTk = sessionStorage.getItem('nguon_active_ma_tk') || (new URLSearchParams(window.location.search)).get('nguon');
-        if (activeNguonTk) {
+        if (activeNguonTk && targetPublishStatus !== 'published') {
           targetPublishStatus = 'draft';
         }
 
@@ -7927,12 +8051,16 @@ Nguyên tắc trả lời:
             if (targetPublishStatus) {
               item.publish_status = targetPublishStatus;
               item.publishStatus = targetPublishStatus;
-              if (targetPublishStatus === 'published' && item.badge) {
-                item.badge = item.badge
-                  .replace(/bản\s*nháp/gi, '')
-                  .replace(/nháp/gi, '')
-                  .replace(/^[,\s•\-\/]+|[,\s•\-\/]+$/g, '')
-                  .trim();
+              if (targetPublishStatus === 'published') {
+                item.published_at = new Date().toISOString();
+                item.is_sold = false;
+                if (item.badge) {
+                  item.badge = item.badge
+                    .replace(/bản\s*nháp/gi, '')
+                    .replace(/nháp/gi, '')
+                    .replace(/^[,\s•\-\/]+|[,\s•\-\/]+$/g, '')
+                    .trim();
+                }
               }
             }
             finalItem = item;
@@ -7982,7 +8110,8 @@ Nguyên tắc trả lời:
             priceUpdatedAt: priceUpdatedAtVal,
             isSold: false,
             publish_status: targetPublishStatus || 'published',
-            publishStatus: targetPublishStatus || 'published'
+            publishStatus: targetPublishStatus || 'published',
+            published_at: targetPublishStatus === 'published' ? new Date().toISOString() : null
           };
           propertyData.unshift(newItem);
           finalItem = newItem;
@@ -8019,7 +8148,8 @@ Nguyên tắc trả lời:
               old_price: finalItem.oldPrice,
               price_updated_at: finalItem.priceUpdatedAt,
               is_sold: finalItem.isSold || false,
-              publish_status: finalItem.publish_status || finalItem.publishStatus || 'published'
+              publish_status: finalItem.publish_status || finalItem.publishStatus || 'published',
+              published_at: finalItem.published_at || null
             };
 
             if (!supabaseHasViewsColumn) {
