@@ -5271,6 +5271,27 @@ Nguyên tắc trả lời:
             if (validUrls.length > 10 && typeof showToast === 'function') {
               showToast(`Đã lấy 10 ảnh đầu tiên (giới hạn tối đa 10 ảnh).`, false);
             }
+
+            // Tự động kích hoạt đúng một lần hàm Phân tích AI & Tự động Điền Form khi có dữ liệu thô và form còn trống
+            const aiInputVal = aiInput ? aiInput.value.trim() : '';
+            const formTitleVal = document.getElementById('formTitle')?.value?.trim() || '';
+            const formPriceVal = document.getElementById('formPrice')?.value || '';
+            const formAreaVal = document.getElementById('formArea')?.value || '';
+            const areFormFieldsEmpty = !formTitleVal && !formPriceVal && !formAreaVal;
+
+            const sessionKey = `nguon_ai_analyzed_${currentMaTk}`;
+            const alreadyAnalyzed = sessionStorage.getItem(sessionKey) === 'true';
+
+            if (aiInputVal && areFormFieldsEmpty && !alreadyAnalyzed) {
+              sessionStorage.setItem(sessionKey, 'true');
+              setTimeout(async () => {
+                try {
+                  await analyzeRawDataAI(null);
+                } catch (err) {
+                  console.error("Auto AI analysis error:", err);
+                }
+              }, 400);
+            }
           });
         }
       }
@@ -8332,10 +8353,12 @@ Nguyên tắc trả lời:
         // Thay thế sạch toàn bộ <br>, <br/> hoặc <br /> thành ký tự xuống dòng thực tế \n
         rawInputText = rawInputText.replace(/<br\s*\/?>/gi, '\n');
 
-        const btn = e.currentTarget || e.target;
-        let originalContent = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = "⚡ Đang xử lý bóc tách...";
+        const btn = (e && (e.currentTarget || e.target)) || document.querySelector('button[onclick*="analyzeRawDataAI"]');
+        let originalContent = btn ? btn.innerHTML : '';
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = "⚡ Đang xử lý bóc tách...";
+        }
 
         const formTitle = document.getElementById('formTitle');
         const formHouseNumber = document.getElementById('ap_hn_fld');
@@ -8549,8 +8572,10 @@ DỮ LIỆU THÔ CẦN PHÂN TÍCH:
           alert("Không thể kết nối đến máy chủ AI để phân tích thông tin thô. Có thể tất cả các API Key trong nhóm của bạn đều bận hoặc hết hạn hôm nay. Hãy thêm mã API Key của riêng mình trong tiện ích Thiết lập để tiếp tục nhé!");
           formDesc.value = "";
         } finally {
-          btn.disabled = false;
-          btn.innerHTML = originalContent;
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+          }
         }
       }
 
