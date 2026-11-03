@@ -192,6 +192,7 @@
           }
         }
         const cleaned = [];
+        const seenNormalized = new Set();
         for (const it of rawItems) {
           if (!it) continue;
           if (typeof it === 'string') {
@@ -202,7 +203,11 @@
                 if (Array.isArray(sub)) {
                   for (const subItem of sub) {
                     if (subItem && typeof subItem === 'string' && subItem.trim() !== '') {
-                      cleaned.push(subItem.trim());
+                      const cleanSub = subItem.trim().replace(/^http:\/\//i, 'https://').split('?')[0].replace(/\/+$/, '');
+                      if (!seenNormalized.has(cleanSub)) {
+                        seenNormalized.add(cleanSub);
+                        cleaned.push(subItem.trim());
+                      }
                     }
                   }
                   continue;
@@ -210,11 +215,15 @@
               } catch (e) {}
             }
             if (s !== '') {
-              cleaned.push(s);
+              const cleanS = s.replace(/^http:\/\//i, 'https://').split('?')[0].replace(/\/+$/, '');
+              if (!seenNormalized.has(cleanS)) {
+                seenNormalized.add(cleanS);
+                cleaned.push(s);
+              }
             }
           }
         }
-        return [...new Set(cleaned)].filter(url => 
+        return cleaned.filter(url => 
           typeof url === 'string' && 
           url.trim() !== '' && 
           !url.trim().startsWith('[') && 
@@ -5249,7 +5258,7 @@ Nguyên tắc trả lời:
               formBadge.value = `[${currentMaTk}] Bản Nháp`;
             }
 
-            // Với ảnh từ nguonnha: KHÔNG tải về hay gọi uploadRawFile. Mỗi link trong image_urls thêm vào danh sách ảnh của form như một mục loại URL.
+            // Với ảnh từ nguonnha: Nạp danh sách đã sạch và de-duplicate, tự động đồng bộ ngầm lên Cloudinary để chống lỗi ảnh hỏng (hotlink/CORS).
             const rawImages = data.image_urls || data.images || data.img_list || (data.img ? [data.img] : []);
             const validUrls = cleanImageUrlsList(rawImages);
             
@@ -5271,6 +5280,39 @@ Nguyên tắc trả lời:
             if (validUrls.length > 10 && typeof showToast === 'function') {
               showToast(`Đã lấy 10 ảnh đầu tiên (giới hạn tối đa 10 ảnh).`, false);
             }
+
+            // Đồng bộ ngầm các ảnh ngoài lên Cloudinary để chống lỗi ảnh hỏng (hotlink/CORS)
+            (async () => {
+              const cloudUploaded = [];
+              for (let i = 0; i < uploadedImagesList.length; i++) {
+                const u = uploadedImagesList[i];
+                if (u && typeof u === 'string' && u.startsWith('http') && !u.includes('res.cloudinary.com')) {
+                  try {
+                    const res = await fetch('/api/upload', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ image: u })
+                    });
+                    if (res.ok) {
+                      const d = await res.json();
+                      if (d.success && d.secure_url) {
+                        cloudUploaded.push(d.secure_url);
+                        continue;
+                      }
+                    }
+                  } catch (e) {
+                    console.warn("Background upload of nguon image failed:", e);
+                  }
+                }
+                cloudUploaded.push(u);
+              }
+              uploadedImagesList = cloudUploaded;
+              const fImg = document.getElementById('formImg');
+              if (fImg && uploadedImagesList.length > 0) {
+                fImg.value = uploadedImagesList[0];
+              }
+              renderUploadedImagesPreviews();
+            })();
 
             // Tự động kích hoạt đúng một lần hàm Phân tích AI & Tự động Điền Form khi có dữ liệu thô và form còn trống
             const aiInputVal = aiInput ? aiInput.value.trim() : '';
@@ -8403,18 +8445,24 @@ Yêu cầu bóc tách các thông số cụ thể:
 Yêu cầu biên soạn bài viết quảng cáo (desc):
 Bạn phải tuân thủ nghiêm ngặt các quy tắc sau:
 
+⚠️ QUY TẮC MÔ TẢ (DESC) CỰC KỲ QUAN TRỌNG:
+- Chỉ dùng thông tin có thật trong dữ liệu thô.
+- Trường nào không có hoặc không rõ (hướng nhà, pháp lý, v.v.) thì BỎ HẲN dòng đó, tuyệt đối KHÔNG ghi 'không xác định' hay 'đang cập nhật'.
+- Không thêm chi tiết về sân, nội thất, tiện ích nếu dữ liệu thô không nhắc tới.
+
 1. CẤU TRÚC BÀI VIẾT (BẮT BUỘC SỬ DỤNG KÝ TỰ XUỐNG DÒNG '\n' ĐỂ CHIA DÒNG CỤ THỂ):
 Bạn bắt buộc phải trình bày nội dung bài viết dưới dạng có xuống dòng rõ ràng bằng ký tự '\n' cho từng dòng y hệt như cấu trúc dưới đây. Mỗi ý, mỗi thông tin hoặc mỗi gạch đầu dòng phải nằm trên một dòng riêng biệt. KHÔNG được gộp tất cả các dòng thành một đoạn văn duy nhất liền dòng.
 - Tiêu đề: VIẾT HOA TOÀN BỘ, bắt đầu bằng icon (🔥), tóm tắt điểm nhấn (như loại hình, vị trí, diện tích, giá).
 - Mục 1: THÔNG SỐ & GIÁ BÁN:
   + Dòng chữ: THÔNG SỐ & GIÁ BÁN:
-  + Dòng tiếp theo: Vị trí tại phường [Tên Phường, ví dụ: Long Phước], TP. Thủ Đức.
-  + Dòng tiếp theo: - Diện tích đất [Diện tích]m2.
-  + Dòng tiếp theo: - Kết cấu gồm [Số tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.
-  + Dòng tiếp theo: - Hướng nhà: [Hướng nhà]. Giá bán: [Giá] tỷ đồng.
-- Mục 2: HIỆN TRẠNG:
+  + Dòng tiếp theo (nếu có vị trí): Vị trí tại phường [Tên Phường, ví dụ: Long Phước], TP. Thủ Đức.
+  + Dòng tiếp theo (nếu có diện tích): - Diện tích đất [Diện tích]m2.
+  + Dòng tiếp theo (nếu có nhà): - Kết cấu gồm [Số tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.
+  + Dòng tiếp theo (nếu có hướng nhà): - Hướng nhà: [Hướng nhà]. (NẾU KHÔNG CÓ HOẶC KHÔNG RÕ: BỎ HẲN).
+  + Dòng tiếp theo (nếu có giá): Giá bán: [Giá] tỷ đồng.
+- Mục 2: HIỆN TRẠNG (Chỉ liệt kê các đặc điểm thực sự có trong dữ liệu thô. BỎ HẲN pháp lý nếu không rõ):
   + Dòng chữ: HIỆN TRẠNG:
-  + Sử dụng các dòng tiếp theo, mỗi dòng bắt đầu bằng dấu trừ '-' để liệt kê: thiết kế, nội thất, hạ tầng giao thông đường xá, pháp lý minh bạch...
+  + Sử dụng các dòng tiếp theo, mỗi dòng bắt đầu bằng dấu trừ '-' để liệt kê các đặc điểm có thật trong dữ liệu thô.
 - Kết bài: Dòng tiếp theo: Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.
 👉 CHÚ Ý QUAN TRỌNG: Tuyệt đối KHÔNG ĐƯỢC ghi thêm bất kỳ thông tin liên hệ, số điện thoại, zalo, email, hoặc địa chỉ văn phòng của Thanh Trà BĐS ở cuối bài viết. Hãy kết thúc chính xác ở câu kêu gọi hành động phía trên.
 

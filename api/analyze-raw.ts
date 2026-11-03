@@ -35,18 +35,24 @@ Yêu cầu bóc tách các thông số cụ thể:
 Yêu cầu biên soạn bài viết quảng cáo (desc):
 Bạn phải tuân thủ nghiêm ngặt các quy tắc sau:
 
+⚠️ QUY TẮC MÔ TẢ (DESC) CỰC KỲ QUAN TRỌNG:
+- Chỉ dùng thông tin có thật trong dữ liệu thô.
+- Trường nào không có hoặc không rõ (hướng nhà, pháp lý, v.v.) thì BỎ HẲN dòng đó, tuyệt đối KHÔNG ghi 'không xác định' hay 'đang cập nhật'.
+- Không thêm chi tiết về sân, nội thất, tiện ích nếu dữ liệu thô không nhắc tới.
+
 1. CẤU TRÚC BÀI VIẾT (BẮT BUỘC SỬ DỤNG KÝ TỰ XUỐNG DÒNG '\\n' ĐỂ CHIA DÒNG CỤ THỂ):
 Bạn bắt buộc phải trình bày nội dung bài viết dưới dạng có xuống dòng rõ ràng bằng ký tự '\\n' cho từng dòng y hệt như cấu trúc dưới đây. Mỗi ý, mỗi thông tin hoặc mỗi gạch đầu dòng phải nằm trên một dòng riêng biệt. KHÔNG được gộp tất cả các dòng thành một đoạn văn duy nhất liền dòng.
 - Tiêu đề: VIẾT HOA TOÀN BỘ, bắt đầu bằng icon (🔥), tóm tắt điểm nhấn (như loại hình, vị trí, diện tích, giá).
 - Mục 1: THÔNG SỐ & GIÁ BÁN:
   + Dòng chữ: THÔNG SỐ & GIÁ BÁN:
-  + Dòng tiếp theo: Vị trí tại phường [Tên Phường, ví dụ: Long Phước], TP. Thủ Đức.
-  + Dòng tiếp theo: - Diện tích đất [Diện tích]m2.
-  + Dòng tiếp theo: - Kết cấu gồm [Số tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.
-  + Dòng tiếp theo: - Hướng nhà: [Hướng nhà]. Giá bán: [Giá] tỷ đồng.
-- Mục 2: HIỆN TRẠNG:
+  + Dòng tiếp theo (nếu có vị trí): Vị trí tại phường [Tên Phường, ví dụ: Long Phước], TP. Thủ Đức.
+  + Dòng tiếp theo (nếu có diện tích): - Diện tích đất [Diện tích]m2.
+  + Dòng tiếp theo (nếu có nhà): - Kết cấu gồm [Số tầng] tầng, thiết kế [Số PN] phòng ngủ và [Số WC] phòng vệ sinh.
+  + Dòng tiếp theo (nếu có hướng nhà): - Hướng nhà: [Hướng nhà]. (NẾU KHÔNG CÓ HOẶC KHÔNG RÕ: BỎ HẲN).
+  + Dòng tiếp theo (nếu có giá): Giá bán: [Giá] tỷ đồng.
+- Mục 2: HIỆN TRẠNG (Chỉ liệt kê các đặc điểm thực sự có trong dữ liệu thô. BỎ HẲN pháp lý nếu không rõ):
   + Dòng chữ: HIỆN TRẠNG:
-  + Sử dụng các dòng tiếp theo, mỗi dòng bắt đầu bằng dấu trừ '-' để liệt kê: thiết kế, nội thất, hạ tầng giao thông đường xá, pháp lý minh bạch...
+  + Sử dụng các dòng tiếp theo, mỗi dòng bắt đầu bằng dấu trừ '-' để liệt kê các đặc điểm có thật trong dữ liệu thô.
 - Kết bài: Dòng tiếp theo: Quý khách hàng quan tâm đến tài sản này vui lòng liên hệ để nhận thêm chi tiết và sắp xếp lịch xem nhà/đất.
 👉 CHÚ Ý QUAN TRỌNG: Tuyệt đối KHÔNG ĐƯỢC ghi thêm bất kỳ thông tin liên hệ, số điện thoại, zalo, email, hoặc địa chỉ văn phòng của Thanh Trà BĐS ở cuối bài viết. Hãy kết thúc chính xác ở câu kêu gọi hành động phía trên.
 
