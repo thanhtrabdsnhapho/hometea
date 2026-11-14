@@ -3233,3 +3233,24 @@
         box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3) !important;
         transform: scale(1.05) !important;
       }
+
+      /* --- BADGE NỔI BẬT (FEATURED) --- */
+      .badge-noibat {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        color: #fff;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.35);
+        background: linear-gradient(135deg,#f97316,#ea580c);
+      }
+      .badge-noibat.gap-ban {
+        background: linear-gradient(135deg,#ef4444,#b91c1c);
+      }
+      .badge-noibat.gia-tot {
+        background: linear-gradient(135deg,#22c55e,#15803d);
+      }

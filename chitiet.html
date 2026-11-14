@@ -79,6 +79,13 @@
   <link rel="stylesheet" href="/css/style.min.css">
 
   <style>
+    .badge-noibat{position:absolute;top:10px;left:10px;z-index:2;color:#fff;
+    font-weight:700;font-size:12px;padding:4px 10px;border-radius:6px;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+    background:linear-gradient(135deg,#f97316,#ea580c)}
+    .badge-noibat.gap-ban{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+    .badge-noibat.gia-tot{background:linear-gradient(135deg,#22c55e,#15803d)}
+
     /* Reset & Base Styles */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -2276,6 +2283,22 @@
 
       // 3. Info rendering
       document.getElementById('propTitle').textContent = item.title;
+      if (item.is_featured) {
+        let bClass = '';
+        let bText = '⭐ NỔI BẬT';
+        if (item.featured_label === 'gap_ban') {
+          bClass = ' gap-ban';
+          bText = '🔥 GẤP BÁN';
+        } else if (item.featured_label === 'gia_tot') {
+          bClass = ' gia-tot';
+          bText = '💰 GIÁ TỐT';
+        }
+        const badgeSpan = document.createElement('span');
+        badgeSpan.className = 'badge-noibat' + bClass;
+        badgeSpan.style.cssText = 'position:static;display:inline-block;vertical-align:middle;margin-left:8px;font-size:13px;padding:3px 10px;';
+        badgeSpan.textContent = bText;
+        document.getElementById('propTitle').appendChild(badgeSpan);
+      }
 
       const showGiamGia = (item.is_price_reduced === true || item.is_price_reduced === 'true') && 
         item.price_updated_at &&

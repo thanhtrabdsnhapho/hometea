@@ -299,7 +299,7 @@
       const initialDefaultData = [];
 
       // Cơ chế tự động giải phóng cache khi hệ thống cập nhật phiên bản mới
-      const APP_CACHE_VERSION = "v3.2";
+      const APP_CACHE_VERSION = "v3.3";
       const savedVersion = localStorage.getItem("app_cache_version");
       if (savedVersion !== APP_CACHE_VERSION) {
         localStorage.removeItem("property_data"); // Xóa cache dữ liệu cũ để cập nhật mới sạch sẽ
@@ -832,6 +832,22 @@
             `;
           }
 
+          const isFeatured = p.is_featured === true || p.is_featured === 'true';
+          const featuredLabel = p.featuredLabel || p.featured_label || null;
+          let badgeNoibatHtml = '';
+          if (isFeatured) {
+            let bText = '⭐ NỔI BẬT';
+            let bClass = 'badge-noibat';
+            if (featuredLabel === 'gap_ban') {
+              bText = '🔥 GẤP BÁN';
+              bClass = 'badge-noibat gap-ban';
+            } else if (featuredLabel === 'gia_tot') {
+              bText = '💰 GIÁ TỐT';
+              bClass = 'badge-noibat gia-tot';
+            }
+            badgeNoibatHtml = `<div class="${bClass}">${bText}</div>`;
+          }
+
           const pSlug = createSlug(p.title);
           const pUrl = `/chitiet/${p.id}-${pSlug}`;
           return `
@@ -839,6 +855,7 @@
               <!-- Slider hình ảnh -->
               <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="display: block; text-decoration: none; color: inherit; width: 100%;">
                 <div class="card-slider-container">
+                  ${badgeNoibatHtml}
                   <img class="card-slider-img" width="380" height="240" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
                   ${sliderNavHtml}
                 </div>
@@ -1021,7 +1038,10 @@
         }
 
         renderProducts(filtered);
-        if (typeof renderPublicMarketPriceTable === 'function') {
+        if (typeof renderFeaturedProducts === 'function') {
+          renderFeaturedProducts(true);
+        }
+        if (typeof renderPublicMarketPriceTable === 'function' === 'function') {
           renderPublicMarketPriceTable();
         }
       }
@@ -6398,6 +6418,9 @@ Nguyên tắc trả lời:
         const duplicateAllCount = currentDuplicateMap.size;
         const displayDuplicateCount = showSuspectDuplicates ? duplicateAllCount : duplicateCertainCount;
         const incompleteCount = propertyData.filter(isIncomplete).length;
+        const featuredCount = propertyData.filter(p => p.is_featured).length;
+        const adminFeaturedCountEl = document.getElementById('adminFeaturedCount');
+        if (adminFeaturedCountEl) adminFeaturedCountEl.textContent = featuredCount;
 
         const adminSellingCountEl = document.getElementById('adminSellingCount');
         const adminNewCountEl = document.getElementById('adminNewCount');
@@ -6447,6 +6470,8 @@ Nguyên tắc trả lời:
             if (!dup) return false;
             return showSuspectDuplicates ? (dup.level === 'certain' || dup.level === 'suspect') : (dup.level === 'certain');
           });
+        } else if (currentAdminSubTab === 'featured') {
+          filtered = filtered.filter(p => p.is_featured);
         } else if (currentAdminSubTab === 'incomplete') {
           filtered = filtered.filter(isIncomplete);
         }
@@ -6558,6 +6583,29 @@ Nguyên tắc trả lời:
           const isDuplicate = dupInfo && (showSuspectDuplicates ? (dupInfo.level === 'certain' || dupInfo.level === 'suspect') : (dupInfo.level === 'certain'));
           let duplicateBadgeHtml = '';
           let duplicateActionBtnHtml = '';
+           let featuredTitleBadgeHtml = '';
+           if (p.is_featured) {
+             let fLabel = p.featured_label || p.featuredLabel;
+             let fText = '⭐ NỔI BẬT';
+             let fBg = '#f97316';
+             if (fLabel === 'gap_ban') {
+               fText = '🔥 GẤP BÁN';
+               fBg = '#ef4444';
+             } else if (fLabel === 'gia_tot') {
+               fText = '💰 GIÁ TỐT';
+               fBg = '#22c55e';
+             }
+             featuredTitleBadgeHtml = ` <span style="background: ${fBg}; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; display: inline-block; vertical-align: middle;">${fText}</span>`;
+           }
+           const isFeaturedNow = !!p.is_featured;
+           const featuredBtnStyle = isFeaturedNow 
+             ? 'background: #f97316; color: #fff; border: none;' 
+             : 'background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);';
+           const featuredToggleBtnHtml = `
+             <button class="btn-action-featured" onclick="inlineToggleFeatured('${p.id}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 700; font-size: 12.5px; border-radius: 6px; cursor: pointer; transition: all 0.2s; ${featuredBtnStyle}" title="Bật/tắt trạng thái nổi bật">
+               ⭐ Nổi bật
+             </button>
+           `;
           if (isDuplicate) {
             const isCertain = dupInfo.level === 'certain';
             const badgeBg = isCertain ? '#fee2e2' : '#fef3c7';
@@ -6628,6 +6676,7 @@ Nguyên tắc trả lời:
             <td style="padding: 16px; text-align: center;">
               <div class="admin-actions-cell" style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
                 ${duplicateActionBtnHtml}
+                ${featuredToggleBtnHtml}
                 <button class="btn-action-edit" onclick="showAdminForm('${p.id}')">
                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-8.5a2.625 2.625 0 113.75 3.75L12 18.5H8.5V15L19.5 4z" />
@@ -6649,6 +6698,15 @@ Nguyên tắc trả lời:
         });
       }
 
+      
+      function toggleFormFeaturedOptions(checked) {
+        const grp = document.getElementById('formFeaturedLabelGroup');
+        if (grp) {
+          grp.style.display = checked ? 'block' : 'none';
+        }
+      }
+      window.toggleFormFeaturedOptions = toggleFormFeaturedOptions;
+  
       function showAdminForm(id) {
         hideDuplicateNoticeBanner();
         const formSection = document.getElementById('adminFormSection');
@@ -6730,6 +6788,15 @@ Nguyên tắc trả lời:
             if (bedroomsInput) bedroomsInput.value = (item.bedrooms !== undefined && item.bedrooms !== null) ? item.bedrooms : '';
             if (bathroomsInput) bathroomsInput.value = (item.bathrooms !== undefined && item.bathrooms !== null) ? item.bathrooms : '';
             if (legalInput) legalInput.value = item.legal || 'Sổ hồng riêng';
+            const chkFeatured = document.getElementById('formIsFeatured');
+            const selFeaturedLabel = document.getElementById('formFeaturedLabel');
+            if (chkFeatured) {
+              chkFeatured.checked = id && item ? !!item.is_featured : false;
+              toggleFormFeaturedOptions(chkFeatured.checked);
+            }
+            if (selFeaturedLabel) {
+              selFeaturedLabel.value = id && item ? (item.featured_label || item.featuredLabel || "") : "";
+            }
 
             // Handle images
             uploadedImagesList = cleanImageUrlsList(item.imgList || item.img_list || item.img);
@@ -6792,6 +6859,7 @@ Nguyên tắc trả lời:
       function switchAdminSubTab(subTab) {
         currentAdminSubTab = subTab;
         
+        const tabFeatured = document.getElementById('adminSubTab_featured');
         const tabSelling = document.getElementById('adminSubTab_selling');
         const tabNew = document.getElementById('adminSubTab_new');
         const tabSold = document.getElementById('adminSubTab_sold');
@@ -6799,6 +6867,11 @@ Nguyên tắc trả lời:
         const tabDuplicate = document.getElementById('adminSubTab_duplicate');
         const tabIncomplete = document.getElementById('adminSubTab_incomplete');
         
+        if (tabFeatured) {
+          tabFeatured.style.background = subTab === 'featured' ? '#f97316' : 'var(--bg-light)';
+          tabFeatured.style.color = subTab === 'featured' ? '#ffffff' : 'var(--text-dark)';
+          tabFeatured.style.border = subTab === 'featured' ? 'none' : '1px solid var(--border)';
+        }
         if (tabSelling) {
           tabSelling.style.background = subTab === 'selling' ? 'var(--accent)' : 'var(--bg-light)';
           tabSelling.style.color = subTab === 'selling' ? '#ffffff' : 'var(--text-dark)';
@@ -6836,6 +6909,8 @@ Nguyên tắc trả lời:
 
       async function toggleFormSoldStatus(e) {
         if (e) e.preventDefault();
+        const isFeaturedChecked = document.getElementById('formIsFeatured') ? document.getElementById('formIsFeatured').checked : false;
+        const featuredLabelVal = isFeaturedChecked ? (document.getElementById('formFeaturedLabel') ? document.getElementById('formFeaturedLabel').value || null : null) : null;
         const idVal = formPropId ? formPropId.value : "";
         if (!idVal) return;
         
@@ -6968,6 +7043,60 @@ Nguyên tắc trả lời:
       }
        window.inlineToggleSold = inlineToggleSold;
 
+      
+      async function inlineToggleFeatured(id) {
+        const item = propertyData.find(p => String(p.id) === String(id));
+        if (!item) return;
+
+        const newIsFeatured = !item.is_featured;
+        item.is_featured = newIsFeatured;
+        if (!newIsFeatured) {
+          item.featured_label = null;
+          item.featuredLabel = null;
+        }
+
+        logSystemActivity('EDIT', `${newIsFeatured ? 'Bật Nổi bật' : 'Tắt Nổi bật'} bất động sản #${item.id} (${item.title}).`);
+
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          showToast(newIsFeatured ? "Đang bật Nổi bật lên Cloud..." : "Đang tắt Nổi bật trên Cloud...", true);
+          const updatePayload = {
+            is_featured: newIsFeatured,
+            featured_label: item.featured_label || item.featuredLabel || null
+          };
+
+          fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatePayload)
+          }).then(res => {
+            if (res.ok) {
+              showToast(newIsFeatured ? "✓ Đã bật Nổi bật thành công!" : "✓ Đã tắt Nổi bật thành công!", true);
+              savePropertyDataToStorage();
+              applyFilters();
+              renderAdminTable();
+              if (typeof renderFeaturedProducts === 'function') renderFeaturedProducts(true);
+            } else {
+              showToast("Có lỗi xảy ra khi đồng bộ lên Cloud.", false);
+              console.error("Lỗi đồng bộ is_featured lên Supabase:", res.status);
+            }
+          }).catch(err => {
+            showToast("Có lỗi kết nối khi đồng bộ lên Cloud.", false);
+            console.error("Lỗi đồng bộ is_featured lên Supabase:", err);
+          });
+        } else {
+          showToast(newIsFeatured ? "✓ Đã bật Nổi bật (Cục bộ)!" : "✓ Đã tắt Nổi bật (Cục bộ)!", true);
+          savePropertyDataToStorage();
+          applyFilters();
+          renderAdminTable();
+          if (typeof renderFeaturedProducts === 'function') renderFeaturedProducts(true);
+        }
+      }
+      window.inlineToggleFeatured = inlineToggleFeatured;
+  
       async function inlineSetPublishStatus(id, newStatus) {
         const item = propertyData.find(p => String(p.id) === String(id));
         if (!item) return;
@@ -8160,6 +8289,8 @@ Nguyên tắc trả lời:
             item.bedrooms = bedroomsVal;
             item.bathrooms = bathroomsVal;
             item.legal = legalVal;
+            item.is_featured = isFeaturedChecked;
+            item.featured_label = featuredLabelVal;
             item.isPriceReduced = isPriceReducedChecked;
             item.oldPrice = oldPriceVal;
             item.priceUpdatedAt = priceUpdatedAtVal;
@@ -8219,6 +8350,8 @@ Nguyên tắc trả lời:
             bedrooms: bedroomsVal,
             bathrooms: bathroomsVal,
             legal: legalVal,
+            is_featured: isFeaturedChecked,
+            featured_label: featuredLabelVal,
             views: 0,
             isPriceReduced: isPriceReducedChecked,
             oldPrice: oldPriceVal,
@@ -8264,7 +8397,9 @@ Nguyên tắc trả lời:
               price_updated_at: finalItem.priceUpdatedAt,
               is_sold: finalItem.isSold || false,
               publish_status: finalItem.publish_status || finalItem.publishStatus || 'published',
-              published_at: finalItem.published_at || null
+              published_at: finalItem.published_at || null,
+              is_featured: finalItem.is_featured || false,
+              featured_label: finalItem.featured_label || null
             };
 
             if (!supabaseHasViewsColumn) {
@@ -9031,7 +9166,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
         
         try {
-          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,published_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status';
+          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,published_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status,is_featured,featured_at,featured_label';
           const urlParams = new URLSearchParams({
             select: selectCols,
             order: 'published_at.desc.nullslast,created_at.desc'
@@ -9128,7 +9263,10 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   isSold: item.is_sold === true || item.is_sold === 'true',
                   publish_status: item.publish_status || 'published',
                   publishStatus: item.publish_status || 'published',
-                  published_at: item.published_at || null
+                  published_at: item.published_at || null,
+                   is_featured: item.is_featured === true || item.is_featured === 'true',
+                   featured_at: item.featured_at || null,
+                   featured_label: item.featured_label || null
                 }));
 
                 if (limitCount && !hasLoadedAllProperties) {
@@ -10098,3 +10236,144 @@ DỮ LIỆU THÔ: "${textToParse}"`;
           autoMigrateBase64Properties();
         }, 8000);
       }
+      var displayedFeaturedLimit = 3;
+      function renderFeaturedProducts(resetPagination = true) {
+        if (resetPagination) {
+          displayedFeaturedLimit = 3;
+        }
+        const sectionEl = document.getElementById('featuredProductsSection');
+        const gridEl = document.getElementById('featuredProductsGrid');
+        const loadMoreEl = document.getElementById('featuredLoadMoreContainer');
+        const btnLoadMoreEl = document.getElementById('btnFeaturedLoadMore');
+
+        if (!sectionEl || !gridEl) return;
+
+        const isDraftProp = (p) => (p.publish_status === 'draft' || p.publishStatus === 'draft' || (p.badge && /bản\s*nháp/i.test(p.badge)));
+        const featuredList = propertyData.filter(p => p.is_featured && !p.isSold && !isDraftProp(p));
+
+        console.log("[Featured] Số tin nổi bật tìm thấy:", featuredList.length);
+
+        featuredList.sort((a, b) => {
+          const tA = a.featured_at ? new Date(a.featured_at).getTime() : getEffectiveTime(a);
+          const tB = b.featured_at ? new Date(b.featured_at).getTime() : getEffectiveTime(b);
+          return tB - tA;
+        });
+
+        if (featuredList.length === 0) {
+          sectionEl.style.display = 'none';
+          return;
+        }
+
+        sectionEl.style.display = 'block';
+        gridEl.innerHTML = '';
+
+        const visibleFeatured = featuredList.slice(0, displayedFeaturedLimit);
+
+        if (loadMoreEl && btnLoadMoreEl) {
+          if (featuredList.length > displayedFeaturedLimit) {
+            loadMoreEl.style.display = 'flex';
+            btnLoadMoreEl.onclick = () => {
+              displayedFeaturedLimit += 3;
+              renderFeaturedProducts(false);
+            };
+          } else {
+            loadMoreEl.style.display = 'none';
+          }
+        }
+
+        const cardsHtml = visibleFeatured.map((p, idx) => {
+          const list = p.imgList && p.imgList.length > 0 ? p.imgList : [p.img];
+          const hasMultipleImages = list.length > 1;
+          if (cardImageIndexes[p.id] === undefined) {
+            cardImageIndexes[p.id] = 0;
+          }
+          const currentImgIndex = cardImageIndexes[p.id];
+          const activeImgSrc = list[currentImgIndex];
+          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 380, 240, false);
+          const isFirstCard = idx === 0;
+          const loadingAttr = isFirstCard ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
+          const sliderNavHtml = hasMultipleImages ? `
+            <button class="card-slider-nav prev" aria-label="Xem ảnh trước" onclick="changeCardImage('${p.id}', -1, event)">&#10094;</button>
+            <button class="card-slider-nav next" aria-label="Xem ảnh tiếp theo" onclick="changeCardImage('${p.id}', 1, event)">&#10095;</button>
+            <span class="card-slider-badge">${currentImgIndex + 1}/${list.length}</span>
+          ` : '';
+
+          const isFeatured = p.is_featured === true || p.is_featured === 'true';
+          const featuredLabel = p.featuredLabel || p.featured_label || null;
+          let badgeNoibatHtml = '';
+          if (isFeatured) {
+            let bText = '⭐ NỔI BẬT';
+            let bClass = 'badge-noibat';
+            if (featuredLabel === 'gap_ban') {
+              bText = '🔥 GẤP BÁN';
+              bClass = 'badge-noibat gap-ban';
+            } else if (featuredLabel === 'gia_tot') {
+              bText = '💰 GIÁ TỐT';
+              bClass = 'badge-noibat gia-tot';
+            }
+            badgeNoibatHtml = `<div class="${bClass}">${bText}</div>`;
+          }
+
+          let shortAddress = p.address;
+          if (p.street && p.ward) {
+            shortAddress = `${p.street}, Phường ${p.ward}`;
+          } else {
+            shortAddress = p.address.replace(", Phường", "").replace(", P.", "").replace(", Phường ", "").replace(", P. ", "").replace(", TP. Thủ Đức, TP.HCM", "").replace(", TP. Thủ Đức", "").replace(", TP.HCM", "");
+          }
+          if (shortAddress.length > 25) {
+            shortAddress = shortAddress.substring(0, 24) + "...";
+          }
+          const viewsCount = p.views !== undefined ? p.views : 0;
+          const isNew = isNewListing(p);
+          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+          const isReduced = p.isPriceReduced && p.priceUpdatedAt && (Date.now() - new Date(p.priceUpdatedAt).getTime()) <= twoDaysMs;
+          let priceDisplayHtml = `<span>${p.price} tỷ</span>`;
+          if (isReduced && p.oldPrice) {
+            priceDisplayHtml = `
+              <span style="text-decoration: line-through; color: #475569; font-size: 0.85em; margin-right: 4px;">${p.oldPrice} tỷ</span>
+              <span style="color: var(--price-color); font-weight: bold; font-size: 1.1em;">${p.price} tỷ</span>
+              <span style="background-color: #b91c1c; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
+            `;
+          }
+          const pSlug = createSlug(p.title);
+          const pUrl = `/chitiet/${p.id}-${pSlug}`;
+          return `
+            <article class="product-card" id="prop-${p.id}" style="cursor: pointer; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
+              <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="display: block; text-decoration: none; color: inherit; width: 100%;">
+                <div class="card-slider-container">
+                  ${badgeNoibatHtml}
+                  <img class="card-slider-img" width="380" height="240" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+                  ${sliderNavHtml}
+                </div>
+              </a>
+              <div class="product-body" style="padding: 12px; display: flex; flex-direction: column; flex-grow: 1;">
+                <div class="card-badges-row">
+                  ${isNew ? '<span class="card-badge new">🔥 Mới đăng</span>' : ''}
+                  <span class="card-badge view">👁️ ${viewsCount} lượt xem</span>
+                  ${p.badge ? `<span class="card-badge type">${p.badge}</span>` : ''}
+                </div>
+                <h3 class="product-title" style="font-size: 15px; font-weight: 700; margin: 8px 0 6px; line-height: 1.4; color: var(--text-dark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 42px;">${p.title}</h3>
+                <p class="product-address" style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 4px;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  ${shortAddress}
+                </p>
+                <div class="product-meta-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 10px; font-size: 11.5px; color: var(--text-muted);">
+                  <div><strong style="color: var(--text-dark); display: block;">${p.area} m²</strong>Diện tích</div>
+                  <div><strong style="color: var(--text-dark); display: block;">${p.floors > 0 ? p.floors + ' Tầng' : 'Đất'}</strong>Kết cấu</div>
+                  <div><strong style="color: var(--text-dark); display: block;">${p.direction || '—'}</strong>Hướng</div>
+                </div>
+                <div class="product-footer" style="display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 4px;">
+                  <div class="product-price" style="font-size: 16px; font-weight: 800; color: var(--price-color);">
+                    ${priceDisplayHtml}
+                  </div>
+                  <button class="btn-detail-link" onclick="openProductModal('${p.id}', event)" style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-dark); font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Chi tiết</button>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        gridEl.innerHTML = cardsHtml;
+      }
+      window.renderFeaturedProducts = renderFeaturedProducts;
+  
