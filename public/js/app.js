@@ -778,179 +778,169 @@
           }
         }
 
-        const cardsHtmlList = visibleProducts.map((p, idx) => {
-          // Tính toán danh sách hình ảnh
-          const list = p.imgList && p.imgList.length > 0 ? p.imgList : [p.img];
-          const hasMultipleImages = list.length > 1;
-          
-          // Lấy vị trí ảnh hiện tại của card (mặc định 0)
-          if (cardImageIndexes[p.id] === undefined) {
-            cardImageIndexes[p.id] = 0;
+        const cardsHtmlList = visibleProducts.map((p, idx) => renderSingleProductCard(p, idx, maxViewsVal));
+        productsGrid.innerHTML = cardsHtmlList.join('');
+      }
+
+      function renderSingleProductCard(p, idx, maxViewsVal) {
+        // Tính toán danh sách hình ảnh
+        const list = p.imgList && p.imgList.length > 0 ? p.imgList : [p.img];
+        const hasMultipleImages = list.length > 1;
+        
+        // Lấy vị trí ảnh hiện tại của card (mặc định 0)
+        if (cardImageIndexes[p.id] === undefined) {
+          cardImageIndexes[p.id] = 0;
+        }
+        const currentImgIndex = cardImageIndexes[p.id];
+        const activeImgSrc = list[currentImgIndex];
+        const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 380, 240, false);
+
+        // Tối ưu hóa tải ảnh di động: chỉ thẻ đầu tiên ưu tiên cao, các thẻ sau lazy load không làm nghẽn băng thông
+        const isFirstCard = idx === 0;
+        const loadingAttr = isFirstCard ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
+
+        // Tạo các nút điều khiển slider HTML nếu nhiều ảnh
+        const sliderNavHtml = hasMultipleImages ? `
+          <button class="card-slider-nav prev" aria-label="Xem ảnh trước" onclick="changeCardImage('${p.id}', -1, event)">&#10094;</button>
+          <button class="card-slider-nav next" aria-label="Xem ảnh tiếp theo" onclick="changeCardImage('${p.id}', 1, event)">&#10095;</button>
+          <span class="card-slider-badge">${currentImgIndex + 1}/${list.length}</span>
+        ` : '';
+
+        // Thiết lập số lượt xem (như trong ảnh hiển thị "0 lượt xem")
+        const viewsCount = p.views !== undefined ? p.views : 0;
+
+        const isNew = isNewListing(p);
+        const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+        const isReduced = p.isPriceReduced && 
+          p.priceUpdatedAt &&
+          (Date.now() - new Date(p.priceUpdatedAt).getTime()) <= twoDaysMs;
+
+        let priceDisplayHtml = `<span>${p.price} tỷ</span>`;
+        if (isReduced && p.oldPrice) {
+          priceDisplayHtml = `
+            <span style="text-decoration: line-through; color: #475569; font-size: 0.85em; margin-right: 4px;">${p.oldPrice} tỷ</span>
+            <span style="color: var(--price-color); font-weight: bold; font-size: 1.1em;">${p.price} tỷ</span>
+            <span style="background-color: #b91c1c; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
+          `;
+        }
+
+        const isFeatured = p.is_featured === true || p.is_featured === 'true';
+        const featuredLabel = p.featuredLabel || p.featured_label || null;
+        let badgeNoibatHtml = '';
+        if (isFeatured) {
+          let bText = '⭐ NỔI BẬT';
+          let bClass = 'badge-noibat';
+          if (featuredLabel === 'gap_ban') {
+            bText = '🔥 GẤP BÁN';
+            bClass = 'badge-noibat gap-ban';
+          } else if (featuredLabel === 'gia_tot') {
+            bText = '💰 GIÁ TỐT';
+            bClass = 'badge-noibat gia-tot';
           }
-          const currentImgIndex = cardImageIndexes[p.id];
-          const activeImgSrc = list[currentImgIndex];
-          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 380, 240, false);
+          badgeNoibatHtml = `<div class="${bClass}">${bText}</div>`;
+        }
 
-          // Tối ưu hóa tải ảnh di động: chỉ thẻ đầu tiên ưu tiên cao, các thẻ sau lazy load không làm nghẽn băng thông
-          const isFirstCard = idx === 0;
-          const loadingAttr = isFirstCard ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
+        const pSlug = createSlug(p.title);
+        const pUrl = `/chitiet/${p.id}-${pSlug}`;
+        return `
+          <article class="product-card" id="prop-${p.id}" style="cursor: pointer; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
+            <!-- Slider hình ảnh -->
+            <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="display: block; text-decoration: none; color: inherit; width: 100%;">
+              <div class="card-slider-container">
+                ${badgeNoibatHtml}
+                <img class="card-slider-img" width="380" height="240" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+                ${sliderNavHtml}
+              </div>
+            </a>
+            
+            <!-- Thân card -->
+            <div class="product-body" style="padding: 12px; display: flex; flex-direction: column; flex-grow: 1;">
+              <!-- Hàng Badge mới: Mới đăng và Lượt xem giống hệt như ảnh -->
+              <div class="card-badges-row">
+                ${isNew ? '<span class="card-badge-item card-badge-new">🔥 Mới đăng</span>' : ''}
+                ${isReduced ? '<span class="card-badge-item card-badge-discount">📉 Giảm giá</span>' : ''}
+                <span class="card-badge-item card-badge-views">👁️ ${viewsCount} lượt xem</span>
+                ${viewsCount > 0 && viewsCount === maxViewsVal ? '<span class="card-badge-item card-badge-popular">👑 Xem nhiều nhất</span>' : ''}
+              </div>
 
-          // Tạo các nút điều khiển slider HTML nếu nhiều ảnh
-          const sliderNavHtml = hasMultipleImages ? `
-            <button class="card-slider-nav prev" aria-label="Xem ảnh trước" onclick="changeCardImage('${p.id}', -1, event)">&#10094;</button>
-            <button class="card-slider-nav next" aria-label="Xem ảnh tiếp theo" onclick="changeCardImage('${p.id}', 1, event)">&#10095;</button>
-            <span class="card-slider-badge">${currentImgIndex + 1}/${list.length}</span>
-          ` : '';
-
-          // Rút gọn địa chỉ phường đề hiển thị ngắn gọn trong cột
-          let shortAddress = p.address;
-          if (p.street && p.ward) {
-            shortAddress = `${p.street}, Phường ${p.ward}`;
-          } else {
-            // Rút gọn bớt chuỗi ", TP. Thủ Đức, TP.HCM"
-            shortAddress = p.address.replace(", Phường", "").replace(", P.", "").replace(", Phường ", "").replace(", P. ", "").replace(", TP. Thủ Đức, TP.HCM", "").replace(", TP. Thủ Đức", "").replace(", TP.HCM", "");
-          }
-          if (shortAddress.length > 25) {
-            shortAddress = shortAddress.substring(0, 24) + "...";
-          }
-
-           // Thiết lập số lượt xem (như trong ảnh hiển thị "0 lượt xem")
-          const viewsCount = p.views !== undefined ? p.views : 0;
-
-          const isNew = isNewListing(p);
-          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-          const isReduced = p.isPriceReduced && 
-            p.priceUpdatedAt &&
-            (Date.now() - new Date(p.priceUpdatedAt).getTime()) <= twoDaysMs;
-
-          let priceDisplayHtml = `<span>${p.price} tỷ</span>`;
-          if (isReduced && p.oldPrice) {
-            priceDisplayHtml = `
-              <span style="text-decoration: line-through; color: #475569; font-size: 0.85em; margin-right: 4px;">${p.oldPrice} tỷ</span>
-              <span style="color: var(--price-color); font-weight: bold; font-size: 1.1em;">${p.price} tỷ</span>
-              <span style="background-color: #b91c1c; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
-            `;
-          }
-
-          const isFeatured = p.is_featured === true || p.is_featured === 'true';
-          const featuredLabel = p.featuredLabel || p.featured_label || null;
-          let badgeNoibatHtml = '';
-          if (isFeatured) {
-            let bText = '⭐ NỔI BẬT';
-            let bClass = 'badge-noibat';
-            if (featuredLabel === 'gap_ban') {
-              bText = '🔥 GẤP BÁN';
-              bClass = 'badge-noibat gap-ban';
-            } else if (featuredLabel === 'gia_tot') {
-              bText = '💰 GIÁ TỐT';
-              bClass = 'badge-noibat gia-tot';
-            }
-            badgeNoibatHtml = `<div class="${bClass}">${bText}</div>`;
-          }
-
-          const pSlug = createSlug(p.title);
-          const pUrl = `/chitiet/${p.id}-${pSlug}`;
-          return `
-            <article class="product-card" id="prop-${p.id}" style="cursor: pointer; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
-              <!-- Slider hình ảnh -->
-              <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="display: block; text-decoration: none; color: inherit; width: 100%;">
-                <div class="card-slider-container">
-                  ${badgeNoibatHtml}
-                  <img class="card-slider-img" width="380" height="240" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
-                  ${sliderNavHtml}
-                </div>
-              </a>
+              <!-- Tiêu đề cấp H3 chuẩn phân cấp ngữ nghĩa SEO/A11y -->
+              <h3 class="card-title-upper" title="${p.title}" style="height: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;">
+                <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="color: inherit; text-decoration: none; display: block;">${p.title.toUpperCase()}</a>
+              </h3>
               
-              <!-- Thân card -->
-              <div class="product-body" style="padding: 12px; display: flex; flex-direction: column; flex-grow: 1;">
-                <!-- Hàng Badge mới: Mới đăng và Lượt xem giống hệt như ảnh -->
-                <div class="card-badges-row">
-                  ${isNew ? '<span class="card-badge-item card-badge-new">🔥 Mới đăng</span>' : ''}
-                  ${isReduced ? '<span class="card-badge-item card-badge-discount">📉 Giảm giá</span>' : ''}
-                  <span class="card-badge-item card-badge-views">👁️ ${viewsCount} lượt xem</span>
-                  ${viewsCount > 0 && viewsCount === maxViewsVal ? '<span class="card-badge-item card-badge-popular">👑 Xem nhiều nhất</span>' : ''}
-                </div>
+              <!-- Địa chỉ đầy đủ hiển thị dưới tiêu đề như trong ảnh -->
+              <div class="card-address-full" style="display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px; font-size: 13px; color: var(--text-dark);" title="${getPublicDisplayAddress(p)}">
+                <span style="color: #ef4444; font-size: 14px; flex-shrink: 0; margin-top: 1px;">📍</span>
+                <span style="font-weight: 500; font-family: var(--font-sans); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${getPublicDisplayAddress(p)}</span>
+              </div>
 
-                <!-- Tiêu đề cấp H3 chuẩn phân cấp ngữ nghĩa SEO/A11y -->
-                <h3 class="card-title-upper" title="${p.title}" style="height: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;">
-                  <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="color: inherit; text-decoration: none; display: block;">${p.title.toUpperCase()}</a>
-                </h3>
-                
-                <!-- Địa chỉ đầy đủ hiển thị dưới tiêu đề như trong ảnh -->
-                <div class="card-address-full" style="display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px; font-size: 13px; color: var(--text-dark);" title="${getPublicDisplayAddress(p)}">
-                  <span style="color: #ef4444; font-size: 14px; flex-shrink: 0; margin-top: 1px;">📍</span>
-                  <span style="font-weight: 500; font-family: var(--font-sans); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${getPublicDisplayAddress(p)}</span>
-                </div>
-
-                <!-- Bố cục lưới thông số 2 cột thanh tao -->
-                <div class="card-grid-specs">
-                  <!-- Cột Trái -->
-                  <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <div class="card-grid-spec-item">
-                      <span class="card-grid-icon" style="color: #2563eb;">📐</span>
-                      <span style="font-weight: 700; color: var(--text-dark);">${p.area} m²</span>
-                    </div>
-                    <div class="card-grid-spec-item">
-                      <span class="card-grid-icon" style="color: #6b7280;">🏢</span>
-                      <span>${formatFloors(p.floors)}</span>
-                    </div>
-                    <div class="card-grid-spec-item">
-                      <span class="card-grid-icon" style="color: #0ea5e9;">🚽</span>
-                      <span>${p.bathrooms !== undefined && p.bathrooms !== null ? p.bathrooms : 3} WC</span>
-                    </div>
+              <!-- Bố cục lưới thông số 2 cột thanh tao -->
+              <div class="card-grid-specs">
+                <!-- Cột Trái -->
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div class="card-grid-spec-item">
+                    <span class="card-grid-icon" style="color: #2563eb;">📐</span>
+                    <span style="font-weight: 700; color: var(--text-dark);">${p.area} m²</span>
                   </div>
-                  
-                  <!-- Cột Phải -->
-                  <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <div class="card-grid-spec-item">
-                      <span class="card-grid-icon" style="color: #22c55e;">🛏️</span>
-                      <span>${p.bedrooms !== undefined && p.bedrooms !== null ? p.bedrooms : 3} PN</span>
-                    </div>
-                    <div class="card-grid-spec-item">
-                      <span class="card-grid-icon" style="color: #f59e0b;">🧭</span>
-                      <span>${p.direction || 'Đông Bắc'}</span>
-                    </div>
-                    <div class="card-grid-spec-item">
-                      <span class="card-grid-icon" style="color: #8b5cf6;">📜</span>
-                      <span style="max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.legal || 'Sổ hồng'}">${p.legal || 'Sổ hồng'}</span>
-                    </div>
+                  <div class="card-grid-spec-item">
+                    <span class="card-grid-icon" style="color: #6b7280;">🏢</span>
+                    <span>${formatFloors(p.floors)}</span>
+                  </div>
+                  <div class="card-grid-spec-item">
+                    <span class="card-grid-icon" style="color: #0ea5e9;">🚽</span>
+                    <span>${p.bathrooms !== undefined && p.bathrooms !== null ? p.bathrooms : 3} WC</span>
                   </div>
                 </div>
                 
-                <!-- Đường kẻ phân cách ngang mảnh -->
-                <hr class="card-divider-line" style="margin-top: auto; margin-bottom: 8px;">
-                
-                <!-- Giá rực rỡ đã chỉnh sửa trùng tỷ -->
-                <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 0; margin-bottom: 8px;">
-                  <div style="display: flex; align-items: center; gap: 4px;">
-                    <span class="card-price-symbol">💰</span>
-                    ${priceDisplayHtml}
+                <!-- Cột Phải -->
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div class="card-grid-spec-item">
+                    <span class="card-grid-icon" style="color: #22c55e;">🛏️</span>
+                    <span>${p.bedrooms !== undefined && p.bedrooms !== null ? p.bedrooms : 3} PN</span>
                   </div>
-                  ${(() => {
-                    const rawPrice = parseFloat(p.price);
-                    const rawArea = parseFloat(p.area);
-                    if (!isNaN(rawPrice) && !isNaN(rawArea) && rawArea > 0) {
-                      const m2PriceInMillions = (rawPrice * 1000) / rawArea;
-                      return '<span style="font-size: 13px; font-weight: 500; color: #64748b; margin-left: auto; font-family: var(--font-sans);">(' + m2PriceInMillions.toFixed(1) + ' triệu/m²)</span>';
-                    }
-                    return '';
-                  })()}
-                </div>
-                
-                <!-- Nút Zalo & Chia sẻ song song rộng 50% -->
-                <div class="card-ctas-row" style="margin-top: 0;">
-                  <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
-                    <span style="font-size: 14px;">💬</span> Zalo
-                  </a>
-                  <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); copyShareLink('${p.id}');">
-                    <span style="font-size: 14px;">📘</span> Chia sẻ
-                  </button>
+                  <div class="card-grid-spec-item">
+                    <span class="card-grid-icon" style="color: #f59e0b;">🧭</span>
+                    <span>${p.direction || 'Đông Bắc'}</span>
+                  </div>
+                  <div class="card-grid-spec-item">
+                    <span class="card-grid-icon" style="color: #8b5cf6;">📜</span>
+                    <span style="max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.legal || 'Sổ hồng'}">${p.legal || 'Sổ hồng'}</span>
+                  </div>
                 </div>
               </div>
-            </article>
-          `;
-        });
-        productsGrid.innerHTML = cardsHtmlList.join('');
+              
+              <!-- Đường kẻ phân cách ngang mảnh -->
+              <hr class="card-divider-line" style="margin-top: auto; margin-bottom: 8px;">
+              
+              <!-- Giá rực rỡ đã chỉnh sửa trùng tỷ -->
+              <div class="card-price-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 0; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span class="card-price-symbol">💰</span>
+                  ${priceDisplayHtml}
+                </div>
+                ${(() => {
+                  const rawPrice = parseFloat(p.price);
+                  const rawArea = parseFloat(p.area);
+                  if (!isNaN(rawPrice) && !isNaN(rawArea) && rawArea > 0) {
+                    const m2PriceInMillions = (rawPrice * 1000) / rawArea;
+                    return '<span style="font-size: 13px; font-weight: 500; color: #64748b; margin-left: auto; font-family: var(--font-sans);">(' + m2PriceInMillions.toFixed(1) + ' triệu/m²)</span>';
+                  }
+                  return '';
+                })()}
+              </div>
+              
+              <!-- Nút Zalo & Chia sẻ song song rộng 50% -->
+              <div class="card-ctas-row" style="margin-top: 0;">
+                <a href="https://zalo.me/0854100036?text=${encodeURIComponent('Xin chào Thanh Trà BĐS, tôi muốn nhận thông tin đầy đủ căn: ' + p.title + ' (Mã số căn #' + p.id + ')')}" target="_blank" rel="noopener noreferrer" class="card-btn card-btn-zalo" onclick="event.stopPropagation();">
+                  <span style="font-size: 14px;">💬</span> Zalo
+                </a>
+                <button type="button" class="card-btn card-btn-share" onclick="event.stopPropagation(); copyShareLink('${p.id}');">
+                  <span style="font-size: 14px;">📘</span> Chia sẻ
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
       }
 
       // Hàm lọc sản phẩm realtime
@@ -6628,7 +6618,7 @@ Nguyên tắc trả lời:
               <img src="${adminImgSrc}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
             </td>
             <td style="padding: 16px;">
-              <div class="admin-prop-title" style="font-weight: 700; font-size: 15px;">${p.title}${badgeHtml}${duplicateBadgeHtml}</div>
+              <div class="admin-prop-title" style="font-weight: 700; font-size: 15px;">${p.title}${badgeHtml}${duplicateBadgeHtml}${featuredTitleBadgeHtml}</div>
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ID: #${p.id} • ${p.area}m² • Đường/Hẻm: ${getPublicDisplayAddress(p)}</div>
             </td>
             <td style="padding: 16px; position: relative;" class="inline-price-cell" data-id="${p.id}">
@@ -6748,6 +6738,14 @@ Nguyên tắc trả lời:
         if (bedroomsInput) bedroomsInput.value = '';
         if (bathroomsInput) bathroomsInput.value = '';
         if (legalInput) legalInput.value = 'Sổ hồng riêng';
+
+        const chkFeaturedReset = document.getElementById('formIsFeatured');
+        const selFeaturedLabelReset = document.getElementById('formFeaturedLabel');
+        if (chkFeaturedReset) {
+          chkFeaturedReset.checked = false;
+          toggleFormFeaturedOptions(false);
+        }
+        if (selFeaturedLabelReset) selFeaturedLabelReset.value = '';
 
         if (id) {
           // Edit mode
@@ -6909,8 +6907,6 @@ Nguyên tắc trả lời:
 
       async function toggleFormSoldStatus(e) {
         if (e) e.preventDefault();
-        const isFeaturedChecked = document.getElementById('formIsFeatured') ? document.getElementById('formIsFeatured').checked : false;
-        const featuredLabelVal = isFeaturedChecked ? (document.getElementById('formFeaturedLabel') ? document.getElementById('formFeaturedLabel').value || null : null) : null;
         const idVal = formPropId ? formPropId.value : "";
         if (!idVal) return;
         
@@ -7050,7 +7046,10 @@ Nguyên tắc trả lời:
 
         const newIsFeatured = !item.is_featured;
         item.is_featured = newIsFeatured;
-        if (!newIsFeatured) {
+        if (newIsFeatured) {
+          item.featured_at = new Date().toISOString();
+        } else {
+          item.featured_at = null;
           item.featured_label = null;
           item.featuredLabel = null;
         }
@@ -8137,6 +8136,8 @@ Nguyên tắc trả lời:
           targetPublishStatus = 'draft';
         }
 
+        const isFeaturedChecked = document.getElementById('formIsFeatured') ? document.getElementById('formIsFeatured').checked : false;
+        const featuredLabelVal = isFeaturedChecked ? (document.getElementById('formFeaturedLabel') ? document.getElementById('formFeaturedLabel').value || null : null) : null;
         const idVal = formPropId ? formPropId.value : "";
         const isEditing = Boolean(idVal);
         const titleVal = document.getElementById('formTitle').value.trim();
@@ -9475,17 +9476,14 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         
         cardImageIndexes[propId] = (cardImageIndexes[propId] + step + list.length) % list.length;
         
-        // Cập nhật thẻ IMG và thẻ Text chỉ đếm trang trong card
-        const cardImg = document.querySelector(`#prop-${propId} .card-slider-img`);
-        const cardBadge = document.querySelector(`#prop-${propId} .card-slider-badge`);
-        
-        if (cardImg) {
+        // Cập nhật thẻ IMG và thẻ Text chỉ đếm trang trong card (hỗ trợ cả khu Nổi bật & khu Mới nhất)
+        document.querySelectorAll(`#prop-${propId} .card-slider-img`).forEach(cardImg => {
           cardImg.style.opacity = 0;
           cardImg.src = list[cardImageIndexes[propId]];
-        }
-        if (cardBadge) {
+        });
+        document.querySelectorAll(`#prop-${propId} .card-slider-badge`).forEach(cardBadge => {
           cardBadge.textContent = `${cardImageIndexes[propId] + 1}/${list.length}`;
-        }
+        });
       }
 
       // ==========================================
@@ -10281,97 +10279,11 @@ DỮ LIỆU THÔ: "${textToParse}"`;
           }
         }
 
-        const cardsHtml = visibleFeatured.map((p, idx) => {
-          const list = p.imgList && p.imgList.length > 0 ? p.imgList : [p.img];
-          const hasMultipleImages = list.length > 1;
-          if (cardImageIndexes[p.id] === undefined) {
-            cardImageIndexes[p.id] = 0;
-          }
-          const currentImgIndex = cardImageIndexes[p.id];
-          const activeImgSrc = list[currentImgIndex];
-          const activeImgSrcOptimized = getOptimizedCloudinaryUrl(activeImgSrc, 380, 240, false);
-          const isFirstCard = idx === 0;
-          const loadingAttr = isFirstCard ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
-          const sliderNavHtml = hasMultipleImages ? `
-            <button class="card-slider-nav prev" aria-label="Xem ảnh trước" onclick="changeCardImage('${p.id}', -1, event)">&#10094;</button>
-            <button class="card-slider-nav next" aria-label="Xem ảnh tiếp theo" onclick="changeCardImage('${p.id}', 1, event)">&#10095;</button>
-            <span class="card-slider-badge">${currentImgIndex + 1}/${list.length}</span>
-          ` : '';
+        const maxViewsVal = propertyData && propertyData.length > 0 
+          ? Math.max(...propertyData.map(item => item.views || 0)) 
+          : 0;
 
-          const isFeatured = p.is_featured === true || p.is_featured === 'true';
-          const featuredLabel = p.featuredLabel || p.featured_label || null;
-          let badgeNoibatHtml = '';
-          if (isFeatured) {
-            let bText = '⭐ NỔI BẬT';
-            let bClass = 'badge-noibat';
-            if (featuredLabel === 'gap_ban') {
-              bText = '🔥 GẤP BÁN';
-              bClass = 'badge-noibat gap-ban';
-            } else if (featuredLabel === 'gia_tot') {
-              bText = '💰 GIÁ TỐT';
-              bClass = 'badge-noibat gia-tot';
-            }
-            badgeNoibatHtml = `<div class="${bClass}">${bText}</div>`;
-          }
-
-          let shortAddress = p.address;
-          if (p.street && p.ward) {
-            shortAddress = `${p.street}, Phường ${p.ward}`;
-          } else {
-            shortAddress = p.address.replace(", Phường", "").replace(", P.", "").replace(", Phường ", "").replace(", P. ", "").replace(", TP. Thủ Đức, TP.HCM", "").replace(", TP. Thủ Đức", "").replace(", TP.HCM", "");
-          }
-          if (shortAddress.length > 25) {
-            shortAddress = shortAddress.substring(0, 24) + "...";
-          }
-          const viewsCount = p.views !== undefined ? p.views : 0;
-          const isNew = isNewListing(p);
-          const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-          const isReduced = p.isPriceReduced && p.priceUpdatedAt && (Date.now() - new Date(p.priceUpdatedAt).getTime()) <= twoDaysMs;
-          let priceDisplayHtml = `<span>${p.price} tỷ</span>`;
-          if (isReduced && p.oldPrice) {
-            priceDisplayHtml = `
-              <span style="text-decoration: line-through; color: #475569; font-size: 0.85em; margin-right: 4px;">${p.oldPrice} tỷ</span>
-              <span style="color: var(--price-color); font-weight: bold; font-size: 1.1em;">${p.price} tỷ</span>
-              <span style="background-color: #b91c1c; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px; text-transform: uppercase; display: inline-block; line-height: 1.1;">NEW</span>
-            `;
-          }
-          const pSlug = createSlug(p.title);
-          const pUrl = `/chitiet/${p.id}-${pSlug}`;
-          return `
-            <article class="product-card" id="prop-${p.id}" style="cursor: pointer; display: flex; flex-direction: column;" onclick="openProductModal('${p.id}', event)">
-              <a href="${pUrl}" onclick="openProductModal('${p.id}', event)" style="display: block; text-decoration: none; color: inherit; width: 100%;">
-                <div class="card-slider-container">
-                  ${badgeNoibatHtml}
-                  <img class="card-slider-img" width="380" height="240" src="${activeImgSrcOptimized}" alt="${p.title}" ${loadingAttr} onload="this.style.opacity=1" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22600%22%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20fill=%22%230c1524%22/%3E%3Ctext%20x=%2250%25%22%20y=%2250%25%22%20dominant-baseline=%22middle%22%20text-anchor=%22middle%22%20font-family=%22system-ui%22%20font-size=%2222%22%20font-weight=%22bold%22%20fill=%22%23f97316%22%3EThanh%20Tr%C3%A0%20B%C4%90S%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
-                  ${sliderNavHtml}
-                </div>
-              </a>
-              <div class="product-body" style="padding: 12px; display: flex; flex-direction: column; flex-grow: 1;">
-                <div class="card-badges-row">
-                  ${isNew ? '<span class="card-badge new">🔥 Mới đăng</span>' : ''}
-                  <span class="card-badge view">👁️ ${viewsCount} lượt xem</span>
-                  ${p.badge ? `<span class="card-badge type">${p.badge}</span>` : ''}
-                </div>
-                <h3 class="product-title" style="font-size: 15px; font-weight: 700; margin: 8px 0 6px; line-height: 1.4; color: var(--text-dark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 42px;">${p.title}</h3>
-                <p class="product-address" style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 4px;">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  ${shortAddress}
-                </p>
-                <div class="product-meta-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 10px; font-size: 11.5px; color: var(--text-muted);">
-                  <div><strong style="color: var(--text-dark); display: block;">${p.area} m²</strong>Diện tích</div>
-                  <div><strong style="color: var(--text-dark); display: block;">${p.floors > 0 ? p.floors + ' Tầng' : 'Đất'}</strong>Kết cấu</div>
-                  <div><strong style="color: var(--text-dark); display: block;">${p.direction || '—'}</strong>Hướng</div>
-                </div>
-                <div class="product-footer" style="display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 4px;">
-                  <div class="product-price" style="font-size: 16px; font-weight: 800; color: var(--price-color);">
-                    ${priceDisplayHtml}
-                  </div>
-                  <button class="btn-detail-link" onclick="openProductModal('${p.id}', event)" style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-dark); font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Chi tiết</button>
-                </div>
-              </div>
-            </article>
-          `;
-        }).join('');
+        const cardsHtml = visibleFeatured.map((p, idx) => renderSingleProductCard(p, idx, maxViewsVal)).join('');
 
         gridEl.innerHTML = cardsHtml;
       }
