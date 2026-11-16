@@ -824,6 +824,21 @@
           `;
         }
 
+        let giamXBadgeHtml = '';
+        if (p.gia_cu !== undefined && p.gia_cu !== null && p.price !== undefined && p.price !== null) {
+          const oldP = parseFloat(p.gia_cu) || 0;
+          const currP = parseFloat(p.price) || 0;
+          const diff = oldP - currP;
+          if (diff > 0 && p.ngay_doi_gia) {
+            const diffTime = Date.now() - new Date(p.ngay_doi_gia).getTime();
+            const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+            if (diffTime >= 0 && diffTime <= fourteenDaysMs) {
+              const diffFormatted = diff.toFixed(1).replace(/\.0$/, '');
+              giamXBadgeHtml = `<span class="card-badge-item" style="background: var(--bg-badge-reduced, rgba(239, 68, 68, 0.15)); color: var(--text-badge-reduced, #dc2626); border: 1px solid var(--border-badge-reduced, #fca5a5); font-weight: 700;">📉 Giảm ${diffFormatted} tỷ</span>`;
+            }
+          }
+        }
+
         const isFeatured = p.is_featured === true || p.is_featured === 'true';
         const featuredLabel = p.featuredLabel || p.featured_label || null;
         let badgeNoibatHtml = '';
@@ -859,6 +874,7 @@
               <div class="card-badges-row">
                 ${isNew ? '<span class="card-badge-item card-badge-new">🔥 Mới đăng</span>' : ''}
                 ${isReduced ? '<span class="card-badge-item card-badge-discount">📉 Giảm giá</span>' : ''}
+                ${giamXBadgeHtml}
                 <span class="card-badge-item card-badge-views">👁️ ${viewsCount} lượt xem</span>
                 ${viewsCount > 0 && viewsCount === maxViewsVal ? '<span class="card-badge-item card-badge-popular">👑 Xem nhiều nhất</span>' : ''}
               </div>
@@ -6613,6 +6629,17 @@ Nguyên tắc trả lời:
             `;
           }
 
+          let choDuyetGiaHtml = '';
+          if (p.gia_nguon_cho_duyet !== undefined && p.gia_nguon_cho_duyet !== null) {
+            choDuyetGiaHtml = `
+              <div style="margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; background: rgba(234, 179, 8, 0.15); border: 1px solid #fde047; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #ca8a04;">
+                <span>⚠️ Chờ duyệt giá: ${p.gia_nguon_cho_duyet} Tỷ</span>
+                <button onclick="approvePriceChange('${p.id}')" style="background: #16a34a; color: #fff; border: none; border-radius: 3px; padding: 1px 4px; cursor: pointer; font-size: 10px;">Duyệt</button>
+                <button onclick="dismissPriceChange('${p.id}')" style="background: #dc2626; color: #fff; border: none; border-radius: 3px; padding: 1px 4px; cursor: pointer; font-size: 10px;">Bỏ qua</button>
+              </div>
+            `;
+          }
+
           tr.innerHTML = `
             <td style="padding: 16px;">
               <img src="${adminImgSrc}" class="admin-prop-img" alt="" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px;">
@@ -6625,6 +6652,7 @@ Nguyên tắc trả lời:
               <div class="inline-price-display" onclick="startInlinePriceEdit(event, '${p.id}', ${p.price})" style="font-weight: 800; color: var(--price-color); font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 4px; border: 1px dashed transparent; transition: all 0.15s; width: fit-content;" onmouseenter="this.style.border='1px dashed var(--border)'; this.style.backgroundColor='var(--bg-secondary)';" onmouseleave="this.style.border='1px dashed transparent'; this.style.backgroundColor='transparent';">
                 ${p.priceText}
               </div>
+              ${choDuyetGiaHtml}
               <div class="inline-price-edit-container" style="display: none; flex-direction: column; gap: 2px; max-width: 100px;">
                 <div style="display: flex; align-items: center; gap: 4px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px;">
                   <input type="number" step="any" class="inline-price-input" placeholder="${p.price}" value="${p.price}" style="width: 100%; border: none; outline: none; background: transparent; color: var(--text-primary); font-weight: 700; font-size: 13.5px; padding: 2px 0;" onkeydown="handleInlinePriceKeydown(event, '${p.id}')">
@@ -6763,6 +6791,11 @@ Nguyên tắc trả lời:
             if (formAddress) formAddress.value = item.address || '';
             if (formImg) formImg.value = item.img || '';
             if (formDesc) formDesc.value = item.desc || '';
+
+            const aiInputEl = document.getElementById('aiInputPrompt');
+            if (aiInputEl && item.noi_dung_tho) {
+              aiInputEl.value = item.noi_dung_tho + (item.bai_dang_tho ? '\n\n' + item.bai_dang_tho : '');
+            }
 
             const isCurrentlyReduced = item.isPriceReduced && 
               item.priceUpdatedAt && 
@@ -7425,6 +7458,84 @@ Nguyên tắc trả lời:
         }
       }
       window.saveInlinePrice = saveInlinePrice;
+
+      async function approvePriceChange(id) {
+        const item = propertyData.find(p => String(p.id) === String(id));
+        if (!item || item.gia_nguon_cho_duyet === undefined || item.gia_nguon_cho_duyet === null) return;
+        const newPrice = parseFloat(item.gia_nguon_cho_duyet) || 0;
+        const oldPrice = parseFloat(item.price) || 0;
+
+        item.gia_cu = oldPrice;
+        item.price = newPrice;
+        item.priceText = `${newPrice} Tỷ`;
+        item.ngay_doi_gia = new Date().toISOString();
+        item.gia_nguon = newPrice;
+        delete item.gia_nguon_cho_duyet;
+
+        savePropertyDataToStorage();
+        applyFilters();
+        renderAdminTable();
+
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          try {
+            await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+              method: 'PATCH',
+              headers: {
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify({
+                gia_cu: oldPrice,
+                price: newPrice,
+                price_text: `${newPrice} Tỷ`,
+                ngay_doi_gia: item.ngay_doi_gia,
+                gia_nguon: newPrice,
+                gia_nguon_cho_duyet: null
+              })
+            });
+            showToast("✓ Đã phê duyệt giá mới thành công!", true);
+          } catch (err) {
+            console.error("Lỗi đồng bộ phê duyệt giá lên Supabase:", err);
+          }
+        } else {
+          showToast("✓ Đã phê duyệt giá mới (Cục bộ)!", true);
+        }
+      }
+      window.approvePriceChange = approvePriceChange;
+
+      async function dismissPriceChange(id) {
+        const item = propertyData.find(p => String(p.id) === String(id));
+        if (!item) return;
+        delete item.gia_nguon_cho_duyet;
+
+        savePropertyDataToStorage();
+        renderAdminTable();
+
+        if (isSupabaseConnected && supabaseUrl && supabaseAnonKey) {
+          try {
+            await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?id=eq.${id}`, {
+              method: 'PATCH',
+              headers: {
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify({
+                gia_nguon_cho_duyet: null
+              })
+            });
+            showToast("✓ Đã bỏ qua giá chờ duyệt.", true);
+          } catch (err) {
+            console.error("Lỗi đồng bộ bỏ qua giá chờ duyệt lên Supabase:", err);
+          }
+        } else {
+          showToast("✓ Đã bỏ qua giá chờ duyệt (Cục bộ).", true);
+        }
+      }
+      window.dismissPriceChange = dismissPriceChange;
 
       function selectQuickImg(url) {
         if (formImg) formImg.value = url;
@@ -9167,7 +9278,7 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
         }
         
         try {
-          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,published_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status,is_featured,featured_at,featured_label';
+          const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,published_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status,is_featured,featured_at,featured_label,ma_tk,noi_dung_tho,bai_dang_tho,gia_nguon,gia_cu,ngay_doi_gia,gia_nguon_cho_duyet';
           const urlParams = new URLSearchParams({
             select: selectCols,
             order: 'published_at.desc.nullslast,created_at.desc'
@@ -9267,7 +9378,14 @@ Hãy soạn thảo theo cấu trúc mạch lạc:
                   published_at: item.published_at || null,
                    is_featured: item.is_featured === true || item.is_featured === 'true',
                    featured_at: item.featured_at || null,
-                   featured_label: item.featured_label || null
+                   featured_label: item.featured_label || null,
+                   ma_tk: item.ma_tk || "",
+                   noi_dung_tho: item.noi_dung_tho || "",
+                   bai_dang_tho: item.bai_dang_tho || "",
+                   gia_nguon: item.gia_nguon !== undefined && item.gia_nguon !== null ? parseFloat(item.gia_nguon) : null,
+                   gia_cu: item.gia_cu !== undefined && item.gia_cu !== null ? parseFloat(item.gia_cu) : null,
+                   ngay_doi_gia: item.ngay_doi_gia || null,
+                   gia_nguon_cho_duyet: item.gia_nguon_cho_duyet !== undefined && item.gia_nguon_cho_duyet !== null ? parseFloat(item.gia_nguon_cho_duyet) : null
                 }));
 
                 if (limitCount && !hasLoadedAllProperties) {

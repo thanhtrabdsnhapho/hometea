@@ -1419,6 +1419,107 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
     return res.status(200).send(robots);
   };
 
+  app.post("/api/nguon-nhap", async (req, res) => {
+    try {
+      const { ma_tk, noi_dung_tho, bai_dang_tho, gia, image_urls, khu } = req.body;
+      if (!ma_tk) {
+        return res.status(400).json({ status: 'loi', error: 'Thiếu mã TK (ma_tk)' });
+      }
+
+      const numericPrice = typeof gia === 'number' ? gia : parseFloat(gia) || 0;
+      const imgListJson = image_urls && Array.isArray(image_urls) ? JSON.stringify(image_urls) : JSON.stringify([]);
+      const firstImg = (image_urls && image_urls.length > 0) ? image_urls[0] : "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80";
+
+      const { data: existingRows, error: fetchErr } = await supabase
+        .from('properties_hometea')
+        .select('id, price, gia_nguon, publish_status')
+        .eq('ma_tk', ma_tk)
+        .limit(1);
+
+      if (fetchErr) {
+        return res.status(500).json({ status: 'loi', error: fetchErr.message });
+      }
+
+      if (!existingRows || existingRows.length === 0) {
+        const newRecord = {
+          ma_tk,
+          noi_dung_tho: noi_dung_tho || '',
+          bai_dang_tho: bai_dang_tho || '',
+          title: `TIN ĐĂNG MỚI - ${ma_tk}`,
+          desc: noi_dung_tho || bai_dang_tho || 'Đang cập nhật nội dung...',
+          price: numericPrice,
+          price_text: `${numericPrice} Tỷ`,
+          ward: khu || 'Thủ Đức',
+          img: firstImg,
+          img_list: imgListJson,
+          publish_status: 'draft',
+          gia_nguon: numericPrice,
+          created_at: new Date().toISOString()
+        };
+
+        const { data: insertData, error: insertErr } = await supabase
+          .from('properties_hometea')
+          .insert([newRecord])
+          .select('id')
+          .single();
+
+        if (insertErr) {
+          return res.status(500).json({ status: 'loi', error: insertErr.message });
+        }
+
+        return res.status(200).json({ status: 'tao_nhap', id: insertData?.id, ma_tk });
+      } else {
+        const currentProp = existingRows[0];
+        const currentPrice = parseFloat(currentProp.price) || 0;
+        const currentGiaNguon = currentProp.gia_nguon !== null && currentProp.gia_nguon !== undefined ? parseFloat(currentProp.gia_nguon) : null;
+
+        if (numericPrice === currentPrice) {
+          return res.status(200).json({ status: 'khong_doi', id: currentProp.id, ma_tk });
+        }
+
+        if (currentGiaNguon === null || currentPrice === currentGiaNguon) {
+          const updatePayload = {
+            gia_cu: currentPrice,
+            price: numericPrice,
+            price_text: `${numericPrice} Tỷ`,
+            ngay_doi_gia: new Date().toISOString(),
+            gia_nguon: numericPrice,
+            updated_at: new Date().toISOString()
+          };
+
+          const { error: updateErr } = await supabase
+            .from('properties_hometea')
+            .update(updatePayload)
+            .eq('id', currentProp.id);
+
+          if (updateErr) {
+            return res.status(500).json({ status: 'loi', error: updateErr.message });
+          }
+
+          return res.status(200).json({ status: 'cap_nhat_gia', id: currentProp.id, ma_tk });
+        } else {
+          const updatePayload = {
+            gia_nguon_cho_duyet: numericPrice,
+            updated_at: new Date().toISOString()
+          };
+
+          const { error: updateErr } = await supabase
+            .from('properties_hometea')
+            .update(updatePayload)
+            .eq('id', currentProp.id);
+
+          if (updateErr) {
+            return res.status(500).json({ status: 'loi', error: updateErr.message });
+          }
+
+          return res.status(200).json({ status: 'cho_duyet', id: currentProp.id, ma_tk });
+        }
+      }
+    } catch (err: any) {
+      return res.status(500).json({ status: 'loi', error: err?.message || String(err) });
+    }
+  });
+
   app.get("/sitemap.xml", getSitemapXmlHandler);
   app.get("/robots.txt", getRobotsTxtHandler);
   app.get("/api/robots", getRobotsTxtHandler);

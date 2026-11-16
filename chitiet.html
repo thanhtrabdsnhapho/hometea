@@ -2366,6 +2366,30 @@
         badgeRow.appendChild(discountBadge);
       }
 
+      let giamXAmount = 0;
+      if (item.gia_cu !== undefined && item.gia_cu !== null && item.price !== undefined && item.price !== null) {
+        const oldP = parseFloat(item.gia_cu) || 0;
+        const currP = parseFloat(item.price) || 0;
+        const diff = oldP - currP;
+        if (diff > 0 && item.ngay_doi_gia) {
+          const diffTime = Date.now() - new Date(item.ngay_doi_gia).getTime();
+          const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+          if (diffTime >= 0 && diffTime <= fourteenDaysMs) {
+            giamXAmount = diff;
+          }
+        }
+      }
+      if (giamXAmount > 0) {
+        const giamXBadge = document.createElement('span');
+        giamXBadge.className = 'badge';
+        giamXBadge.style.backgroundColor = 'var(--bg-badge-reduced, #fee2e2)';
+        giamXBadge.style.color = 'var(--text-badge-reduced, #dc2626)';
+        giamXBadge.style.border = '1px solid var(--border-badge-reduced, #fca5a5)';
+        giamXBadge.style.fontWeight = '700';
+        giamXBadge.textContent = `📉 Giảm ${giamXAmount.toFixed(1).replace(/\.0$/, '')} tỷ`;
+        badgeRow.appendChild(giamXBadge);
+      }
+
       if (item.badge && item.badge.trim() !== '') {
         const mainBadge = document.createElement('span');
         mainBadge.className = 'badge badge-primary';
@@ -2608,7 +2632,7 @@
 
       const supabaseUrl = 'https://bywboejxhpvdahbfvote.supabase.co';
       const apiKey = 'sb_publishable_lxZE5oD0i3Gh8EA6PrgG3A_OgLVYm1r';
-      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status';
+      const selectCols = 'id,title,price,price_text,ward,direction,floors,badge,address,img,img_list,desc,area,house_number,street,width,bedrooms,bathrooms,legal,views,created_at,updated_at,is_price_reduced,old_price,price_updated_at,loai_vi_tri,is_sold,publish_status,gia_cu,ngay_doi_gia';
       const endpoint = `${supabaseUrl}/rest/v1/properties_hometea?id=eq.${id}&select=${selectCols}`;
 
       try {
