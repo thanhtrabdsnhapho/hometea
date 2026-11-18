@@ -444,6 +444,11 @@ async function startServer() {
     return msg.replace(/\b(EAA[a-zA-Z0-9]{15,})\b/ig, '[MASKED_FB_TOKEN]');
   }
 
+  function removeAccents(str: string): string {
+    if (!str) return "";
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/đ/g, "d").replace(/Đ/g, "D");
+  }
+
   // Unified API router to handle all Facebook page operations, postings, logs and safety checks
   app.all("/api/facebook", async (req, res) => {
     const action = String(req.query.action || '').trim();
@@ -1464,6 +1469,9 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
           .single();
 
         if (insertErr) {
+          if (insertErr.message?.includes('unique') || insertErr.message?.includes('duplicate') || insertErr.message?.includes('ma_tk')) {
+            return res.status(400).json({ status: 'loi', error: 'Đã tồn tại' });
+          }
           return res.status(500).json({ status: 'loi', error: insertErr.message });
         }
 
@@ -1517,6 +1525,335 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
       }
     } catch (err: any) {
       return res.status(500).json({ status: 'loi', error: err?.message || String(err) });
+    }
+  });
+
+  // API: Phân tích danh sách thư mục quét được từ client
+  app.post("/api/phan-tich", async (req, res) => {
+    try {
+      const cookieHeader = req.headers.cookie || "";
+      const authHeader = String(req.headers['x-admin-auth'] || '');
+      const isAdmin = cookieHeader.includes("admin_logged_in=true") || authHeader === "true";
+      if (!isAdmin) {
+        return res.status(401).json({ success: false, error: "Chưa xác thực quyền quản trị viên." });
+      }
+
+      const { items } = req.body;
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ success: false, error: "Dữ liệu không hợp lệ." });
+      }
+
+      const { data: existingProps, error: dbErr } = await supabase
+        .from('properties_hometea')
+        .select('id, ma_tk, price, is_sold, publish_status, title, area, street, address, ward');
+
+      if (dbErr) throw dbErr;
+
+      const seenMaTkInRequest = new Set();
+      const results = [];
+
+      for (const item of items) {
+        const maTk = (item.ma_tk || "").trim().toUpperCase();
+        const gia = parseFloat(item.gia) || 0;
+        const soAnh = parseInt(item.so_anh) || 0;
+
+        let status = "moi";
+        let note = "Tin mới chưa có trên hệ thống";
+        let existingId = null;
+        let giaCu = null;
+        let chenhLech = 0;
+        let phanTram = 0;
+        let suspectedOlds = [];
+
+        if (!maTk) {
+          status = "thieu_ma";
+          note = "Thiếu mã nguồn hàng (Mã TK)";
+        } else if (gia <= 0) {
+          status = "thieu_gia";
+          const titleSnippet = (item.title || item.titleLine || "").trim();
+          note = titleSnippet ? `Không đọc được giá bán hợp lệ (Tiêu đề: ${titleSnippet.slice(0, 80)})` : "Không đọc được giá bán hợp lệ";
+        } else if (soAnh <= 0) {
+          status = "thieu_anh";
+          note = "Thư mục không có ảnh hợp lệ";
+        } else if (seenMaTkInRequest.has(maTk)) {
+          status = "trung_trong_thu_muc";
+          note = "Trùng mã TK với một thư mục khác trong lần quét này";
+        } else {
+          seenMaTkInRequest.add(maTk);
+
+          const found = (existingProps || []).find(p => p.ma_tk && p.ma_tk.trim().toUpperCase() === maTk);
+          if (found) {
+            existingId = found.id;
+            if (found.is_sold) {
+              status = "da_ban";
+              note = "Tin đã ở trạng thái Đã bán";
+            } else {
+              const currentPrice = parseFloat(found.price) || 0;
+              giaCu = currentPrice;
+              const diff = currentPrice - gia;
+              if (Math.abs(diff) < 0.0001) {
+                status = "trung";
+                note = "Tin đã tồn tại, giá không đổi";
+              } else if (diff > 0) {
+                status = "giam_gia";
+                chenhLech = diff;
+                phanTram = currentPrice > 0 ? Number(((diff / currentPrice) * 100).toFixed(2)) : 0;
+                note = `Giảm ${diff.toFixed(2)} tỷ (${phanTram}%)`;
+              } else {
+                status = "tang_gia";
+                const tDiff = Math.abs(diff);
+                chenhLech = -tDiff;
+                phanTram = currentPrice > 0 ? Number(((tDiff / currentPrice) * 100).toFixed(2)) : 0;
+                note = `Tăng ${tDiff.toFixed(2)} tỷ (${phanTram}%)`;
+              }
+            }
+          } else {
+            // Check suspected duplicates among old listings where ma_tk IS NULL
+            const scannedArea = parseFloat(item.area) || 0;
+            const scannedTitleNorm = removeAccents(item.title || item.titleLine || "");
+            const matchedOlds = (existingProps || []).filter(p => {
+              if (p.ma_tk && p.ma_tk.trim() !== '') return false;
+              const pArea = parseFloat(p.area) || 0;
+              if (pArea <= 0 || scannedArea <= 0 || Math.abs(pArea - scannedArea) > 1) return false;
+
+              const streetNorm = removeAccents(p.street || "");
+              const addressNorm = removeAccents(p.address || "");
+              const wardNorm = removeAccents(p.ward || "");
+
+              const matchStreet = streetNorm && scannedTitleNorm.includes(streetNorm);
+              const matchAddress = addressNorm && scannedTitleNorm.includes(addressNorm);
+              const matchWard = wardNorm && scannedTitleNorm.includes(wardNorm);
+
+              return matchStreet || matchAddress || matchWard;
+            });
+
+            if (matchedOlds.length > 0) {
+              status = "nghi_trung";
+              note = `Nghi trùng với ${matchedOlds.length} tin cũ trên hệ thống`;
+              suspectedOlds = matchedOlds.slice(0, 3).map(p => ({
+                id: p.id,
+                title: p.title,
+                price: p.price,
+                area: p.area,
+                ward: p.ward,
+                street: p.street,
+                address: p.address
+              }));
+            }
+          }
+        }
+
+        results.push({
+          ...item,
+          ma_tk: maTk,
+          status,
+          note,
+          existingId,
+          giaCu,
+          chenhLech,
+          phanTram,
+          suspectedOlds
+        });
+      }
+
+      return res.json({ success: true, results });
+    } catch (err: any) {
+      console.error("[phan-tich] Error:", err);
+      return res.status(500).json({ success: false, error: err?.message || String(err) });
+    }
+  });
+
+  // API: Gắn mã TK và cập nhật giá cho tin cũ nghi trùng
+  app.post("/api/gan-ma-va-cap-nhat-gia", async (req, res) => {
+    try {
+      const cookieHeader = req.headers.cookie || "";
+      const authHeader = String(req.headers['x-admin-auth'] || '');
+      const isAdmin = cookieHeader.includes("admin_logged_in=true") || authHeader === "true";
+      if (!isAdmin) {
+        return res.status(401).json({ success: false, error: "Chưa xác thực quyền quản trị viên." });
+      }
+
+      const { old_id, ma_tk, gia } = req.body;
+      if (!old_id || !ma_tk) {
+        return res.status(400).json({ success: false, error: "Thiếu thông tin old_id hoặc ma_tk." });
+      }
+
+      const cleanMaTk = ma_tk.trim().toUpperCase();
+      const numericPrice = parseFloat(gia) || 0;
+
+      const { data: propArr, error: fetchErr } = await supabase
+        .from('properties_hometea')
+        .select('id, price, gia_nguon')
+        .eq('id', old_id)
+        .limit(1);
+
+      if (fetchErr || !propArr || propArr.length === 0) {
+        return res.status(404).json({ success: false, error: "Không tìm thấy tin cũ." });
+      }
+
+      const oldProp = propArr[0];
+      const currentPrice = parseFloat(oldProp.price) || 0;
+
+      const updatePayload: any = {
+        ma_tk: cleanMaTk,
+        updated_at: new Date().toISOString()
+      };
+
+      if (numericPrice > 0 && Math.abs(numericPrice - currentPrice) >= 0.0001) {
+        updatePayload.gia_cu = currentPrice;
+        updatePayload.price = numericPrice;
+        updatePayload.price_text = `${numericPrice} Tỷ`;
+        updatePayload.ngay_doi_gia = new Date().toISOString();
+        updatePayload.gia_nguon = numericPrice;
+      }
+
+      const { error: updErr } = await supabase
+        .from('properties_hometea')
+        .update(updatePayload)
+        .eq('id', old_id);
+
+      if (updErr) {
+        if (updErr.message?.includes('unique') || updErr.message?.includes('duplicate') || updErr.message?.includes('ma_tk')) {
+          return res.status(400).json({ success: false, error: "Đã tồn tại" });
+        }
+        throw updErr;
+      }
+
+      return res.json({ success: true, message: "Gắn mã và cập nhật giá thành công!" });
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes('unique') || errMsg.includes('duplicate') || errMsg.includes('ma_tk')) {
+        return res.status(400).json({ success: false, error: "Đã tồn tại" });
+      }
+      return res.status(500).json({ success: false, error: errMsg });
+    }
+  });
+
+  // API: Lấy danh sách tin cũ chưa có ma_tk
+  app.get("/api/tin-chua-co-ma", async (req, res) => {
+    try {
+      const cookieHeader = req.headers.cookie || "";
+      const authHeader = String(req.headers['x-admin-auth'] || '');
+      const isAdmin = cookieHeader.includes("admin_logged_in=true") || authHeader === "true";
+      if (!isAdmin) {
+        return res.status(401).json({ success: false, error: "Chưa xác thực quyền quản trị viên." });
+      }
+
+      const { data, error } = await supabase
+        .from('properties_hometea')
+        .select('id, title, desc, ward, price, area, ma_tk')
+        .or('ma_tk.is.null,ma_tk.eq.""');
+
+      if (error) throw error;
+
+      const tkRegex = /\bTK[A-Z0-9]{6}\b/i;
+      const suggestions = (data || []).map(p => {
+        const text = `${p.title || ""} ${p.desc || ""}`;
+        const match = text.match(tkRegex);
+        let foundCode = match ? match[0].toUpperCase() : null;
+        if (!foundCode) {
+          const lines = text.split('\n');
+          for (const line of lines) {
+            if (/mã\s*nguồn\s*hàng/i.test(line) || /mã\s*tk/i.test(line)) {
+              const words = line.split(/[:\s]+/);
+              for (const w of words) {
+                if (/^TK[A-Z0-9]{6}$/i.test(w)) {
+                  foundCode = w.toUpperCase();
+                  break;
+                }
+              }
+            }
+          }
+        }
+        return {
+          id: p.id,
+          title: p.title,
+          ward: p.ward,
+          price: p.price,
+          area: p.area,
+          suggestedMaTk: foundCode || ""
+        };
+      });
+
+      return res.json({ success: true, suggestions });
+    } catch (err: any) {
+      console.error("[tin-chua-co-ma] Error:", err);
+      return res.status(500).json({ success: false, error: err?.message || String(err) });
+    }
+  });
+
+  // API: Duyệt hoặc từ chối giá chờ duyệt
+  app.post("/api/duyet-gia", async (req, res) => {
+    try {
+      const cookieHeader = req.headers.cookie || "";
+      const authHeader = String(req.headers['x-admin-auth'] || '');
+      const isAdmin = cookieHeader.includes("admin_logged_in=true") || authHeader === "true";
+      if (!isAdmin) {
+        return res.status(401).json({ success: false, error: "Chưa xác thực quyền quản trị viên." });
+      }
+
+      const { property_id, action } = req.body;
+      if (!property_id || !['approve', 'reject'].includes(action)) {
+        return res.status(400).json({ success: false, error: "Tham số không hợp lệ." });
+      }
+
+      const { data: propArr, error: fetchErr } = await supabase
+        .from('properties_hometea')
+        .select('id, price, gia_nguon_cho_duyet')
+        .eq('id', property_id)
+        .limit(1);
+
+      if (fetchErr || !propArr || propArr.length === 0) {
+        return res.status(404).json({ success: false, error: "Không tìm thấy bất động sản." });
+      }
+
+      const prop = propArr[0];
+      const pendingPrice = parseFloat(prop.gia_nguon_cho_duyet);
+      if (isNaN(pendingPrice)) {
+        return res.status(400).json({ success: false, error: "Không có giá chờ duyệt nào." });
+      }
+
+      if (action === 'approve') {
+        const oldPrice = parseFloat(prop.price) || 0;
+        const diff = oldPrice - pendingPrice;
+        const phanTram = oldPrice > 0 ? Number(((Math.abs(diff) / oldPrice) * 100).toFixed(2)) : 0;
+
+        const { error: updErr } = await supabase
+          .from('properties_hometea')
+          .update({
+            gia_cu: oldPrice,
+            price: pendingPrice,
+            price_text: `${pendingPrice} Tỷ`,
+            ngay_doi_gia: new Date().toISOString(),
+            gia_nguon_cho_duyet: null
+          })
+          .eq('id', property_id);
+
+        if (updErr) throw updErr;
+
+        await supabase.from('gia_lich_su').insert([{
+          property_id: prop.id,
+          gia_cu: oldPrice,
+          gia_moi: pendingPrice,
+          chenh_lech: diff,
+          phan_tram: phanTram,
+          nguon: 'duyet_admin',
+          trang_thai: 'da_ap_dung'
+        }]);
+
+      } else {
+        const { error: updErr } = await supabase
+          .from('properties_hometea')
+          .update({ gia_nguon_cho_duyet: null })
+          .eq('id', property_id);
+
+        if (updErr) throw updErr;
+      }
+
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error("[duyet-gia] Error:", err);
+      return res.status(500).json({ success: false, error: err?.message || String(err) });
     }
   });
 

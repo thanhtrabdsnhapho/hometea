@@ -893,7 +893,7 @@
     </div>
 
     <!-- KHU VỰC TRANG QUẢN TRỊ (ADMIN PAGE WRAPPER) -->
-    <div id="adminPageWrapper" style="display: none; padding-top: 110px; min-height: 80vh; max-width: 1200px; margin: 0 auto; padding-left: 24px; padding-right: 24px; padding-bottom: 80px;">
+    <div id="adminPageWrapper" style="display: none; padding-top: 24px; max-width: 1200px; margin: 0 auto; padding-left: 24px; padding-right: 24px; padding-bottom: 80px;">
       
       <!-- SUB-VIEW 1: BẢNG LUỒNG QUẢN LÝ QUẢN TRỊ VIÊN -->
       <div id="adminDashboardSection">
@@ -1073,6 +1073,12 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 ⚡ Đăng tin nhanh từ Thư mục
+              </button>
+              <button class="btn-admin-scan" onclick="startFolderScan()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(16,185,129,0.2); cursor: pointer; border: none; transition: var(--transition);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                🔍 Quét thư mục
               </button>
               <button class="btn-admin-add" onclick="showAdminForm(null)" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: #ffffff; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(249,115,22,0.25); cursor: pointer; border: none;">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -1755,6 +1761,85 @@
 
             <div id="fastProgressDetail" style="font-size: 12px; color: var(--text-dark); background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border); min-height: 44px; line-height: 1.5; font-family: var(--font-mono);">
               Đang chờ dữ liệu đầu vào...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 4: QUÉT THƯ MỤC & PHÂN TÍCH (FOLDER SCAN & ANALYSIS) -->
+      <div id="adminScanSection" style="display: none; max-width: 1200px; margin: 0 auto; margin-top: 0; padding: 0 16px;">
+        <div style="margin-bottom: 24px;">
+          <a href="#" onclick="hideAdminScanSection(event)" style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 14px; font-weight: 700; text-decoration: none;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Quay lại bảng điều khiển
+          </a>
+        </div>
+
+        <div class="admin-card" style="background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-lg); margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; border-bottom: 2px solid var(--bg-light); padding-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 32px;">🔍</span>
+              <div>
+                <h4 style="font-family: var(--font-serif); font-size: 22px; font-weight: 800; color: #10b981; margin: 0;">Quét Thư Mục & Phân Tích Tin Đăng</h4>
+                <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Quét thư mục chứa các thư mục con BĐS để so khớp mã TK, phát hiện tin mới, tin giảm giá hoặc tin trùng lặp trước khi đăng.</p>
+              </div>
+            </div>
+            <button onclick="startFolderScan()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: inline-flex; align-items: center; gap: 8px;">
+              📁 Chọn Thư Mục & Bắt Đầu Quét
+            </button>
+          </div>
+
+          <!-- Scan Progress Indicator -->
+          <div id="scanProgressArea" style="display: none; margin-bottom: 24px; background: var(--bg-secondary); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span id="scanProgressLabel" style="font-weight: 700; font-size: 14px; color: var(--text-dark);">Đang quét cây thư mục...</span>
+              <span id="scanProgressPercent" style="font-weight: 800; color: #10b981;">0%</span>
+            </div>
+            <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden;">
+              <div id="scanProgressBar" style="width: 0%; height: 100%; background: #10b981; transition: width 0.2s;"></div>
+            </div>
+          </div>
+
+          <!-- Scan Summary Cards / Filter Tabs -->
+          <div id="scanSummaryTabs" style="display: none; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+            <button class="scan-tab-btn active" onclick="filterScanResults('all')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--primary); color: #fff; cursor: pointer;">Tất cả (<span id="cntAll">0</span>)</button>
+            <button class="scan-tab-btn" onclick="filterScanResults('moi')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-dark); cursor: pointer;">Mới (<span id="cntMoi">0</span>)</button>
+            <button class="scan-tab-btn" onclick="filterScanResults('nghi_trung')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-dark); cursor: pointer;">Nghi trùng (<span id="cntNghiTrung">0</span>)</button>
+            <button class="scan-tab-btn" onclick="filterScanResults('giam_gia')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-dark); cursor: pointer;">Giảm giá (<span id="cntGiamGia">0</span>)</button>
+            <button class="scan-tab-btn" onclick="filterScanResults('tang_gia')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-dark); cursor: pointer;">Tăng giá (<span id="cntTangGia">0</span>)</button>
+            <button class="scan-tab-btn" onclick="filterScanResults('trung')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-dark); cursor: pointer;">Trùng (<span id="cntTrung">0</span>)</button>
+            <button class="scan-tab-btn" onclick="filterScanResults('da_ban')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-dark); cursor: pointer;">Đã bán (<span id="cntDaBan">0</span>)</button>
+            <button class="scan-tab-btn" onclick="filterScanResults('error')" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-dark); cursor: pointer;">Lỗi / Thiếu (<span id="cntError">0</span>)</button>
+          </div>
+
+          <!-- Scan Results Table container -->
+          <div id="scanTableContainer" style="display: none; overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; max-height: 550px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left;">
+              <thead style="background: var(--bg-secondary); position: sticky; top: 0; z-index: 2; border-bottom: 2px solid var(--border);">
+                <tr>
+                  <th style="padding: 12px; width: 40px;"><input type="checkbox" id="chkSelectAllScan" onchange="toggleSelectAllScan(this)"></th>
+                  <th style="padding: 12px;">Mã TK</th>
+                  <th style="padding: 12px;">Khu / Phường</th>
+                  <th style="padding: 12px;">Tên Folder / Tiêu đề</th>
+                  <th style="padding: 12px;">Giá (Cũ ➔ Mới)</th>
+                  <th style="padding: 12px; text-align: center;">Ảnh</th>
+                  <th style="padding: 12px;">Nhãn phân tích</th>
+                </tr>
+              </thead>
+              <tbody id="scanTableBody">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bottom Action Bar for Scan Results -->
+          <div id="scanActionBar" style="display: none; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: var(--bg-secondary); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border);">
+            <div id="scanSelectedCountText" style="font-weight: 700; color: var(--text-dark);">Đã chọn: 0 mới, 0 cập nhật giá</div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <button onclick="downloadScanReport()" style="background: #64748b; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer;">📥 Tải Báo Cáo .Txt</button>
+              <button onclick="executeSelectedScanPost()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; padding: 10px 24px; border-radius: 8px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">🚀 Đăng Các Tin Đã Chọn</button>
             </div>
           </div>
         </div>

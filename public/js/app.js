@@ -10406,4 +10406,723 @@ DỮ LIỆU THÔ: "${textToParse}"`;
         gridEl.innerHTML = cardsHtml;
       }
       window.renderFeaturedProducts = renderFeaturedProducts;
+
+      function showAdminScanSection() {
+        const dashboardSection = document.getElementById('adminDashboardSection');
+        const scanSection = document.getElementById('adminScanSection');
+        const formSection = document.getElementById('adminFormSection');
+        const bulkSection = document.getElementById('adminBulkSection');
+
+        if (dashboardSection) dashboardSection.style.display = 'none';
+        if (formSection) formSection.style.display = 'none';
+        if (bulkSection) bulkSection.style.display = 'none';
+        if (scanSection) scanSection.style.display = 'block';
+        window.scrollTo(0, 0);
+      }
+      window.showAdminScanSection = showAdminScanSection;
+
+      function hideAdminScanSection(e) {
+        if (e) e.preventDefault();
+        const scanSection = document.getElementById('adminScanSection');
+        const dashboardSection = document.getElementById('adminDashboardSection');
+        if (scanSection) scanSection.style.display = 'none';
+        if (dashboardSection) dashboardSection.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.hideAdminScanSection = hideAdminScanSection;
+
+      let scanResultItems = [];
+      let currentScanFilter = 'all';
+
+      async function parsePropertyFileText(txtFileOrHandle, folderName) {
+        let text = await (txtFileOrHandle instanceof File ? txtFileOrHandle.text() : (await txtFileOrHandle.getFile()).text());
+        text = text.normalize('NFC').replace(/\r\n/g, '\n').replace(/^\uFEFF/, '').replace(/\u00A0/g, ' ');
+        const lines = text.split('\n');
+
+        let titleLine = "";
+        for (let i = 0; i < lines.length; i++) {
+          const lTrim = lines[i].trim().toLowerCase();
+          if (lTrim === '--- tieu de ---' || lTrim === '---tiêu đề---' || lTrim.includes('tieu de') || lTrim.includes('tiêu đề')) {
+            for (let j = i + 1; j < lines.length; j++) {
+              const nextTrim = lines[j].trim();
+              if (nextTrim !== '') {
+                titleLine = nextTrim;
+                break;
+              }
+            }
+            break;
+          }
+        }
+        if (!titleLine) {
+          for (const l of lines) {
+            if (l.trim() !== '') {
+              titleLine = l.trim();
+              break;
+            }
+          }
+        }
+
+        function extractPriceFromString(str) {
+          if (!str) return 0;
+          const matches = [...str.matchAll(/(\d+(?:[.,]\d+)?)\s*t[ỷyỹỉi](?![\p{L}\p{N}])/giu)];
+          if (matches && matches.length > 0) {
+            const lastMatch = matches[matches.length - 1];
+            const numStr = lastMatch[1].replace(',', '.');
+            const parsed = parseFloat(numStr);
+            if (!isNaN(parsed) && parsed > 0) {
+              return parsed;
+            }
+          }
+          return 0;
+        }
+
+        let gia = extractPriceFromString(titleLine);
+        if (gia <= 0) {
+          for (let i = 0; i < Math.min(lines.length, 5); i++) {
+            gia = extractPriceFromString(lines[i]);
+            if (gia > 0) break;
+          }
+        }
+        if (gia <= 0) {
+          gia = extractPriceFromString(folderName);
+        }
+
+        let maTk = "";
+        for (const line of lines) {
+          if (/mã\s*nguồn\s*hàng/i.test(line) || /mã\s*tk/i.test(line)) {
+            const parts = line.split(/[:\s]+/);
+            for (const p of parts) {
+              if (/^TK[A-Z0-9]{6}$/i.test(p)) {
+                maTk = p.toUpperCase();
+                break;
+              }
+            }
+          }
+        }
+        if (!maTk) {
+          const matchRegex = text.match(/\bTK[A-Z0-9]{6}\b/i);
+          if (matchRegex) maTk = matchRegex[0].toUpperCase();
+        }
+
+        let area = 0;
+        for (const line of lines) {
+          if (/diện\s*tích/i.test(line) || /\bdt\b/i.test(line)) {
+            const matches = line.match(/(\d+(?:[.,]\d+)?)\s*(?:m[2²]|mét)/i);
+            if (matches) {
+              area = parseFloat(matches[1].replace(',', '.'));
+              break;
+            }
+          }
+        }
+        if (!area) {
+          const areaMatch = text.match(/\b(\d+(?:[.,]\d+)?)\s*m[2²]\b/i);
+          if (areaMatch) {
+            area = parseFloat(areaMatch[1].replace(',', '.'));
+          }
+        }
+
+        return {
+          maTk,
+          gia,
+          area,
+          title: titleLine,
+          rawText: text
+        };
+      }
+
+      async function startFolderScan() {
+        let dirHandle = null;
+        let useFileInputFallback = false;
+
+        if (!window.showDirectoryPicker) {
+          useFileInputFallback = true;
+        } else {
+          try {
+            dirHandle = await window.showDirectoryPicker();
+          } catch (pickerErr) {
+            if (pickerErr.name === 'SecurityError' || pickerErr.message?.includes('Cross origin sub frames') || pickerErr.message?.includes('security')) {
+              console.warn("showDirectoryPicker blocked by iframe security, falling back to file input...", pickerErr);
+              useFileInputFallback = true;
+            } else {
+              throw pickerErr;
+            }
+          }
+        }
+
+        if (useFileInputFallback) {
+          return new Promise((resolve) => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.webkitdirectory = true;
+            input.multiple = true;
+            input.style.display = 'none';
+            document.body.appendChild(input);
+
+            input.onchange = async (e) => {
+              const files = Array.from(e.target.files);
+              document.body.removeChild(input);
+              if (files.length === 0) return;
+
+              showAdminScanSection();
+              const progressArea = document.getElementById('scanProgressArea');
+              const progressBar = document.getElementById('scanProgressBar');
+              const progressLabel = document.getElementById('scanProgressLabel');
+              const progressPercent = document.getElementById('scanProgressPercent');
+              if (progressArea) progressArea.style.display = 'block';
+              if (progressLabel) progressLabel.textContent = "Đang xử lý các file từ thư mục...";
+              if (progressBar) progressBar.style.width = '30%';
+              if (progressPercent) progressPercent.textContent = '30%';
+
+              try {
+                const folderMap = {};
+                files.forEach(file => {
+                  const parts = file.webkitRelativePath.split('/');
+                  if (parts.length < 2) return;
+                  const folderName = parts[1] ? `${parts[0]}/${parts[1]}` : parts[0];
+                  if (folderName.startsWith('_')) return;
+                  if (!folderMap[folderName]) {
+                    folderMap[folderName] = {
+                      folder: parts[parts.length - 2] || parts[0],
+                      khu: parts.length > 2 ? parts[0] : "Thủ Đức",
+                      txtFile: null,
+                      baiDangFile: null,
+                      images: []
+                    };
+                  }
+                  const lowerName = file.name.toLowerCase();
+                  if (lowerName.endsWith('.txt')) {
+                    if (lowerName === 'bai-dang.txt') {
+                      folderMap[folderName].baiDangFile = file;
+                    } else {
+                      folderMap[folderName].txtFile = file;
+                    }
+                  } else if (/\.(jpg|jpeg|png|webp|avif)$/i.test(lowerName)) {
+                    folderMap[folderName].images.push(file);
+                  }
+                });
+
+                const rawScannedItems = [];
+                for (const [fKey, fData] of Object.entries(folderMap)) {
+                  if (!fData.txtFile) continue;
+                  try {
+                    const parsed = await parsePropertyFileText(fData.txtFile, fData.folder);
+                    let baiDangText = "";
+                    if (fData.baiDangFile) {
+                      baiDangText = await fData.baiDangFile.text();
+                    }
+
+                    rawScannedItems.push({
+                      ma_tk: parsed.maTk,
+                      gia: parsed.gia,
+                      area: parsed.area,
+                      khu: fData.khu || "Thủ Đức",
+                      folder: fData.folder,
+                      title: parsed.title,
+                      so_anh: fData.images.length,
+                      rawText: parsed.rawText,
+                      baiDangText,
+                      imageHandles: fData.images
+                    });
+                  } catch (itemErr) {
+                    console.warn("Lỗi đọc file:", fKey, itemErr);
+                  }
+                }
+
+                if (progressLabel) progressLabel.textContent = `Đã quét xong ${rawScannedItems.length} thư mục. Đang gửi lên server phân tích...`;
+                if (progressBar) progressBar.style.width = '70%';
+                if (progressPercent) progressPercent.textContent = '70%';
+
+                const payloadItems = rawScannedItems.map(i => ({
+                  ma_tk: i.ma_tk,
+                  gia: i.gia,
+                  area: i.area,
+                  khu: i.khu,
+                  folder: i.folder,
+                  so_anh: i.so_anh,
+                  title: i.title
+                }));
+
+                const response = await fetch('/api/phan-tich', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'x-admin-auth': 'true' },
+                  credentials: 'include',
+                  body: JSON.stringify({ items: payloadItems })
+                });
+
+                if (!response.ok) throw new Error('Lỗi kết nối API phân tích.');
+                const resJson = await response.json();
+                if (!resJson.success) throw new Error(resJson.error || 'Lỗi phân tích từ server.');
+
+                scanResultItems = resJson.results.map((r, idx) => ({
+                  ...r,
+                  rawText: rawScannedItems[idx].rawText,
+                  baiDangText: rawScannedItems[idx].baiDangText,
+                  imageHandles: rawScannedItems[idx].imageHandles,
+                  title: rawScannedItems[idx].title,
+                  area: rawScannedItems[idx].area,
+                  selected: r.status === 'moi' || r.status === 'giam_gia'
+                }));
+
+                if (progressArea) progressArea.style.display = 'none';
+                renderScanResults();
+                showToast(`✓ Đã quét và phân tích thành công ${scanResultItems.length} thư mục!`, true);
+
+              } catch (err) {
+                console.error("Lỗi xử lý file thư mục:", err);
+                alert("Không thể hoàn tất quét thư mục: " + (err.message || err));
+                if (progressArea) progressArea.style.display = 'none';
+              }
+              resolve();
+            };
+
+            input.oncancel = () => {
+              document.body.removeChild(input);
+              resolve();
+            };
+
+            input.click();
+          });
+        }
+
+        try {
+          showAdminScanSection();
+          const progressArea = document.getElementById('scanProgressArea');
+          const progressBar = document.getElementById('scanProgressBar');
+          const progressLabel = document.getElementById('scanProgressLabel');
+          const progressPercent = document.getElementById('scanProgressPercent');
+          if (progressArea) progressArea.style.display = 'block';
+
+          if (progressLabel) progressLabel.textContent = "Đang quét cây thư mục...";
+          if (progressBar) progressBar.style.width = '10%';
+          if (progressPercent) progressPercent.textContent = '10%';
+
+          const rawScannedItems = [];
+
+          async function scanFoldersRecursive(handle, khu = "") {
+            for await (const [name, entry] of handle.entries()) {
+              if (name.startsWith('_')) continue;
+              if (entry.kind === 'directory') {
+                let txtFileHandle = null;
+                let baiDangHandle = null;
+                const imageFiles = [];
+                let hasTxt = false;
+
+                for await (const [subName, subEntry] of entry.entries()) {
+                  if (subName.startsWith('_')) continue;
+                  if (subEntry.kind === 'file') {
+                    const lower = subName.toLowerCase();
+                    if (lower.endsWith('.txt')) {
+                      if (lower === 'bai-dang.txt') {
+                        baiDangHandle = subEntry;
+                      } else {
+                        txtFileHandle = subEntry;
+                        hasTxt = true;
+                      }
+                    } else if (/\.(jpg|jpeg|png|webp|avif)$/i.test(lower)) {
+                      imageFiles.push(subEntry);
+                    }
+                  }
+                }
+
+                if (hasTxt && txtFileHandle) {
+                  try {
+                    const parsed = await parsePropertyFileText(txtFileHandle, name);
+                    rawScannedItems.push({
+                      ma_tk: parsed.maTk,
+                      gia: parsed.gia,
+                      area: parsed.area,
+                      khu: khu || "Thủ Đức",
+                      folder: name,
+                      title: parsed.title,
+                      so_anh: imageFiles.length,
+                      rawText: parsed.rawText,
+                      baiDangText: baiDangHandle ? await (await baiDangHandle.getFile()).text() : "",
+                      imageHandles: imageFiles
+                    });
+                  } catch (readErr) {
+                    console.warn("Lỗi đọc file trong folder:", name, readErr);
+                  }
+                } else {
+                  await scanFoldersRecursive(entry, khu || name);
+                }
+              }
+            }
+          }
+
+          if (progressLabel) progressLabel.textContent = "Đang đọc file .txt và đếm ảnh...";
+          if (progressBar) progressBar.style.width = '40%';
+          if (progressPercent) progressPercent.textContent = '40%';
+
+          await scanFoldersRecursive(dirHandle);
+
+          if (progressLabel) progressLabel.textContent = `Đã quét xong ${rawScannedItems.length} thư mục. Đang gửi lên server phân tích...`;
+          if (progressBar) progressBar.style.width = '70%';
+          if (progressPercent) progressPercent.textContent = '70%';
+
+          const payloadItems = rawScannedItems.map(i => ({
+            ma_tk: i.ma_tk,
+            gia: i.gia,
+            area: i.area,
+            khu: i.khu,
+            folder: i.folder,
+            so_anh: i.so_anh,
+            title: i.title
+          }));
+
+          const response = await fetch('/api/phan-tich', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-auth': 'true' },
+            credentials: 'include',
+            body: JSON.stringify({ items: payloadItems })
+          });
+
+          if (!response.ok) throw new Error('Lỗi kết nối API phân tích.');
+          const resJson = await response.json();
+          if (!resJson.success) throw new Error(resJson.error || 'Lỗi phân tích từ server.');
+
+          scanResultItems = resJson.results.map((r, idx) => ({
+            ...r,
+            rawText: rawScannedItems[idx].rawText,
+            baiDangText: rawScannedItems[idx].baiDangText,
+            imageHandles: rawScannedItems[idx].imageHandles,
+            title: rawScannedItems[idx].title,
+            area: rawScannedItems[idx].area,
+            selected: r.status === 'moi' || r.status === 'giam_gia'
+          }));
+
+          if (progressArea) progressArea.style.display = 'none';
+          renderScanResults();
+          showToast(`✓ Đã quét và phân tích thành công ${scanResultItems.length} thư mục!`, true);
+
+        } catch (err) {
+          console.error("Lỗi quét thư mục:", err);
+          alert("Không thể hoàn tất quét thư mục: " + (err.message || err));
+          const progressArea = document.getElementById('scanProgressArea');
+          if (progressArea) progressArea.style.display = 'none';
+        }
+      }
+      window.startFolderScan = startFolderScan;
+
+      function renderScanResults() {
+        const summaryTabs = document.getElementById('scanSummaryTabs');
+        const tableContainer = document.getElementById('scanTableContainer');
+        const actionBar = document.getElementById('scanActionBar');
+        if (summaryTabs) summaryTabs.style.display = 'flex';
+        if (tableContainer) tableContainer.style.display = 'block';
+        if (actionBar) actionBar.style.display = 'flex';
+
+        const counts = {
+          all: scanResultItems.length,
+          moi: scanResultItems.filter(i => i.status === 'moi').length,
+          nghi_trung: scanResultItems.filter(i => i.status === 'nghi_trung').length,
+          giam_gia: scanResultItems.filter(i => i.status === 'giam_gia').length,
+          tang_gia: scanResultItems.filter(i => i.status === 'tang_gia').length,
+          trung: scanResultItems.filter(i => i.status === 'trung').length,
+          da_ban: scanResultItems.filter(i => i.status === 'da_ban').length,
+          error: scanResultItems.filter(i => ['thieu_ma', 'thieu_gia', 'thieu_anh', 'trung_trong_thu_muc'].includes(i.status)).length
+        };
+
+        document.getElementById('cntAll').textContent = counts.all;
+        document.getElementById('cntMoi').textContent = counts.moi;
+        document.getElementById('cntNghiTrung').textContent = counts.nghi_trung;
+        document.getElementById('cntGiamGia').textContent = counts.giam_gia;
+        document.getElementById('cntTangGia').textContent = counts.tang_gia;
+        document.getElementById('cntTrung').textContent = counts.trung;
+        document.getElementById('cntDaBan').textContent = counts.da_ban;
+        document.getElementById('cntError').textContent = counts.error;
+
+        let filtered = scanResultItems;
+        if (currentScanFilter === 'moi') filtered = scanResultItems.filter(i => i.status === 'moi');
+        else if (currentScanFilter === 'nghi_trung') filtered = scanResultItems.filter(i => i.status === 'nghi_trung');
+        else if (currentScanFilter === 'giam_gia') filtered = scanResultItems.filter(i => i.status === 'giam_gia');
+        else if (currentScanFilter === 'tang_gia') filtered = scanResultItems.filter(i => i.status === 'tang_gia');
+        else if (currentScanFilter === 'trung') filtered = scanResultItems.filter(i => i.status === 'trung');
+        else if (currentScanFilter === 'da_ban') filtered = scanResultItems.filter(i => i.status === 'da_ban');
+        else if (currentScanFilter === 'error') filtered = scanResultItems.filter(i => ['thieu_ma', 'thieu_gia', 'thieu_anh', 'trung_trong_thu_muc'].includes(i.status));
+
+        const tbody = document.getElementById('scanTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        filtered.forEach((item) => {
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid var(--border)';
+          tr.style.background = item.selected ? 'var(--bg-secondary)' : 'transparent';
+
+          let badgeBg = '#22c55e';
+          let badgeText = 'Mới';
+          if (item.status === 'nghi_trung') { badgeBg = '#d97706'; badgeText = `⚠️ Nghi trùng (${item.suspectedOlds?.length || 0})`; }
+          else if (item.status === 'giam_gia') { badgeBg = '#f97316'; badgeText = `📉 Giảm ${item.chenhLech} Tỷ (${item.phanTram}%)`; }
+          else if (item.status === 'tang_gia') { badgeBg = '#eab308'; badgeText = `📈 Tăng ${Math.abs(item.chenhLech)} Tỷ`; }
+          else if (item.status === 'trung') { badgeBg = '#64748b'; badgeText = 'Trùng (Không đổi)'; }
+          else if (item.status === 'da_ban') { badgeBg = '#dc2626'; badgeText = '🔴 Đã bán'; }
+          else if (['thieu_ma', 'thieu_gia', 'thieu_anh', 'trung_trong_thu_muc'].includes(item.status)) { badgeBg = '#ef4444'; badgeText = `⚠️ ${item.note}`; }
+
+          const canSelect = !['thieu_ma', 'thieu_gia', 'thieu_anh', 'trung_trong_thu_muc', 'da_ban'].includes(item.status);
+
+          let suspectedHtml = '';
+          if (item.status === 'nghi_trung' && item.suspectedOlds && item.suspectedOlds.length > 0) {
+            suspectedHtml = `<div style="margin-top: 6px; padding: 8px; background: rgba(217,119,6,0.06); border: 1px solid rgba(217,119,6,0.2); border-radius: 8px; font-size: 12px;">
+              <div style="font-weight: 700; color: #b45309; margin-bottom: 4px;">Tin cũ nghi trùng (${item.suspectedOlds.length}):</div>`;
+            item.suspectedOlds.forEach((oldP, idx) => {
+              suspectedHtml += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; border-bottom: 1px dashed rgba(217,119,6,0.2); padding-bottom: 4px;">
+                <div style="flex: 1; word-break: break-word;">
+                  <strong>#${idx+1}</strong>: ${oldP.title || 'Không có tiêu đề'} <br/><span style="color: var(--text-muted); font-size: 11px;">(${oldP.area || '?'}m², ${oldP.price || '?'} Tỷ, ${oldP.ward || oldP.street || ''})</span>
+                </div>
+                <button onclick="assignMaTkToOld(${scanResultItems.indexOf(item)}, ${oldP.id}, ${item.gia})" style="background: #16a34a; color: #fff; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; white-space: nowrap;">Là tin cũ, gắn mã</button>
+              </div>`;
+            });
+            suspectedHtml += `<div style="margin-top: 6px; display: flex; gap: 6px;">
+              <button onclick="postScanAsNew(${scanResultItems.indexOf(item)})" style="background: var(--primary); color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">Là tin mới</button>
+              <button onclick="skipScanItem(${scanResultItems.indexOf(item)})" style="background: #64748b; color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">Bỏ qua</button>
+            </div></div>`;
+          }
+
+          tr.innerHTML = `
+            <td style="padding: 12px; text-align: center;">
+              <input type="checkbox" ${item.selected ? 'checked' : ''} ${!canSelect ? 'disabled' : ''} onchange="toggleScanItemSelect(${scanResultItems.indexOf(item)}, this.checked)">
+            </td>
+            <td style="padding: 12px; font-weight: 700; color: var(--primary);">${item.ma_tk || '---'}</td>
+            <td style="padding: 12px; font-weight: 600;">${item.khu}</td>
+            <td style="padding: 12px;">
+              <div style="font-weight: 700;" title="Folder: ${item.folder}">${item.title || item.folder}</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">${item.note}</div>
+              ${suspectedHtml}
+            </td>
+            <td style="padding: 12px; font-weight: 800; color: var(--price-color);">
+              ${item.giaCu !== null && item.giaCu !== undefined ? `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.9em; margin-right: 4px;">${item.giaCu} Tỷ</span>` : ''}
+              <span>${item.gia} Tỷ</span>
+            </td>
+            <td style="padding: 12px; text-align: center; font-weight: 700;">🖼️ ${item.so_anh}</td>
+            <td style="padding: 12px;">
+              <span style="background: ${badgeBg}; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-block;">${badgeText}</span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        updateScanSelectedCount();
+      }
+      window.renderScanResults = renderScanResults;
+
+      function filterScanResults(tab) {
+        currentScanFilter = tab;
+        document.querySelectorAll('.scan-tab-btn').forEach(btn => {
+          btn.style.background = 'var(--card-bg)';
+          btn.style.color = 'var(--text-dark)';
+        });
+        if (event && event.target) {
+          event.target.style.background = 'var(--primary)';
+          event.target.style.color = '#fff';
+        }
+        renderScanResults();
+      }
+      window.filterScanResults = filterScanResults;
+
+      function toggleScanItemSelect(idx, checked) {
+        if (scanResultItems[idx]) {
+          scanResultItems[idx].selected = checked;
+          updateScanSelectedCount();
+        }
+      }
+      window.toggleScanItemSelect = toggleScanItemSelect;
+
+      function toggleSelectAllScan(chk) {
+        const isChecked = chk.checked;
+        scanResultItems.forEach(item => {
+          if (!['thieu_ma', 'thieu_gia', 'thieu_anh', 'trung_trong_thu_muc', 'da_ban'].includes(item.status)) {
+            item.selected = isChecked;
+          }
+        });
+        renderScanResults();
+      }
+      window.toggleSelectAllScan = toggleSelectAllScan;
+
+      function updateScanSelectedCount() {
+        const selectedMoi = scanResultItems.filter(i => i.selected && i.status === 'moi').length;
+        const selectedGiam = scanResultItems.filter(i => i.selected && i.status === 'giam_gia').length;
+        const txt = document.getElementById('scanSelectedCountText');
+        if (txt) {
+          txt.textContent = `Đã chọn: ${selectedMoi} mới, ${selectedGiam} cập nhật giá`;
+        }
+      }
+
+      async function assignMaTkToOld(itemIdx, oldId, price) {
+        const item = scanResultItems[itemIdx];
+        if (!item || !item.ma_tk) {
+          alert("Không tìm thấy mã TK hợp lệ.");
+          return;
+        }
+        if (!confirm(`Xác nhận gán mã ${item.ma_tk} cho tin cũ ID ${oldId}?`)) return;
+
+        try {
+          const res = await fetch('/api/gan-ma-va-cap-nhat-gia', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-auth': 'true' },
+            credentials: 'include',
+            body: JSON.stringify({ old_id: oldId, ma_tk: item.ma_tk, gia: price })
+          });
+          const json = await res.json();
+          if (!res.ok || !json.success) {
+            throw new Error(json.error || 'Lỗi khi gắn mã');
+          }
+          showToast(`✓ Đã gắn mã ${item.ma_tk} cho tin cũ thành công!`, true);
+          scanResultItems.splice(itemIdx, 1);
+          renderScanResults();
+          fetchPropertiesFromSupabase(true, 100);
+        } catch (err) {
+          const errMsg = err.message || String(err);
+          if (errMsg.includes('Đã tồn tại') || errMsg.includes('unique') || errMsg.includes('duplicate') || errMsg.includes('ma_tk')) {
+            alert("Đã tồn tại");
+          } else {
+            alert("Lỗi: " + errMsg);
+          }
+        }
+      }
+      window.assignMaTkToOld = assignMaTkToOld;
+
+      async function postScanAsNew(itemIdx) {
+        const item = scanResultItems[itemIdx];
+        if (!item) return;
+        if (!confirm(`Xác nhận đăng tin ${item.ma_tk} như tin mới?`)) return;
+
+        try {
+          const uploadedUrls = [];
+          if (item.imageHandles && item.imageHandles.length > 0) {
+            for (const imgHandle of item.imageHandles) {
+              const file = imgHandle instanceof File ? imgHandle : await imgHandle.getFile();
+              const base64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+              });
+              const uploadedUrl = await uploadBase64ToCloudinary(base64);
+              if (uploadedUrl && !uploadedUrl.startsWith('data:')) {
+                uploadedUrls.push(uploadedUrl);
+              }
+            }
+          }
+
+          const res = await fetch('/api/nguon-nhap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-auth': 'true' },
+            credentials: 'include',
+            body: JSON.stringify({
+              ma_tk: item.ma_tk,
+              noi_dung_tho: item.rawText,
+              bai_dang_tho: item.baiDangText,
+              gia: item.gia,
+              image_urls: uploadedUrls,
+              khu: item.khu
+            })
+          });
+          const json = await res.json();
+          if (!res.ok || json.status === 'loi') {
+            throw new Error(json.error || 'Lỗi đăng tin');
+          }
+          showToast(`✓ Đăng tin mới ${item.ma_tk} thành công!`, true);
+          scanResultItems.splice(itemIdx, 1);
+          renderScanResults();
+          fetchPropertiesFromSupabase(true, 100);
+        } catch (err) {
+          const errMsg = err.message || String(err);
+          if (errMsg.includes('Đã tồn tại') || errMsg.includes('unique') || errMsg.includes('duplicate') || errMsg.includes('ma_tk')) {
+            alert("Đã tồn tại");
+          } else {
+            alert("Lỗi: " + errMsg);
+          }
+        }
+      }
+      window.postScanAsNew = postScanAsNew;
+
+      function skipScanItem(itemIdx) {
+        scanResultItems.splice(itemIdx, 1);
+        renderScanResults();
+        showToast("Đã bỏ qua tin quét.", true);
+      }
+      window.skipScanItem = skipScanItem;
+
+      async function executeSelectedScanPost() {
+        const selectedItems = scanResultItems.filter(i => i.selected);
+        if (selectedItems.length === 0) {
+          alert("Vui lòng chọn ít nhất một tin hợp lệ để đăng hoặc cập nhật!");
+          return;
+        }
+
+        const item = selectedItems[0];
+        console.log("Bắt đầu xử lý tin:", item.ma_tk);
+        showToast(`Đang xử lý tin ${item.ma_tk}...`, true);
+        alert(`Đang xử lý tin ${item.ma_tk}...`);
+
+        try {
+          const uploadedUrls = [];
+          if (item.imageHandles && item.imageHandles.length > 0) {
+            for (const imgHandle of item.imageHandles) {
+              const file = imgHandle instanceof File ? imgHandle : await imgHandle.getFile();
+              const base64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+              });
+              const uploadedUrl = await uploadBase64ToCloudinary(base64);
+              if (uploadedUrl && !uploadedUrl.startsWith('data:')) {
+                uploadedUrls.push(uploadedUrl);
+              }
+            }
+          }
+          console.log("Upload ảnh xong, số lượng:", uploadedUrls.length);
+
+          const postRes = await fetch('/api/nguon-nhap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-auth': 'true' },
+            credentials: 'include',
+            body: JSON.stringify({
+              ma_tk: item.ma_tk,
+              noi_dung_tho: item.rawText,
+              bai_dang_tho: item.baiDangText,
+              gia: item.gia,
+              image_urls: uploadedUrls,
+              khu: item.khu
+            })
+          });
+          const postJson = await postRes.json();
+          console.log("Ghi database xong, kết quả:", postJson);
+
+          if (!postRes.ok || postJson.status === 'loi') {
+            throw new Error(postJson.error || 'Lỗi đăng tin');
+          }
+
+          showToast(`Thành công! Đã xử lý tin ${item.ma_tk}`, true);
+          alert(`Thành công! Đã xử lý tin ${item.ma_tk}`);
+
+          const idx = scanResultItems.indexOf(item);
+          if (idx !== -1) scanResultItems.splice(idx, 1);
+          renderScanResults();
+          fetchPropertiesFromSupabase(true, 100);
+        } catch (err) {
+          console.error("Lỗi xử lý tin:", err);
+          const errMsg = err.message || String(err);
+          let finalMsg = errMsg;
+          if (errMsg.includes('Đã tồn tại') || errMsg.includes('unique') || errMsg.includes('duplicate') || errMsg.includes('ma_tk')) {
+            finalMsg = "Đã tồn tại";
+          }
+          showToast(`Lỗi: ${finalMsg}`, false);
+          alert(`Lỗi: ${finalMsg}`);
+        }
+      }
+      window.executeSelectedScanPost = executeSelectedScanPost;
+
+      function downloadScanReport() {
+        const reportLines = ["=== BÁO CÁO QUÉT THƯ MỤC BĐS ===", `Thời gian: ${new Date().toLocaleString()}`, ""];
+        scanResultItems.forEach(i => {
+          reportLines.push(`[${i.status.toUpperCase()}] Mã TK: ${i.ma_tk || 'N/A'} | Khu: ${i.khu} | Folder: ${i.folder} | Giá: ${i.gia} Tỷ | Ghi chú: ${i.note}`);
+        });
+        const blob = new Blob([reportLines.join('\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bao-cao-quet-bds-${Date.now()}.txt`;
+        a.click();
+      }
+      window.downloadScanReport = downloadScanReport;
   
