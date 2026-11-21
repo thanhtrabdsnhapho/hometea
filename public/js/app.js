@@ -1475,6 +1475,43 @@
       });
       setupThemeToggle();
       
+      function setupSmoothScroll() {
+        const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+        navLinks.forEach(link => {
+          link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('#') && href.length > 1) {
+              e.preventDefault();
+              const adminSec = document.getElementById('adminDashboardSection');
+              const scanSec = document.getElementById('adminScanSection');
+              const formSec = document.getElementById('adminFormSection');
+              const bulkSec = document.getElementById('adminBulkSection');
+              if (adminSec) adminSec.style.display = 'none';
+              if (scanSec) scanSec.style.display = 'none';
+              if (formSec) formSec.style.display = 'none';
+              if (bulkSec) bulkSec.style.display = 'none';
+              const homeWrapper = document.getElementById('homePageWrapper');
+              if (homeWrapper) homeWrapper.style.display = 'block';
+
+              const targetEl = document.querySelector(href);
+              if (targetEl) {
+                const navHeight = 70;
+                const elementPosition = targetEl.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+                window.scrollTo({
+                  top: offsetPosition,
+                  behavior: 'smooth'
+                });
+              }
+
+              navLinks.forEach(l => l.classList.remove('active'));
+              link.classList.add('active');
+            }
+          });
+        });
+      }
+      setupSmoothScroll();
+      
       function setupDuplicateCheckListeners() {
         const titleInput = document.getElementById('formTitle');
         const areaInput = document.getElementById('formArea');
