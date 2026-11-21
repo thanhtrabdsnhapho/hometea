@@ -148,6 +148,11 @@
           document.cookie = "admin_logged_in=true; path=/; max-age=" + (30 * 86400) + "; SameSite=Lax; Secure";
         } catch (e) {}
       }
+      let supabaseUrl = localStorage.getItem("supabase_url") || "";
+      let supabaseAnonKey = localStorage.getItem("supabase_anon_key") || "";
+      let isSupabaseConnected = false;
+      const supabaseTable = "properties_hometea";
+      let supabaseHasViewsColumn = true;
       const cardImageIndexes = {};
       let currentFilteredProducts = [];
       let displayedProductLimit = 12;
@@ -1234,7 +1239,7 @@
         }
       }
 
-      async function fetchPropertiesFromSupabase(reset = true, limit = 100) {
+      async function fetchPropertiesFromSupabase(reset = true, limit = 1000) {
         try {
           if (!supabaseUrl || !supabaseAnonKey) return;
           const url = `${supabaseUrl}/rest/v1/${supabaseTable}?publish_status=eq.published&select=*&limit=${limit}`;
@@ -1309,7 +1314,7 @@
           let loadedCount = 0;
           if (supabaseUrl && supabaseAnonKey) {
             try {
-              const res = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?publish_status=eq.published&select=*&limit=100`, {
+              const res = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?publish_status=eq.published&select=*&limit=1000`, {
                 headers: {
                   'apikey': supabaseAnonKey,
                   'Authorization': `Bearer ${supabaseAnonKey}`
