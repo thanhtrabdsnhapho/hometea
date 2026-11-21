@@ -753,13 +753,19 @@
         const btnLoadMore = document.getElementById('btnLoadMore');
         
         if (sortedProducts.length === 0) {
+          let emptyText = "Rất tiếc! Không có sản phẩm nào phù hợp với bộ lọc tìm kiếm hiện tại.";
+          let resetBtnHtml = `<button onclick="resetAllFilters()" class="btn-reset-filters">Đặt lại bộ lọc tìm kiếm</button>`;
+          if (currentHomeTab === 'new' || currentHomeTab === 'discount') {
+            emptyText = "Hiện chưa có tin mới/giảm giá trong thời gian gần đây";
+            resetBtnHtml = "";
+          }
           productsGrid.innerHTML = `
             <div class="empty-state">
               <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--text-muted); margin-bottom: 12px; display: inline-block;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <p>Rất tiếc! Không có sản phẩm nào phù hợp với bộ lọc tìm kiếm hiện tại.</p>
-              <button onclick="resetAllFilters()" class="btn-reset-filters">Đặt lại bộ lọc tìm kiếm</button>
+              <p>${emptyText}</p>
+              ${resetBtnHtml}
             </div>
           `;
           if (statCountText) {
@@ -926,9 +932,7 @@
           const redTime = (p.isPriceReduced || p.is_price_reduced) && p.oldPrice !== undefined && p.oldPrice !== null && p.price < p.oldPrice && (p.priceUpdatedAt || p.price_updated_at) ? new Date(p.priceUpdatedAt || p.price_updated_at).getTime() : 0;
           const isReduced2Days = redTime > 0 && (now - redTime) <= twoDaysMs;
 
-          if (currentHomeTab === 'all') {
-            if (!isNew3Days && !isReduced2Days) return false;
-          } else if (currentHomeTab === 'new') {
+          if (currentHomeTab === 'new') {
             if (!isNew3Days) return false;
           } else if (currentHomeTab === 'discount') {
             if (!isReduced2Days) return false;
