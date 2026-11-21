@@ -400,8 +400,15 @@
 
     <!-- SECTION DANH SÁCH BẤT ĐỘNG SẢN -->
     <main class="products-section" id="products">
-      <div class="section-header">
-        <h2>SẢN PHẨM MỚI NHẤT</h2>
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+        <h2 style="margin: 0;">SẢN PHẨM MỚI NHẤT</h2>
+        <!-- Home / Products Tab buttons -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; background: var(--bg-secondary); padding: 4px; border-radius: 10px; border: 1px solid var(--border);">
+          <button id="homeTab_all" class="home-tab-btn active" onclick="switchHomeTab('all')" style="padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; background: var(--primary); color: #fff; cursor: pointer; transition: all 0.2s;">Tất cả</button>
+          <button id="homeTab_new" class="home-tab-btn" onclick="switchHomeTab('new')" style="padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; background: transparent; color: var(--text-dark); cursor: pointer; transition: all 0.2s;">🔥 Mới đăng</button>
+          <button id="homeTab_discount" class="home-tab-btn" onclick="switchHomeTab('discount')" style="padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; background: transparent; color: var(--text-dark); cursor: pointer; transition: all 0.2s;">📉 Giảm giá</button>
+          <button id="homeTab_views" class="home-tab-btn" onclick="switchHomeTab('views')" style="padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; background: transparent; color: var(--text-dark); cursor: pointer; transition: all 0.2s;">👁️ Xem nhiều</button>
+        </div>
       </div>
 
       <div class="products-grid" id="productsGrid">
@@ -1826,6 +1833,7 @@
                   <th style="padding: 12px;">Giá (Cũ ➔ Mới)</th>
                   <th style="padding: 12px; text-align: center;">Ảnh</th>
                   <th style="padding: 12px;">Nhãn phân tích</th>
+                  <th style="padding: 12px; text-align: center;">Thao tác</th>
                 </tr>
               </thead>
               <tbody id="scanTableBody">
@@ -2191,5 +2199,20 @@
     <!-- --- JAVASCRIPT ĐIỀU KHIỂN HOẠT ĐỘNG (Minified) --- -->
     <script src="/js/submit-property.js" defer></script>
     <script src="/js/app.min.js?v=7" defer></script>
+    <!-- QUICK VIEW SCAN ITEM MODAL -->
+    <div id="scanQuickViewModal" class="modal-backdrop" onclick="if(event.target === this) closeScanQuickView()" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 10005; align-items: center; justify-content: center; padding: 16px;">
+      <div style="background: var(--card-bg, #ffffff); color: var(--text-dark, #0f172a); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 680px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);">
+        <div style="padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary);">
+          <h4 id="scanQuickViewTitle" style="margin: 0; font-size: 18px; font-weight: 800; color: var(--primary);">📋 Xem Nhanh Mô Tả Tin Quét</h4>
+          <button onclick="closeScanQuickView()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); font-weight: 700;">×</button>
+        </div>
+        <div id="scanQuickViewContent" style="padding: 24px; overflow-y: auto; flex: 1; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; font-family: var(--font-mono);">
+          <!-- Content inserted dynamically -->
+        </div>
+        <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; background: var(--bg-secondary);">
+          <button onclick="closeScanQuickView()" style="background: var(--primary); color: #fff; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;">Đóng</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

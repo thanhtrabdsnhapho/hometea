@@ -1428,107 +1428,79 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
     try {
       const { ma_tk, noi_dung_tho, bai_dang_tho, gia, image_urls, khu } = req.body;
       if (!ma_tk) {
-        return res.status(400).json({ status: 'loi', error: 'Thiếu mã TK (ma_tk)' });
+        return res.status(400).json({ status: "loi", error: "Thiếu mã TK (ma_tk)" });
       }
-
-      const numericPrice = typeof gia === 'number' ? gia : parseFloat(gia) || 0;
+      const numericPrice = typeof gia === "number" ? gia : parseFloat(gia) || 0;
       const imgListJson = image_urls && Array.isArray(image_urls) ? JSON.stringify(image_urls) : JSON.stringify([]);
       const firstImg = (image_urls && image_urls.length > 0) ? image_urls[0] : "https://images.unsplash.com/photo-1564013799912-8581894dff3e?auto=format&fit=crop&w=800&q=80";
-
       const { data: existingRows, error: fetchErr } = await supabase
-        .from('properties_hometea')
-        .select('id, price, gia_nguon, publish_status')
-        .eq('ma_tk', ma_tk)
+        .from("properties_hometea")
+        .select("id, price, gia_nguon, publish_status")
+        .eq("ma_tk", ma_tk)
         .limit(1);
-
       if (fetchErr) {
-        return res.status(500).json({ status: 'loi', error: fetchErr.message });
+        return res.status(500).json({ status: "loi", error: fetchErr.message });
       }
-
       if (!existingRows || existingRows.length === 0) {
         const newRecord = {
           ma_tk,
-          noi_dung_tho: noi_dung_tho || '',
-          bai_dang_tho: bai_dang_tho || '',
+          noi_dung_tho: noi_dung_tho || "",
+          bai_dang_tho: bai_dang_tho || "",
           title: `TIN ĐĂNG MỚI - ${ma_tk}`,
-          desc: noi_dung_tho || bai_dang_tho || 'Đang cập nhật nội dung...',
+          desc: noi_dung_tho || bai_dang_tho || "Đang cập nhật nội dung...",
           price: numericPrice,
           price_text: `${numericPrice} Tỷ`,
-          ward: khu || 'Thủ Đức',
+          ward: khu || "Thủ Đức",
           img: firstImg,
           img_list: imgListJson,
-          publish_status: 'draft',
+          publish_status: "draft",
           gia_nguon: numericPrice,
           created_at: new Date().toISOString()
         };
-
         const { data: insertData, error: insertErr } = await supabase
-          .from('properties_hometea')
+          .from("properties_hometea")
           .insert([newRecord])
-          .select('id')
+          .select("id")
           .single();
-
         if (insertErr) {
-          if (insertErr.message?.includes('unique') || insertErr.message?.includes('duplicate') || insertErr.message?.includes('ma_tk')) {
-            return res.status(400).json({ status: 'loi', error: 'Đã tồn tại' });
+          if (insertErr.message?.includes("unique") || insertErr.message?.includes("duplicate") || insertErr.message?.includes("ma_tk")) {
+            return res.status(400).json({ status: "loi", error: "Đã tồn tại" });
           }
-          return res.status(500).json({ status: 'loi', error: insertErr.message });
+          return res.status(500).json({ status: "loi", error: insertErr.message });
         }
-
-        return res.status(200).json({ status: 'tao_nhap', id: insertData?.id, ma_tk });
+        return res.status(200).json({ status: "tao_nhap", id: insertData?.id, ma_tk, old_price: null, new_price: numericPrice });
       } else {
         const currentProp = existingRows[0];
         const currentPrice = parseFloat(currentProp.price) || 0;
-        const currentGiaNguon = currentProp.gia_nguon !== null && currentProp.gia_nguon !== undefined ? parseFloat(currentProp.gia_nguon) : null;
-
-        if (numericPrice === currentPrice) {
-          return res.status(200).json({ status: 'khong_doi', id: currentProp.id, ma_tk });
+        if (Math.abs(currentPrice - numericPrice) < 0.0001) {
+          return res.status(200).json({ status: "khong_doi", id: currentProp.id, ma_tk, old_price: currentPrice, new_price: numericPrice });
         }
-
-        if (currentGiaNguon === null || currentPrice === currentGiaNguon) {
-          const updatePayload = {
-            gia_cu: currentPrice,
-            price: numericPrice,
-            price_text: `${numericPrice} Tỷ`,
-            ngay_doi_gia: new Date().toISOString(),
-            gia_nguon: numericPrice,
-            updated_at: new Date().toISOString()
-          };
-
-          const { error: updateErr } = await supabase
-            .from('properties_hometea')
-            .update(updatePayload)
-            .eq('id', currentProp.id);
-
-          if (updateErr) {
-            return res.status(500).json({ status: 'loi', error: updateErr.message });
-          }
-
-          return res.status(200).json({ status: 'cap_nhat_gia', id: currentProp.id, ma_tk });
-        } else {
-          const updatePayload = {
-            gia_nguon_cho_duyet: numericPrice,
-            updated_at: new Date().toISOString()
-          };
-
-          const { error: updateErr } = await supabase
-            .from('properties_hometea')
-            .update(updatePayload)
-            .eq('id', currentProp.id);
-
-          if (updateErr) {
-            return res.status(500).json({ status: 'loi', error: updateErr.message });
-          }
-
-          return res.status(200).json({ status: 'cho_duyet', id: currentProp.id, ma_tk });
+        const nowIso = new Date().toISOString();
+        const updatePayload = {
+          gia_cu: currentPrice,
+          old_price: currentPrice,
+          price: numericPrice,
+          price_text: `${numericPrice} Tỷ`,
+          gia_nguon: numericPrice,
+          is_price_reduced: numericPrice < currentPrice,
+          ngay_doi_gia: nowIso,
+          price_updated_at: nowIso,
+          updated_at: nowIso
+        };
+        const { error: updateErr } = await supabase
+          .from("properties_hometea")
+          .update(updatePayload)
+          .eq("id", currentProp.id);
+        if (updateErr) {
+          return res.status(500).json({ status: "loi", error: updateErr.message });
         }
+        return res.status(200).json({ status: "cap_nhat_gia", id: currentProp.id, ma_tk, old_price: currentPrice, new_price: numericPrice });
       }
     } catch (err: any) {
-      return res.status(500).json({ status: 'loi', error: err?.message || String(err) });
+      return res.status(500).json({ status: "loi", error: err?.message || String(err) });
     }
   });
 
-  // API: Phân tích danh sách thư mục quét được từ client
   app.post("/api/phan-tich", async (req, res) => {
     try {
       const cookieHeader = req.headers.cookie || "";
@@ -1590,21 +1562,25 @@ Sitemap: ${SITE_URL}/sitemap.xml`;
             } else {
               const currentPrice = parseFloat(found.price) || 0;
               giaCu = currentPrice;
-              const diff = currentPrice - gia;
-              if (Math.abs(diff) < 0.0001) {
+              const currentVnd = Math.round(currentPrice * 1e9);
+              const newVnd = Math.round(gia * 1e9);
+              const diffVnd = currentVnd - newVnd;
+              if (Math.abs(diffVnd) < 1000) {
                 status = "trung";
                 note = "Tin đã tồn tại, giá không đổi";
-              } else if (diff > 0) {
+              } else if (diffVnd > 0) {
                 status = "giam_gia";
-                chenhLech = diff;
-                phanTram = currentPrice > 0 ? Number(((diff / currentPrice) * 100).toFixed(2)) : 0;
-                note = `Giảm ${diff.toFixed(2)} tỷ (${phanTram}%)`;
+                const diffBillion = Math.round((diffVnd / 1e9) * 100) / 100;
+                chenhLech = diffBillion;
+                phanTram = currentVnd > 0 ? Math.round(((diffVnd / currentVnd) * 100) * 100) / 100 : 0;
+                note = `Giảm ${chenhLech} tỷ (${phanTram}%)`;
               } else {
                 status = "tang_gia";
-                const tDiff = Math.abs(diff);
-                chenhLech = -tDiff;
-                phanTram = currentPrice > 0 ? Number(((tDiff / currentPrice) * 100).toFixed(2)) : 0;
-                note = `Tăng ${tDiff.toFixed(2)} tỷ (${phanTram}%)`;
+                const absDiffVnd = Math.abs(diffVnd);
+                const diffBillion = Math.round((absDiffVnd / 1e9) * 100) / 100;
+                chenhLech = -diffBillion;
+                phanTram = currentVnd > 0 ? Math.round(((absDiffVnd / currentVnd) * 100) * 100) / 100 : 0;
+                note = `Tăng ${diffBillion} tỷ (${phanTram}%)`;
               }
             }
           } else {
