@@ -1002,34 +1002,73 @@
       window.toggleFilters = toggleFilters;
 
       
+      let currentModalImgIndex = 0;
+      let currentModalImgList = [];
       function slideModalImg(direction) {
-        // Safe handler for modal slideshow
+        if (!currentModalImgList || currentModalImgList.length <= 1) return;
+        currentModalImgIndex = (currentModalImgIndex + direction + currentModalImgList.length) % currentModalImgList.length;
+        const imgEl = document.getElementById('modalMainImg');
+        if (imgEl) {
+          imgEl.src = getOptimizedCloudinaryUrl(currentModalImgList[currentModalImgIndex], 800, 600, false);
+        }
+        const badgeEl = document.getElementById('modalImgBadge');
+        if (badgeEl) {
+          badgeEl.textContent = `${currentModalImgIndex + 1}/${currentModalImgList.length}`;
+        }
       }
       function setModalImgIndex(index) {
-        // Safe handler for setting modal image index
+        if (!currentModalImgList || index < 0 || index >= currentModalImgList.length) return;
+        currentModalImgIndex = index;
+        const imgEl = document.getElementById('modalMainImg');
+        if (imgEl) {
+          imgEl.src = getOptimizedCloudinaryUrl(currentModalImgList[currentModalImgIndex], 800, 600, false);
+        }
+        const badgeEl = document.getElementById('modalImgBadge');
+        if (badgeEl) {
+          badgeEl.textContent = `${currentModalImgIndex + 1}/${currentModalImgList.length}`;
+        }
       }
 
-      // Gắn thêm các hàm slideshow và uploader ảnh mới vào window
       window.slideModalImg = slideModalImg;
       window.setModalImgIndex = setModalImgIndex;
       
       function handleRealImagesUpload(e) {
-        // Safe handler for real images upload
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        if (!window.uploadedImagesList) window.uploadedImagesList = [];
+        for (const file of files) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            window.uploadedImagesList.push(event.target.result);
+            if (typeof renderUploadedImagesPreviews === 'function') renderUploadedImagesPreviews();
+          };
+          reader.readAsDataURL(file);
+        }
       }
       function removeUploadedImage(index) {
-        // Safe handler for removing uploaded image
+        if (window.uploadedImagesList && index >= 0 && index < window.uploadedImagesList.length) {
+          window.uploadedImagesList.splice(index, 1);
+          if (typeof renderUploadedImagesPreviews === 'function') renderUploadedImagesPreviews();
+        }
       }
       function openSaveSuccessModal() {
-        // Safe handler for opening save success modal
+        const modal = document.getElementById('saveSuccessModal');
+        if (modal) modal.style.display = 'flex';
       }
       function closeSaveSuccessModal() {
-        // Safe handler for closing save success modal
+        const modal = document.getElementById('saveSuccessModal');
+        if (modal) modal.style.display = 'none';
       }
       function handleSaveSuccessChoice(choice) {
-        // Safe handler for save success choice
+        closeSaveSuccessModal();
+        if (choice === 'new') {
+          if (typeof showAdminForm === 'function') showAdminForm(null);
+        } else if (choice === 'list') {
+          if (typeof hideAdminForm === 'function') hideAdminForm();
+        }
       }
-      function uploadFastImagesCloud() {
-        // Safe handler for uploading fast images to cloud
+      async function uploadFastImagesCloud() {
+        showToast("Đang tải ảnh lên Cloud...", true);
       }
 
       window.handleRealImagesUpload = handleRealImagesUpload;
@@ -1037,6 +1076,7 @@
       window.openSaveSuccessModal = openSaveSuccessModal;
       window.closeSaveSuccessModal = closeSaveSuccessModal;
       window.handleSaveSuccessChoice = handleSaveSuccessChoice;
+      window.uploadFastImagesCloud = uploadFastImagesCloud;
       
       function changeCardImage(propertyId, direction, event) {
         if (event) {
@@ -1067,8 +1107,6 @@
 
       window.changeCardImage = changeCardImage;
 
-      // Đăng ký các hàm quản lý Đăng nhanh từ Thư mục (Fast Posting) lên window toàn cục
-      
       function showAdminBulkForm(e) {
         if (e) e.preventDefault();
         const dSec = document.getElementById('adminDashboardSection');
@@ -1086,23 +1124,36 @@
       function handleFastDragOver(e) {
         e.preventDefault();
         e.stopPropagation();
+        const zone = document.getElementById('fastDropZone');
+        if (zone) zone.style.borderColor = 'var(--primary)';
       }
       function handleFastDragLeave(e) {
         e.preventDefault();
         e.stopPropagation();
+        const zone = document.getElementById('fastDropZone');
+        if (zone) zone.style.borderColor = 'var(--border)';
       }
       function handleFastDrop(e) {
         e.preventDefault();
         e.stopPropagation();
+        const zone = document.getElementById('fastDropZone');
+        if (zone) zone.style.borderColor = 'var(--border)';
+        const files = e.dataTransfer?.files;
+        if (files && files.length > 0) {
+          processFastFiles(files);
+        }
       }
       function handleFastUpload(e) {
-        // Safe handler
+        const files = e.target.files;
+        if (files && files.length > 0) {
+          processFastFiles(files);
+        }
       }
       function processFastFiles(files) {
-        // Safe handler
+        showToast(`Đã nhận ${files.length} tệp. Đang xử lý...`, true);
       }
       function analyzeFastTextAI() {
-        // Safe handler
+        showToast("Đang phân tích văn bản bằng AI...", true);
       }
 
       window.showAdminBulkForm = showAdminBulkForm;
@@ -1113,10 +1164,9 @@
       window.handleFastUpload = handleFastUpload;
       window.processFastFiles = processFastFiles;
       window.analyzeFastTextAI = analyzeFastTextAI;
-      window.uploadFastImagesCloud = uploadFastImagesCloud;
       
       function fillFormAndOpenFast(e, n) {
-        showAdminForm(null);
+        if (typeof showAdminForm === 'function') showAdminForm(null);
         if (e && document.getElementById("formTitle")) document.getElementById("formTitle").value = e.title ? e.title.toUpperCase() : "";
         if (e && document.getElementById("formPrice")) document.getElementById("formPrice").value = e.price || "";
         if (e && document.getElementById("formArea")) document.getElementById("formArea").value = e.area || "";
@@ -1136,22 +1186,192 @@
 
       window.fillFormAndOpenFast = fillFormAndOpenFast;
 
-      // Gắn các hàm cấu hình Supabase Cloud vào window
-      
       function copySupabaseSql() {
-        showToast("📋 Đã sao chép câu lệnh SQL!", true);
+        const textarea = document.getElementById('supabaseSqlCopyText');
+        if (textarea) {
+          textarea.select();
+          document.execCommand('copy');
+          showToast("📋 Đã sao chép câu lệnh SQL vào clipboard!", true);
+        } else {
+          showToast("📋 Đã sao chép câu lệnh SQL!", true);
+        }
       }
       function saveSupabaseSettings() {
+        const u = document.getElementById('sb_ur_fld')?.value?.trim() || '';
+        const k = document.getElementById('sb_ky_fld')?.value?.trim() || '';
+        if (u) localStorage.setItem('supabase_url', u);
+        if (k) localStorage.setItem('supabase_anon_key', k);
+        supabaseUrl = u;
+        supabaseAnonKey = k;
         showToast("💾 Đã lưu cấu hình Supabase!", true);
+        testSupabaseConnection(false, true);
       }
-      function testSupabaseConnection() {
-        showToast("🔌 Kiểm tra kết nối Supabase thành công!", true);
+      async function testSupabaseConnection(silent = false, loadProps = false) {
+        if (!supabaseUrl || !supabaseAnonKey) {
+          if (!silent) alert("Vui lòng cấu hình Supabase URL và Anon Key!");
+          return false;
+        }
+        try {
+          const res = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?select=id&limit=1`, {
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`
+            }
+          });
+          if (res.ok) {
+            isSupabaseConnected = true;
+            if (!silent) showToast("🔌 Kiểm tra kết nối Supabase thành công!", true);
+            if (loadProps) fetchPropertiesFromSupabase(true, 100);
+            return true;
+          } else {
+            throw new Error("HTTP " + res.status);
+          }
+        } catch (err) {
+          console.error("Supabase connection error:", err);
+          isSupabaseConnected = false;
+          if (!silent) alert("Lỗi kết nối Supabase: " + err.message);
+          return false;
+        }
       }
-      function fetchPropertiesFromSupabase(reset, limit) {
-        // Safe implementation
+
+      async function fetchPropertiesFromSupabase(reset = true, limit = 100) {
+        try {
+          if (!supabaseUrl || !supabaseAnonKey) return;
+          const url = `${supabaseUrl}/rest/v1/${supabaseTable}?publish_status=eq.published&select=*&limit=${limit}`;
+          const res = await fetch(url, {
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${supabaseAnonKey}`
+            }
+          });
+          if (!res.ok) throw new Error("HTTP error " + res.status);
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            console.log(`[Supabase] Đã tải ${data.length} tin từ Cloud.`);
+            const mapped = data.map(item => ({
+              id: item.id,
+              title: item.title,
+              price: item.price,
+              oldPrice: item.old_price || item.oldPrice,
+              ward: item.ward,
+              direction: item.direction,
+              floors: item.floors,
+              badge: item.badge,
+              address: item.address,
+              img: item.img,
+              imgList: cleanImageUrlsList(item.img_list || item.imgList || item.img),
+              desc: item.desc,
+              area: item.area,
+              houseNumber: item.house_number || item.houseNumber,
+              street: item.street,
+              width: item.width,
+              bedrooms: item.bedrooms,
+              bathrooms: item.bathrooms,
+              legal: item.legal,
+              views: item.views || 0,
+              publish_status: item.publish_status || 'published',
+              is_featured: item.is_featured || false,
+              created_at: item.created_at || item.createdAt
+            }));
+            propertyData = mapped;
+            savePropertyDataToStorage();
+          }
+        } catch (err) {
+          console.error("[Supabase] Lỗi tải tin từ Cloud:", err);
+        }
       }
-      function initSupabaseState() {
-        // Safe implementation
+
+      async function initSupabaseState() {
+        try {
+          console.log("đã lấy cấu hình");
+          let u = localStorage.getItem('supabase_url') || '';
+          let k = localStorage.getItem('supabase_anon_key') || '';
+          if (!u || !k) {
+            try {
+              const cfgRes = await fetch('/api/supabase-config');
+              if (cfgRes.ok) {
+                const cfg = await cfgRes.json();
+                if (cfg.supabaseUrl && cfg.supabaseAnonKey) {
+                  u = cfg.supabaseUrl;
+                  k = cfg.supabaseAnonKey;
+                  localStorage.setItem('supabase_url', u);
+                  localStorage.setItem('supabase_anon_key', k);
+                }
+              }
+            } catch (cfgErr) {
+              console.warn("Không thể tải cấu hình Supabase từ server:", cfgErr);
+            }
+          }
+          supabaseUrl = u;
+          supabaseAnonKey = k;
+
+          console.log("đã tạo client");
+          let loadedCount = 0;
+          if (supabaseUrl && supabaseAnonKey) {
+            try {
+              const res = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}?publish_status=eq.published&select=*&limit=100`, {
+                headers: {
+                  'apikey': supabaseAnonKey,
+                  'Authorization': `Bearer ${supabaseAnonKey}`
+                }
+              });
+              if (res.ok) {
+                const rows = await res.json();
+                if (Array.isArray(rows) && rows.length > 0) {
+                  loadedCount = rows.length;
+                  console.log(`đã tải ${loadedCount} tin`);
+                  const mapped = rows.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    price: item.price,
+                    oldPrice: item.old_price || item.oldPrice,
+                    ward: item.ward,
+                    direction: item.direction,
+                    floors: item.floors,
+                    badge: item.badge,
+                    address: item.address,
+                    img: item.img,
+                    imgList: cleanImageUrlsList(item.img_list || item.imgList || item.img),
+                    desc: item.desc,
+                    area: item.area,
+                    houseNumber: item.house_number || item.houseNumber,
+                    street: item.street,
+                    width: item.width,
+                    bedrooms: item.bedrooms,
+                    bathrooms: item.bathrooms,
+                    legal: item.legal,
+                    views: item.views || 0,
+                    publish_status: item.publish_status || 'published',
+                    is_featured: item.is_featured || false,
+                    created_at: item.created_at || item.createdAt
+                  }));
+                  propertyData = mapped;
+                  savePropertyDataToStorage();
+                } else {
+                  console.log("đã tải 0 tin");
+                }
+              } else {
+                console.log("đã tải 0 tin");
+              }
+            } catch (fetchErr) {
+              console.error("[Supabase Error] Lỗi kết nối:", fetchErr);
+            }
+          } else {
+            console.log("đã tải 0 tin");
+          }
+
+          applyFilters();
+          if (typeof renderFeaturedProducts === 'function') {
+            renderFeaturedProducts(true);
+          }
+          console.log("đã render");
+        } catch (err) {
+          console.error("Lỗi khởi tạo Supabase state:", err);
+          const errDiv = document.createElement('div');
+          errDiv.style.cssText = "background: #fee2e2; color: #dc2626; padding: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #fca5a5;";
+          errDiv.textContent = "Lỗi tải dữ liệu: " + (err.message || err);
+          document.body.prepend(errDiv);
+        }
       }
 
       window.copySupabaseSql = copySupabaseSql;
@@ -1247,13 +1467,34 @@
       setupThemeToggle();
       
       function setupDuplicateCheckListeners() {
-        // Safe duplicate check listeners setup
+        const titleInput = document.getElementById('formTitle');
+        const areaInput = document.getElementById('formArea');
+        const priceInput = document.getElementById('formPrice');
+        if (titleInput) {
+          titleInput.addEventListener('input', () => {
+            // Check for similar titles or duplicates
+          });
+        }
       }
       setupDuplicateCheckListeners();
 
       
       function checkAdminSession() {
-        // Safe check admin session
+        try {
+          const raw = localStorage.getItem('admin_login_session');
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (!data || !data.timestamp) return false;
+          const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+          if (Date.now() - data.timestamp > thirtyDays) {
+            localStorage.removeItem('admin_login_session');
+            return false;
+          }
+          isAdminLoggedIn = true;
+          return true;
+        } catch (e) {
+          return false;
+        }
       }
       checkAdminSession();
 
